@@ -523,10 +523,34 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
       <input type="text" id="mad-grupo" placeholder="Ej: Sabor de helado" oninput="syncGrupoOpcs()">
     </div>
 
+    <!-- Opciones obligatorio / activo -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;padding:14px;display:flex;align-items:flex-start;gap:10px">
+        <label class="toggle" style="flex-shrink:0;margin-top:2px">
+          <input type="checkbox" id="mad-obligatorio">
+          <span class="tslider"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;font-weight:600">Selección obligatoria</div>
+          <div style="font-size:11px;color:var(--mut);margin-top:2px">El cliente <strong>debe</strong> elegir al menos una opción antes de agregar al carrito</div>
+        </div>
+      </div>
+      <div style="background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;padding:14px;display:flex;align-items:flex-start;gap:10px">
+        <label class="toggle" style="flex-shrink:0;margin-top:2px">
+          <input type="checkbox" id="mad-activo" checked>
+          <span class="tslider"></span>
+        </label>
+        <div>
+          <div style="font-size:13px;font-weight:600">Grupo visible</div>
+          <div style="font-size:11px;color:var(--mut);margin-top:2px">Muestra este grupo en el menú del cliente</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Lista de opciones -->
     <div class="fg">
       <label>Opciones del grupo *
-        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Agrega todas las que quieras</span>
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Activa/desactiva disponibilidad por opción</span>
       </label>
       <div id="mad-opciones-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
       <button type="button" onclick="agregarOpcionAdicion()" style="
@@ -537,12 +561,6 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
          onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--mut)'">
         ＋ Agregar otra opción
       </button>
-    </div>
-
-    <div class="fg">
-      <div class="checks">
-        <label class="chk"><input type="checkbox" id="mad-activo" checked> Visible para clientes</label>
-      </div>
     </div>
 
     <div class="mbtns">
@@ -975,6 +993,7 @@ function renderExtraList(containerId, lista, tipo){
           <div>
             <span style="font-size:13px;font-weight:700;font-family:var(--fh)">🎁 ${g.grupo}</span>
             <span style="font-size:11px;color:var(--mut);margin-left:8px">${g.cat?.emoji||''} ${g.cat?.nombre||''}</span>
+            ${g.items[0]?.obligatorio?'<span style="font-size:10px;background:rgba(239,68,68,.15);color:var(--red);border-radius:5px;padding:1px 7px;font-weight:700;margin-left:6px">⚠ Obligatorio</span>':'<span style="font-size:10px;background:rgba(45,211,111,.1);color:var(--grn);border-radius:5px;padding:1px 7px;font-weight:700;margin-left:6px">Opcional</span>'}
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span style="font-size:11px;background:var(--sur);border:1px solid var(--bdr);border-radius:99px;padding:2px 10px;color:var(--mut)">${g.items.length} opción${g.items.length!==1?'es':''}</span>
@@ -985,8 +1004,11 @@ function renderExtraList(containerId, lista, tipo){
         <div style="padding:8px 16px">
           ${g.items.map(e=>`
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bdr)">
-            <span style="font-size:13px;font-weight:500">• ${e.nombre}</span>
-            <span style="font-size:12px;color:var(--grn);font-weight:600">✓ Incluido</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:13px;font-weight:500;color:${e.disponible===false?'var(--mut)':'inherit'};text-decoration:${e.disponible===false?'line-through':''}">${e.nombre}</span>
+              ${e.disponible===false?'<span style="font-size:10px;background:rgba(239,68,68,.15);color:var(--red);border-radius:5px;padding:1px 7px;font-weight:700">Agotado</span>':''}
+            </div>
+            <span style="font-size:12px;color:${e.disponible!==false?'var(--grn)':'var(--red)'};font-weight:600">${e.disponible!==false?'✓ Disponible':'✗ Agotado'}</span>
           </div>`).join('')}
         </div>
       </div>`;
@@ -1076,24 +1098,30 @@ async function guardarExtra(){
 let opcionesAdicion=[]; // array de {id:'', nombre:''}  — id vacío = nueva
 
 function abrirAdicion(adicionExistente=null){
-  // Si editamos, cargamos todas las opciones del mismo grupo+categoria
   document.getElementById('mad-tit').textContent=adicionExistente?'Editar Adición':'Nueva Adición';
   document.getElementById('mad-cat').innerHTML=
     '<option value="">Selecciona categoría</option>'+
     cats.map(c=>`<option value="${c.id}" ${adicionExistente?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
-  document.getElementById('mad-activo').checked=adicionExistente?adicionExistente.activo!==false:true;
 
   if(adicionExistente){
-    // Cargar todo el grupo para edición
     const grupo=adicionExistente.grupo||'';
     const catId=adicionExistente.categoria_id;
     document.getElementById('mad-grupo').value=grupo;
-    // Todas las filas del mismo grupo y categoría
     const grupoItems=extras.filter(e=>e.tipo==='adicion'&&e.grupo===grupo&&e.categoria_id===catId);
-    opcionesAdicion=grupoItems.map(e=>({id:e.id,nombre:e.nombre,desc:e.descripcion||''}));
+    // obligatorio: leer del primer ítem del grupo
+    document.getElementById('mad-obligatorio').checked=grupoItems[0]?.obligatorio===true;
+    document.getElementById('mad-activo').checked=grupoItems[0]?.activo!==false;
+    opcionesAdicion=grupoItems.map(e=>({
+      id:e.id,
+      nombre:e.nombre,
+      desc:e.descripcion||'',
+      disponible:e.disponible!==false  // true por defecto
+    }));
   } else {
     document.getElementById('mad-grupo').value='';
-    opcionesAdicion=[{id:'',nombre:'',desc:''}]; // al menos una fila vacía
+    document.getElementById('mad-obligatorio').checked=false;
+    document.getElementById('mad-activo').checked=true;
+    opcionesAdicion=[{id:'',nombre:'',desc:'',disponible:true}];
   }
 
   renderOpcionesAdicion();
@@ -1106,22 +1134,37 @@ function syncGrupoOpcs(){/* campo grupo se lee al guardar */}
 function renderOpcionesAdicion(){
   const container=document.getElementById('mad-opciones-list');
   container.innerHTML=opcionesAdicion.map((op,i)=>`
-    <div class="opcion-row" id="oprow-${i}">
-      <input type="text" value="${op.nombre}" placeholder="Ej: Vainilla"
+    <div class="opcion-row" id="oprow-${i}" style="align-items:center;gap:8px;background:var(--sur2);border-radius:10px;padding:8px 10px;border:1.5px solid ${op.disponible!==false?'var(--bdr)':'rgba(239,68,68,.3)'}">
+      <input type="text" value="${op.nombre.replace(/"/g,'&quot;')}" placeholder="Ej: Vainilla"
+        style="flex:1;background:transparent;border:none;color:var(--txt);font-size:14px;font-family:var(--fb);padding:4px 2px;outline:none"
         oninput="opcionesAdicion[${i}].nombre=this.value"
         onkeydown="if(event.key==='Enter'){event.preventDefault();agregarOpcionAdicion();}">
+      <!-- Toggle disponible -->
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <span style="font-size:11px;color:${op.disponible!==false?'var(--grn)':'var(--red)'};font-weight:600;min-width:64px;text-align:right">
+          ${op.disponible!==false?'✓ Disponible':'✗ Agotado'}
+        </span>
+        <label class="toggle" style="flex-shrink:0" title="${op.disponible!==false?'Marcar como agotado':'Marcar como disponible'}">
+          <input type="checkbox" ${op.disponible!==false?'checked':''} onchange="toggleOpcionDisp(${i},this.checked)">
+          <span class="tslider"></span>
+        </label>
+      </div>
       <button class="opcion-del" onclick="eliminarOpcionAdicion(${i})" title="Eliminar opción"
         ${opcionesAdicion.length<=1?'style="opacity:.3;pointer-events:none"':''}>✕</button>
     </div>`).join('');
-  // Foco en el último input
   setTimeout(()=>{
-    const inputs=container.querySelectorAll('input');
+    const inputs=container.querySelectorAll('input[type=text]');
     if(inputs.length) inputs[inputs.length-1].focus();
   },50);
 }
 
+function toggleOpcionDisp(i, val){
+  opcionesAdicion[i].disponible=val;
+  renderOpcionesAdicion();
+}
+
 function agregarOpcionAdicion(){
-  opcionesAdicion.push({id:'',nombre:'',desc:''});
+  opcionesAdicion.push({id:'',nombre:'',desc:'',disponible:true});
   renderOpcionesAdicion();
 }
 
@@ -1135,6 +1178,7 @@ async function guardarAdicion(){
   const grupo=document.getElementById('mad-grupo').value.trim();
   const catId=document.getElementById('mad-cat').value;
   const activo=document.getElementById('mad-activo').checked;
+  const obligatorio=document.getElementById('mad-obligatorio').checked;
 
   if(!grupo){toast('❌ El nombre del grupo es obligatorio','err');return;}
   if(!catId){toast('❌ Selecciona una categoría','err');return;}
@@ -1143,23 +1187,20 @@ async function guardarAdicion(){
   if(!nombresValidos.length){toast('❌ Agrega al menos una opción','err');return;}
 
   try{
-    // 1. Obtener IDs actuales del grupo en BD para detectar eliminadas
     const {data:existentes}=await db.from('extras')
       .select('id').eq('tipo','adicion').eq('grupo',grupo).eq('categoria_id',catId);
     const idsExistentes=new Set((existentes||[]).map(r=>r.id));
     const idsNuevos=new Set(opcionesAdicion.filter(o=>o.id).map(o=>o.id));
 
-    // 2. Eliminar las que ya no están en la lista
     const aBorrar=[...idsExistentes].filter(id=>!idsNuevos.has(id));
-    if(aBorrar.length){
-      await db.from('extras').delete().in('id',aBorrar);
-    }
+    if(aBorrar.length) await db.from('extras').delete().in('id',aBorrar);
 
-    // 3. Upsert de cada opción válida
     const upserts=nombresValidos.map(op=>({
       ...(op.id?{id:op.id}:{}),
       nombre:op.nombre.trim(),
-      tipo:'adicion', grupo, categoria_id:catId, precio:0, activo,
+      tipo:'adicion', grupo, categoria_id:catId, precio:0,
+      activo, obligatorio,
+      disponible: op.disponible!==false,   // ← nuevo
       descripcion:op.desc||null
     }));
     const {error}=await db.from('extras').upsert(upserts,{onConflict:'id'});
