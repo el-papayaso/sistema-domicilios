@@ -777,36 +777,24 @@ async function enviarPedido(){
   const tel=document.getElementById('c-tel').value.trim();
   const dir=document.getElementById('c-dir').value.trim();
   const nota=document.getElementById('c-nota').value.trim();
-  if(!nom||!tel||!dir){alert('Por favor completa tu nombre, teléfono y dirección 📍');return;}
-  if(!carrito.length){alert('Agrega productos al carrito primero');return;}
-  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  const wa=cfg.whatsapp||'573001234567';
-  try{
-    const {data:ped,error}=await db.from('pedidos').insert({
-      cliente_nombre:nom,cliente_telefono:tel,
-      cliente_direccion:dir,cliente_notas:nota||null,
-      subtotal,total:subtotal,estado:'pendiente'
-    }).select().single();
-    if(!error&&ped){
-      await db.from('pedido_items').insert(carrito.map(i=>({
-        pedido_id:ped.id,producto_id:i.id,
-        producto_nombre:i.nombre+(i.extras&&i.extras.length?' ('+i.extras.map(e=>e.nombre).join(', ')+')':''),
-        producto_precio:i.precio,
-        cantidad:i.qty,subtotal:i.precio*i.qty,
-        notas:i.extras&&i.extras.length?i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', '):null
-      })));
-      const num=ped.numero_pedido||ped.id.slice(0,6).toUpperCase();
-      abrirWA(wa,nom,tel,dir,nota,num,carrito);
-      carrito=[];actualizarCarrito();toggleDrawer();
-      ['c-nom','c-tel','c-dir','c-nota'].forEach(id=>document.getElementById(id).value='');
-      alert(`✅ Pedido #${num} enviado. ¡Gracias ${nom}! Te confirmaremos por WhatsApp.`);
-    }
-  }catch(e){
-    abrirWA(wa,nom,tel,dir,nota,'',carrito);
+
+  if(!nom||!tel||!dir){
+    alert('Por favor completa tu nombre, teléfono y dirección 📍');
+    return;
   }
-}
-function abrirWA(wa,nom,tel,dir,nota,num,carr){
-  const lineas=(carr||carrito).map(i=>{
+  if(!carrito.length){
+    alert('Agrega productos al carrito primero');
+    return;
+  }
+
+  // ── Número de WhatsApp del negocio ──
+  // Siempre se guarda como "57XXXXXXXXXX" desde el admin
+  const waRaw=(cfg.whatsapp||'573001234567').replace(/\D/g,'');
+  const waNum=waRaw.startsWith('57')?waRaw:'57'+waRaw;
+
+  // ── Construir mensaje ──
+  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  const lineas=carrito.map(i=>{
     let l=`• ${i.qty}x ${i.nombre} — ${$f(i.precio*i.qty)}`;
     if(i.extras&&i.extras.length){
       const grupos={};const sinGrupo=[];
@@ -821,10 +809,51 @@ function abrirWA(wa,nom,tel,dir,nota,num,carr){
     }
     return l;
   }).join('\n');
-  const total=$f((carr||carrito).reduce((a,i)=>a+i.precio*i.qty,0));
-  const msg=`🛵 *${num?`PEDIDO #${num}`:'NUEVO PEDIDO'}*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* ${tel}\n📍 *Dirección:* ${dir}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n💰 *Total: ${total}*`;
-  const n=wa.replace(/\D/g,'');
-  window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
+  const msg=`🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* ${tel}\n📍 *Dirección:* ${dir}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n💰 *Total: ${$f(subtotal)}*`;
+  const waUrl=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
+
+  // ── ABRIR WHATSAPP PRIMERO (antes de cualquier await) ──
+  // Los navegadores móviles bloquean window.open si se llama después de un await
+  const waWindow=window.open(waUrl,'_blank');
+
+  // ── Guardar pedido en Supabase (en segundo plano) ──
+  try{
+    const {data:ped,error}=await db.from('pedidos').insert({
+      cliente_nombre:nom, cliente_telefono:tel,
+      cliente_direccion:dir, cliente_notas:nota||null,
+      subtotal, total:subtotal, estado:'pendiente'
+    }).select().single();
+
+    if(!error&&ped){
+      await db.from('pedido_items').insert(carrito.map(i=>({
+        pedido_id:ped.id, producto_id:i.id,
+        producto_nombre:i.nombre+(i.extras&&i.extras.length
+          ?' ('+i.extras.map(e=>e.nombre).join(', ')+')'
+          :''),
+        producto_precio:i.precio,
+        cantidad:i.qty, subtotal:i.precio*i.qty,
+        notas:i.extras&&i.extras.length
+          ?i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')
+          :null
+      })));
+      // Actualizar URL de WA con número de pedido real
+      const num=ped.numero_pedido||ped.id.slice(0,6).toUpperCase();
+      const msgConNum=msg.replace('*NUEVO PEDIDO*',`*PEDIDO #${num}*`);
+      const urlConNum=`https://wa.me/${waNum}?text=${encodeURIComponent(msgConNum)}`;
+      // Si la ventana sigue abierta y la podemos navegar, actualizamos la URL
+      try{ if(waWindow&&!waWindow.closed){ waWindow.location.href=urlConNum; } }catch(_){}
+    }
+  }catch(err){
+    console.error('Error guardando pedido:',err);
+    // El mensaje ya fue enviado por WA, el pedido puede no quedar en Supabase
+    // pero el negocio lo recibe igual por WhatsApp
+  }
+
+  // ── Limpiar carrito y cerrar drawer ──
+  carrito=[];
+  actualizarCarrito();
+  toggleDrawer();
+  ['c-nom','c-tel','c-dir','c-nota'].forEach(id=>document.getElementById(id).value='');
 }
 
 // ── DRAWER ──
