@@ -198,6 +198,48 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .skel{background:linear-gradient(90deg,var(--warm) 0%,var(--bdr) 50%,var(--warm) 100%);background-size:200%;animation:shim 1.5s infinite;border-radius:8px}
 @keyframes shim{0%{background-position:200%}100%{background-position:-200%}}
 
+/* ════ MODAL EXTRAS ════ */
+.mext-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+  align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.mext-ov.open{display:flex}
+.mext-sheet{
+  background:var(--sur);width:100%;max-width:500px;border-radius:22px 22px 0 0;
+  max-height:88vh;display:flex;flex-direction:column;
+  animation:sheetUp .3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mext-head{padding:18px 20px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.mext-handle{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto 14px}
+.mext-head h3{font-family:var(--fh);font-size:19px;font-weight:900;margin-bottom:2px}
+.mext-head p{font-size:13px;color:var(--mut)}
+.mext-body{flex:1;overflow-y:auto;padding:16px 20px}
+.mext-section{margin-bottom:20px}
+.mext-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:var(--mut);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.mext-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--warm);border-radius:12px;margin-bottom:8px;cursor:pointer;
+  border:2px solid transparent;transition:all .2s}
+.mext-opt:hover{border-color:rgba(232,93,47,.3)}
+.mext-opt.selected{border-color:var(--acc);background:#fff3ef}
+.mext-opt-info{flex:1}
+.mext-opt-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.mext-opt-info small{font-size:12px;color:var(--mut)}
+.mext-opt-precio{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--acc);flex-shrink:0}
+.mext-opt-inc{font-size:12px;color:var(--acc2);font-weight:700;flex-shrink:0}
+.mext-chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--bdr);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s}
+.mext-opt.selected .mext-chk{background:var(--acc);border-color:var(--acc);color:#fff}
+.mext-foot{padding:16px 20px;border-top:1px solid var(--bdr);flex-shrink:0}
+.mext-total{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mext-total span{font-size:13px;color:var(--mut)}
+.mext-total strong{font-family:var(--fh);font-size:18px;font-weight:900;color:var(--acc)}
+.mext-add-btn{
+  width:100%;padding:14px;background:var(--acc);color:#fff;border:none;
+  border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:var(--fh);transition:all .2s;
+}
+.mext-add-btn:hover{background:#d04a1c}
+
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 
@@ -288,24 +330,45 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   </div>
 </div>
 
+<!-- MODAL EXTRAS / ADICIONES -->
+<div class="mext-ov" id="mext-ov" onclick="cerrarExtrasModal(event)">
+  <div class="mext-sheet" id="mext-sheet">
+    <div class="mext-head">
+      <div class="mext-handle"></div>
+      <h3 id="mext-nombre">Producto</h3>
+      <p id="mext-precio-base"></p>
+    </div>
+    <div class="mext-body" id="mext-body"></div>
+    <div class="mext-foot">
+      <div class="mext-total">
+        <span>Total con extras:</span>
+        <strong id="mext-total">$0</strong>
+      </div>
+      <button class="mext-add-btn" onclick="confirmarExtras()">Agregar al carrito 🛒</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SURL='https://ramgdkqowllcmenxzwhn.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWdka3Fvd2xsY21lbnh6d2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzMxNTksImV4cCI6MjA5MzA0OTE1OX0.cQpAlUYheb1RMm-KwSeX0Q1W6lO6GtlCMT6PX5vkz-I';
 const {createClient}=supabase;
 const db=createClient(SURL,SKEY);
 
-let cats=[],prods=[],carrito=[],cfg={},catActiva='all';
+let cats=[],prods=[],carrito=[],cfg={},catActiva='all',extrasDB=[],prodActual=null,extrasSeleccionados=[];
 
 // ── INIT ──
 async function init(){
-  const [c,p,co]=await Promise.all([
+  const [c,p,co,ex]=await Promise.all([
     db.from('categorias').select('*').eq('activo',true).order('orden'),
     db.from('productos').select('*, categorias(nombre,emoji)').eq('disponible',true).order('orden'),
-    db.from('configuracion').select('*').limit(1).single()
+    db.from('configuracion').select('*').limit(1).single(),
+    db.from('extras').select('*').eq('activo',true).order('nombre')
   ]);
   cats=c.data||[];
   prods=p.data||[];
   cfg=co.data||{};
+  extrasDB=ex.data||[];
   aplicarConfig();
   renderNav();
   renderMenu();
@@ -456,21 +519,127 @@ function prodHTML(p){
 function addToCart(id){
   const p=prods.find(x=>x.id===id);
   if(!p)return;
-  const ex=carrito.find(i=>i.id===id);
-  if(ex)ex.qty++;
-  else carrito.push({id,nombre:p.nombre,precio:p.precio,emoji:p.categorias?.emoji||'🍽️',img:p.imagen_url,qty:1});
+  // Buscar extras/adiciones de la categoría del producto
+  const catId=p.categoria_id;
+  const extCat=extrasDB.filter(e=>e.categoria_id===catId);
+  if(extCat.length>0){
+    // Mostrar modal de extras antes de agregar
+    abrirExtrasModal(p, extCat);
+    return;
+  }
+  // Sin extras: agregar directo
+  agregarAlCarrito(p,[]);
+  feedbackBtn(id);
+}
+
+function abrirExtrasModal(p, extCat){
+  prodActual=p;
+  extrasSeleccionados=[];
+  document.getElementById('mext-nombre').textContent=p.nombre;
+  document.getElementById('mext-precio-base').textContent='Precio base: '+$f(p.precio);
+  calcularTotalModal();
+  // Renderizar opciones
+  const globales=extCat.filter(e=>e.tipo==='extra');
+  const adics=extCat.filter(e=>e.tipo==='adicion');
+  let html='';
+  if(adics.length){
+    html+=`<div class="mext-section">
+      <div class="mext-section-title">🎁 Adiciones incluidas</div>
+      ${adics.map(e=>`
+        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre}')">
+          <div class="mext-chk" id="ec-${e.id}"></div>
+          <div class="mext-opt-info"><h4>${e.nombre}</h4><small>${e.descripcion||''}</small></div>
+          <span class="mext-opt-inc">Incluido ✓</span>
+        </div>`).join('')}
+    </div>`;
+  }
+  if(globales.length){
+    html+=`<div class="mext-section">
+      <div class="mext-section-title">💰 Extras adicionales</div>
+      ${globales.map(e=>`
+        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',${e.precio},'${e.nombre}')">
+          <div class="mext-chk" id="ec-${e.id}"></div>
+          <div class="mext-opt-info"><h4>${e.nombre}</h4><small>${e.descripcion||''}</small></div>
+          <span class="mext-opt-precio">+${$f(e.precio)}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('mext-body').innerHTML=html||'<p style="color:var(--mut);text-align:center;padding:20px">Sin opciones adicionales</p>';
+  document.getElementById('mext-ov').classList.add('open');
+}
+
+function toggleExtra(id, precio, nombre){
+  const idx=extrasSeleccionados.findIndex(e=>e.id===id);
+  const opt=document.getElementById('eo-'+id);
+  const chk=document.getElementById('ec-'+id);
+  if(idx>=0){
+    extrasSeleccionados.splice(idx,1);
+    opt.classList.remove('selected');
+    chk.textContent='';
+  } else {
+    extrasSeleccionados.push({id,nombre,precio:Number(precio)});
+    opt.classList.add('selected');
+    chk.textContent='✓';
+  }
+  calcularTotalModal();
+}
+
+function calcularTotalModal(){
+  if(!prodActual)return;
+  const costoExtras=extrasSeleccionados.reduce((a,e)=>a+e.precio,0);
+  document.getElementById('mext-total').textContent=$f(prodActual.precio+costoExtras);
+}
+
+function confirmarExtras(){
+  if(!prodActual)return;
+  agregarAlCarrito(prodActual, extrasSeleccionados);
+  feedbackBtn(prodActual.id);
+  cerrarExtrasModal();
+}
+
+function cerrarExtrasModal(e){
+  if(e&&e.target!==document.getElementById('mext-ov'))return;
+  document.getElementById('mext-ov').classList.remove('open');
+  prodActual=null;
+  extrasSeleccionados=[];
+}
+
+function agregarAlCarrito(p, selectedExtras){
+  const costoExtras=selectedExtras.reduce((a,e)=>a+e.precio,0);
+  const precioFinal=p.precio+costoExtras;
+  // Crear key única que incluya los extras
+  const extrasKey=selectedExtras.map(e=>e.id).sort().join('|');
+  const cid=p.id+'__'+extrasKey;
+  const ex=carrito.find(i=>i.cid===cid);
+  if(ex){ex.qty++;}
+  else{
+    carrito.push({
+      cid, id:p.id,
+      nombre:p.nombre,
+      precio:precioFinal,
+      precioBase:p.precio,
+      emoji:p.categorias?.emoji||'🍽️',
+      img:p.imagen_url,
+      qty:1,
+      extras:selectedExtras
+    });
+  }
   actualizarCarrito();
-  // Feedback visual
+}
+
+function feedbackBtn(id){
   const btn=document.getElementById('btn-'+id);
   if(btn){btn.textContent='✓';btn.classList.add('added');setTimeout(()=>{btn.textContent='+';btn.classList.remove('added');},700);}
 }
-function cambiarQty(id,d){
-  const item=carrito.find(i=>i.id===id);
+
+function cambiarQty(cid,d){
+  const item=carrito.find(i=>i.cid===cid);
   if(!item)return;
   item.qty+=d;
-  if(item.qty<=0)carrito=carrito.filter(i=>i.id!==id);
+  if(item.qty<=0)carrito=carrito.filter(i=>i.cid!==cid);
   actualizarCarrito();
 }
+
 function actualizarCarrito(){
   const total=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
   const count=carrito.reduce((a,i)=>a+i.qty,0);
@@ -484,16 +653,22 @@ function actualizarCarrito(){
     foot.style.display='none';return;
   }
   foot.style.display='block';
-  body.innerHTML=carrito.map(i=>`
-    <div class="ci">
-      <div class="ci-ico">${i.img?`<img src="${i.img}" onerror="this.parentNode.innerHTML='${i.emoji}'" alt="${i.nombre}">`:`<span style="font-size:26px">${i.emoji}</span>`}</div>
-      <div class="ci-info"><h4>${i.nombre}</h4><p>${$f(i.precio)} c/u</p></div>
-      <div class="qc">
-        <button class="qb" onclick="cambiarQty('${i.id}',-1)">−</button>
-        <span class="qn">${i.qty}</span>
-        <button class="qb" onclick="cambiarQty('${i.id}',1)">+</button>
+  body.innerHTML=carrito.map(i=>{
+    const extrasLabel=i.extras&&i.extras.length?`<small style="color:var(--mut);font-size:11px">${i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')}</small>`:'';
+    return `<div class="ci">
+      <div class="ci-ico">${i.img?`<img src="${i.img}" onerror="this.parentNode.innerHTML='<span style=font-size:26px>${i.emoji}</span>'" alt="${i.nombre}">`:`<span style="font-size:26px">${i.emoji}</span>`}</div>
+      <div class="ci-info">
+        <h4>${i.nombre}</h4>
+        ${extrasLabel}
+        <p>${$f(i.precio)} c/u</p>
       </div>
-    </div>`).join('');
+      <div class="qc">
+        <button class="qb" onclick="cambiarQty('${i.cid}',-1)">−</button>
+        <span class="qn">${i.qty}</span>
+        <button class="qb" onclick="cambiarQty('${i.cid}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── ENVIAR PEDIDO ──
@@ -515,23 +690,28 @@ async function enviarPedido(){
     if(!error&&ped){
       await db.from('pedido_items').insert(carrito.map(i=>({
         pedido_id:ped.id,producto_id:i.id,
-        producto_nombre:i.nombre,producto_precio:i.precio,
-        cantidad:i.qty,subtotal:i.precio*i.qty
+        producto_nombre:i.nombre+(i.extras&&i.extras.length?' ('+i.extras.map(e=>e.nombre).join(', ')+')':''),
+        producto_precio:i.precio,
+        cantidad:i.qty,subtotal:i.precio*i.qty,
+        notas:i.extras&&i.extras.length?i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', '):null
       })));
       const num=ped.numero_pedido||ped.id.slice(0,6).toUpperCase();
-      abrirWA(wa,nom,tel,dir,nota,num);
+      abrirWA(wa,nom,tel,dir,nota,num,carrito);
       carrito=[];actualizarCarrito();toggleDrawer();
       ['c-nom','c-tel','c-dir','c-nota'].forEach(id=>document.getElementById(id).value='');
       alert(`✅ Pedido #${num} enviado. ¡Gracias ${nom}! Te confirmaremos por WhatsApp.`);
     }
   }catch(e){
-    // Fallback: abrir WA igual
-    abrirWA(wa,nom,tel,dir,nota,'');
+    abrirWA(wa,nom,tel,dir,nota,'',carrito);
   }
 }
-function abrirWA(wa,nom,tel,dir,nota,num){
-  const lineas=carrito.length?carrito.map(i=>`• ${i.qty}x ${i.nombre} — ${$f(i.precio*i.qty)}`).join('\n'):'(ver carrito)';
-  const total=$f(carrito.reduce((a,i)=>a+i.precio*i.qty,0));
+function abrirWA(wa,nom,tel,dir,nota,num,carr){
+  const lineas=(carr||carrito).map(i=>{
+    let l=`• ${i.qty}x ${i.nombre} — ${$f(i.precio*i.qty)}`;
+    if(i.extras&&i.extras.length) l+=`\n   ↳ ${i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')}`;
+    return l;
+  }).join('\n');
+  const total=$f((carr||carrito).reduce((a,i)=>a+i.precio*i.qty,0));
   const msg=`🛵 *${num?`PEDIDO #${num}`:'NUEVO PEDIDO'}*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* ${tel}\n📍 *Dirección:* ${dir}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n💰 *Total: ${total}*`;
   const n=wa.replace(/\D/g,'');
   window.open(`https://wa.me/${n}?text=${encodeURIComponent(msg)}`,'_blank');
