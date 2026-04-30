@@ -348,7 +348,18 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
       <div class="fg"><label>Slogan</label><input type="text" id="cfg-slogan" placeholder="El mejor sabor 🔥"></div>
       <div class="fg"><label>Ciudad</label><input type="text" id="cfg-ciudad" placeholder="Bogotá"></div>
       <div class="fg"><label>Dirección</label><input type="text" id="cfg-dir" placeholder="Calle 123 # 45-67"></div>
-      <div class="fg"><label>Número WhatsApp (con código de país)</label><input type="text" id="cfg-wa" placeholder="573001234567"></div>
+      <div class="fg">
+        <label>Número WhatsApp</label>
+        <div style="display:flex;align-items:center;gap:0;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:10px;overflow:hidden;transition:border-color .2s" id="wa-wrap"
+          onfocusin="document.getElementById('wa-wrap').style.borderColor='var(--acc)'"
+          onfocusout="document.getElementById('wa-wrap').style.borderColor='var(--bdr)'">
+          <span style="padding:12px 14px;font-size:14px;font-weight:700;color:var(--acc);border-right:1.5px solid var(--bdr);white-space:nowrap;flex-shrink:0">🇨🇴 +57</span>
+          <input type="tel" id="cfg-wa" placeholder="3001234567" maxlength="10"
+            style="flex:1;background:transparent;border:none;color:var(--txt);padding:12px 14px;font-size:14px;font-family:var(--fb);outline:none"
+            oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        </div>
+        <small style="font-size:11px;color:var(--mut);margin-top:6px;display:block">Solo el número local sin el 0 inicial — Ej: 3001234567</small>
+      </div>
       <div class="fg"><label>Tiempo de entrega</label><input type="text" id="cfg-tiempo" placeholder="20 - 40 min"></div>
     </div>
 
@@ -854,7 +865,10 @@ function renderConfig(){
   document.getElementById('cfg-slogan').value=cfg.slogan||'';
   document.getElementById('cfg-ciudad').value=cfg.ciudad||'';
   document.getElementById('cfg-dir').value=cfg.direccion||'';
-  document.getElementById('cfg-wa').value=cfg.whatsapp||'';
+  // WhatsApp: guardar con 57, mostrar solo los 10 dígitos locales
+  const waRaw=cfg.whatsapp||'';
+  const waLocal=waRaw.startsWith('57')&&waRaw.length>10?waRaw.slice(2):waRaw.replace(/\D/g,'');
+  document.getElementById('cfg-wa').value=waLocal;
   document.getElementById('cfg-tiempo').value=cfg.tiempo_entrega||'';
   document.getElementById('cfg-abierto').checked=cfg.abierto!==false;
   document.getElementById('cfg-hLV').value=cfg.horario_lunes_viernes||'';
@@ -880,7 +894,7 @@ async function guardarConfig(){
     slogan:document.getElementById('cfg-slogan').value.trim()||null,
     ciudad:document.getElementById('cfg-ciudad').value.trim()||null,
     direccion:document.getElementById('cfg-dir').value.trim()||null,
-    whatsapp:document.getElementById('cfg-wa').value.trim(),
+    whatsapp:'57'+(document.getElementById('cfg-wa').value.replace(/\D/g,'')),
     tiempo_entrega:document.getElementById('cfg-tiempo').value.trim()||null,
     abierto:document.getElementById('cfg-abierto').checked,
     horario_lunes_viernes:document.getElementById('cfg-hLV').value.trim()||null,
@@ -890,7 +904,8 @@ async function guardarConfig(){
     portada_url:document.getElementById('cfg-portada').value.trim()||null,
   };
   if(!d.nombre_local){toast('❌ El nombre del local es obligatorio','err');return;}
-  if(!d.whatsapp){toast('❌ El número de WhatsApp es obligatorio','err');return;}
+  const waDigits=document.getElementById('cfg-wa').value.replace(/\D/g,'');
+  if(!waDigits||waDigits.length<10){toast('❌ Ingresa un número de WhatsApp válido (10 dígitos)','err');return;}
   let error;
   if(cfg.id){
     ({error}=await db.from('configuracion').update(d).eq('id',cfg.id));
