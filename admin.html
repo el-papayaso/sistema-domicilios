@@ -236,6 +236,19 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   background:var(--sur2);border:2px dashed var(--bdr);display:flex;align-items:center;
   justify-content:center;font-size:32px;margin-bottom:10px;position:relative}
 .logo-preview-upload img{width:100%;height:100%;object-fit:cover;border-radius:14px}
+/* ── EXTRAS ── */
+.extras-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:12px;padding:4px}
+.etab{flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;user-select:none}
+.etab.active{background:var(--acc);color:#fff}
+.extras-panel{display:none}.extras-panel.active{display:block}
+.extra-list{display:flex;flex-direction:column;gap:10px}
+.extra-row{display:flex;align-items:center;gap:14px;background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 18px}
+.extra-ico{font-size:24px;flex-shrink:0}
+.extra-info{flex:1}
+.extra-info h4{font-weight:600;font-size:14px;margin-bottom:2px}
+.extra-info small{font-size:12px;color:var(--mut)}
+.extra-precio{font-family:var(--fh);font-size:15px;font-weight:800;color:var(--acc2);flex-shrink:0;min-width:70px;text-align:right}
+.extra-cat{font-size:11px;background:var(--sur2);border-radius:5px;padding:2px 8px;color:var(--mut);flex-shrink:0}
 @media(max-width:700px){
   .stats{grid-template-columns:1fr 1fr}
   .pbody{grid-template-columns:1fr}
@@ -255,6 +268,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <div class="tab active" data-pg="pedidos" onclick="ir('pedidos')">📋 Pedidos <span class="tbadge" id="badge">0</span></div>
     <div class="tab" data-pg="productos" onclick="ir('productos')">🍔 Productos</div>
     <div class="tab" data-pg="categorias" onclick="ir('categorias')">🏷️ Categorías</div>
+    <div class="tab" data-pg="extras" onclick="ir('extras')">➕ Extras</div>
     <div class="tab" data-pg="config" onclick="ir('config')">⚙️ Configuración</div>
   </div>
   <div class="live"><span class="dot"></span>En vivo</div>
@@ -288,6 +302,30 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <button class="bcreate" onclick="abrirCat()" style="padding:13px 24px;font-size:14px"><span class="pl" style="font-size:18px">＋</span> Nueva Categoría</button>
   </div>
   <div class="catlist" id="catlist"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
+</div>
+
+<!-- ── EXTRAS ── -->
+<div class="page" id="pg-extras">
+  <div class="abanner">
+    <div class="abanner-txt"><h2>➕ Extras y Adiciones</h2><p>Configura los complementos de tus productos por categoría</p></div>
+    <button class="bcreate" id="btn-nuevo-extra" onclick="abrirExtra()"><span class="pl">＋</span> <span id="btn-extra-lbl">Nuevo Extra</span></button>
+  </div>
+
+  <!-- Tabs extras/adiciones -->
+  <div class="extras-tabs">
+    <div class="etab active" onclick="switchETab('extras',this)">💰 Extras Globales <small style="opacity:.7">(con costo)</small></div>
+    <div class="etab" onclick="switchETab('adiciones',this)">🎁 Adiciones <small style="opacity:.7">(incluidas)</small></div>
+  </div>
+
+  <!-- Panel Extras Globales -->
+  <div class="extras-panel active" id="ep-extras">
+    <div class="extra-list" id="extras-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
+  </div>
+
+  <!-- Panel Adiciones -->
+  <div class="extras-panel" id="ep-adiciones">
+    <div class="extra-list" id="adiciones-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
+  </div>
 </div>
 
 <!-- ── CONFIGURACIÓN ── -->
@@ -421,6 +459,36 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   </div>
 </div>
 
+<!-- ── MODAL EXTRA / ADICIÓN ── -->
+<div class="ov" id="ov-extra">
+  <div class="modal">
+    <div class="mtit" id="mex-tit">Nuevo Extra Global</div>
+    <div class="msub" id="mex-sub">Se mostrará al cliente cuando agregue un producto de esa categoría</div>
+    <input type="hidden" id="mex-id">
+    <input type="hidden" id="mex-tipo"> <!-- 'extra' | 'adicion' -->
+    <div class="fg"><label>Nombre *</label><input type="text" id="mex-nombre" placeholder="Ej: Porción de papas, Salsa extra..."></div>
+    <div class="fg"><label>Descripción (opcional)</label><input type="text" id="mex-desc" placeholder="Breve descripción"></div>
+    <div class="fgrow">
+      <div class="fg" id="mex-precio-wrap">
+        <label>Precio (COP) *</label>
+        <input type="number" id="mex-precio" placeholder="2000" min="0">
+      </div>
+      <div class="fg">
+        <label>Categoría *</label>
+        <select id="mex-cat"><option value="">Selecciona categoría</option></select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>¿Activo?</label>
+      <div class="checks"><label class="chk"><input type="checkbox" id="mex-activo" checked> Visible para clientes</label></div>
+    </div>
+    <div class="mbtns">
+      <button class="bpri" onclick="guardarExtra()">💾 Guardar</button>
+      <button class="bsecm" onclick="cerrar('ov-extra')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -429,13 +497,12 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const {createClient}=supabase;
 const db=createClient(SURL,SKEY);
 
-let cats=[],prods=[],peds=[],cfg={},cfFiltro='all';
+let cats=[],prods=[],peds=[],cfg={},cfFiltro='all',extras=[],extraTab='extras';
 
 // ── INIT ──
 async function init(){
   await Promise.all([loadCats(),loadConfig()]);
-  await loadProds();
-  await loadPeds();
+  await Promise.all([loadProds(),loadPeds(),loadExtras()]);
   setupRealtime();
 }
 
@@ -448,6 +515,7 @@ function ir(pg){
   if(pg==='categorias') renderCats();
   if(pg==='productos') renderProds();
   if(pg==='config') renderConfig();
+  if(pg==='extras') renderExtras();
 }
 
 // ═══════════════════════════════
@@ -780,6 +848,113 @@ function ping(){
 }
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.ov.open').forEach(o=>o.classList.remove('open'));});
+
+// ═══════════════════════════════
+// EXTRAS & ADICIONES
+// ═══════════════════════════════
+async function loadExtras(){
+  const {data}=await db.from('extras').select('*, categorias(nombre,emoji)').order('tipo').order('nombre');
+  extras=data||[];
+}
+
+function switchETab(tipo,el){
+  extraTab=tipo;
+  document.querySelectorAll('.etab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.extras-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ep-'+tipo+'s').classList.add('active');
+  // Ajustar label botón
+  document.getElementById('btn-extra-lbl').textContent=tipo==='extras'?'Nuevo Extra':'Nueva Adición';
+  renderExtras();
+}
+
+function renderExtras(){
+  const globales=extras.filter(e=>e.tipo==='extra');
+  const adics=extras.filter(e=>e.tipo==='adicion');
+  renderExtraList('extras-list', globales, 'extra');
+  renderExtraList('adiciones-list', adics, 'adicion');
+}
+
+function renderExtraList(containerId, lista, tipo){
+  const el=document.getElementById(containerId);
+  if(!lista.length){
+    const lbl=tipo==='extra'?'extras globales':'adiciones';
+    el.innerHTML=`<div class="empty"><span>${tipo==='extra'?'💰':'🎁'}</span><p>Sin ${lbl} aún. ¡Crea el primero!</p></div>`;
+    return;
+  }
+  el.innerHTML=lista.map(e=>`
+    <div class="extra-row">
+      <span class="extra-ico">${tipo==='extra'?'💰':'🎁'}</span>
+      <div class="extra-info">
+        <h4>${e.nombre}</h4>
+        <small>${e.descripcion||'Sin descripción'}</small>
+      </div>
+      <span class="extra-cat">${e.categorias?.emoji||''} ${e.categorias?.nombre||'Sin cat.'}</span>
+      ${tipo==='extra'?`<span class="extra-precio">${$f(e.precio||0)}</span>`:'<span class="extra-precio" style="color:var(--grn);font-size:13px">Incluido</span>'}
+      <div class="brow">
+        <button class="bsm bsms" onclick="editExtra('${e.id}')">✏️</button>
+        <button class="bsm bsmd" onclick="delExtra('${e.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function abrirExtra(e=null){
+  // Determinar tipo activo
+  const tipo=e?e.tipo:extraTab==='extras'?'extra':'adicion';
+  const esExtra=tipo==='extra';
+  document.getElementById('mex-tit').textContent=e?(esExtra?'Editar Extra':'Editar Adición'):(esExtra?'Nuevo Extra Global':'Nueva Adición');
+  document.getElementById('mex-sub').textContent=esExtra?'Con costo adicional — el cliente podrá elegirlo':'Sin costo — incluido en el producto';
+  document.getElementById('mex-id').value=e?.id||'';
+  document.getElementById('mex-tipo').value=tipo;
+  document.getElementById('mex-nombre').value=e?.nombre||'';
+  document.getElementById('mex-desc').value=e?.descripcion||'';
+  document.getElementById('mex-precio').value=e?.precio||'';
+  document.getElementById('mex-activo').checked=e?e.activo!==false:true;
+  // Precio solo visible en extras
+  document.getElementById('mex-precio-wrap').style.display=esExtra?'block':'none';
+  // Categorías
+  document.getElementById('mex-cat').innerHTML='<option value="">Selecciona categoría</option>'+
+    cats.map(c=>`<option value="${c.id}" ${e?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
+  document.getElementById('ov-extra').classList.add('open');
+  setTimeout(()=>document.getElementById('mex-nombre').focus(),120);
+}
+
+function editExtra(id){abrirExtra(extras.find(e=>e.id===id));}
+
+async function guardarExtra(){
+  const id=document.getElementById('mex-id').value;
+  const tipo=document.getElementById('mex-tipo').value;
+  const nombre=document.getElementById('mex-nombre').value.trim();
+  const catId=document.getElementById('mex-cat').value;
+  if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
+  if(!catId){toast('❌ Selecciona una categoría','err');return;}
+  const esExtra=tipo==='extra';
+  const precio=esExtra?parseFloat(document.getElementById('mex-precio').value)||0:0;
+  if(esExtra&&!precio){toast('❌ Ingresa un precio para el extra','err');return;}
+  const d={
+    nombre,
+    tipo,
+    descripcion:document.getElementById('mex-desc').value.trim()||null,
+    precio:esExtra?precio:0,
+    categoria_id:catId,
+    activo:document.getElementById('mex-activo').checked
+  };
+  const {error}=id?await db.from('extras').update(d).eq('id',id):await db.from('extras').insert(d);
+  if(!error){
+    toast(id?'✅ Actualizado':'✅ Creado correctamente','ok');
+    cerrar('ov-extra');
+    await loadExtras();
+    renderExtras();
+  } else toast('❌ Error: '+error.message,'err');
+}
+
+async function delExtra(id){
+  const e=extras.find(x=>x.id===id);
+  if(!confirm(`¿Eliminar "${e?.nombre}"?`))return;
+  const {error}=await db.from('extras').delete().eq('id',id);
+  if(!error){toast('✅ Eliminado','ok');await loadExtras();renderExtras();}
+  else toast('❌ Error','err');
+}
 
 // ═══════════════════════════════
 // STORAGE — SUBIDA DE IMÁGENES
