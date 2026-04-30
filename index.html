@@ -538,37 +538,84 @@ function abrirExtrasModal(p, extCat){
   document.getElementById('mext-nombre').textContent=p.nombre;
   document.getElementById('mext-precio-base').textContent='Precio base: '+$f(p.precio);
   calcularTotalModal();
-  // Renderizar opciones
+
   const globales=extCat.filter(e=>e.tipo==='extra');
-  const adics=extCat.filter(e=>e.tipo==='adicion');
+  const adics   =extCat.filter(e=>e.tipo==='adicion');
   let html='';
+
+  // ── ADICIONES agrupadas por grupo ──
   if(adics.length){
-    html+=`<div class="mext-section">
-      <div class="mext-section-title">🎁 Adiciones incluidas</div>
-      ${adics.map(e=>`
-        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre}')">
-          <div class="mext-chk" id="ec-${e.id}"></div>
-          <div class="mext-opt-info"><h4>${e.nombre}</h4><small>${e.descripcion||''}</small></div>
-          <span class="mext-opt-inc">Incluido ✓</span>
-        </div>`).join('')}
-    </div>`;
+    // Agrupar
+    const grupos={};
+    const sinGrupo=[];
+    adics.forEach(e=>{
+      if(e.grupo){
+        if(!grupos[e.grupo]) grupos[e.grupo]=[];
+        grupos[e.grupo].push(e);
+      } else sinGrupo.push(e);
+    });
+
+    Object.entries(grupos).forEach(([gNombre, items])=>{
+      html+=`
+      <div class="mext-section">
+        <div class="mext-section-title">
+          🎁 ${gNombre}
+          <span style="font-size:10px;background:rgba(45,106,79,.15);color:#2d6a4f;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Incluido</span>
+        </div>
+        ${items.map(e=>`
+          <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}','${gNombre.replace(/'/g,"\\'")}')">
+            <div class="mext-chk" id="ec-${e.id}"></div>
+            <div class="mext-opt-info">
+              <h4>${e.nombre}</h4>
+              ${e.descripcion?`<small>${e.descripcion}</small>`:''}
+            </div>
+            <span class="mext-opt-inc">Gratis ✓</span>
+          </div>`).join('')}
+      </div>`;
+    });
+
+    if(sinGrupo.length){
+      html+=`
+      <div class="mext-section">
+        <div class="mext-section-title">🎁 Adiciones incluidas</div>
+        ${sinGrupo.map(e=>`
+          <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}',null)">
+            <div class="mext-chk" id="ec-${e.id}"></div>
+            <div class="mext-opt-info">
+              <h4>${e.nombre}</h4>
+              ${e.descripcion?`<small>${e.descripcion}</small>`:''}
+            </div>
+            <span class="mext-opt-inc">Gratis ✓</span>
+          </div>`).join('')}
+      </div>`;
+    }
   }
+
+  // ── EXTRAS GLOBALES (con costo) ──
   if(globales.length){
-    html+=`<div class="mext-section">
-      <div class="mext-section-title">💰 Extras adicionales</div>
+    html+=`
+    <div class="mext-section">
+      <div class="mext-section-title">
+        💰 Extras adicionales
+        <span style="font-size:10px;background:rgba(255,107,53,.12);color:#ff6b35;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Costo adicional</span>
+      </div>
       ${globales.map(e=>`
-        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',${e.precio},'${e.nombre}')">
+        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',${e.precio},'${e.nombre.replace(/'/g,"\\'")}',null)">
           <div class="mext-chk" id="ec-${e.id}"></div>
-          <div class="mext-opt-info"><h4>${e.nombre}</h4><small>${e.descripcion||''}</small></div>
+          <div class="mext-opt-info">
+            <h4>${e.nombre}</h4>
+            ${e.descripcion?`<small>${e.descripcion}</small>`:''}
+          </div>
           <span class="mext-opt-precio">+${$f(e.precio)}</span>
         </div>`).join('')}
     </div>`;
   }
+
   document.getElementById('mext-body').innerHTML=html||'<p style="color:var(--mut);text-align:center;padding:20px">Sin opciones adicionales</p>';
   document.getElementById('mext-ov').classList.add('open');
 }
 
-function toggleExtra(id, precio, nombre){
+function toggleExtra(id, precio, nombre, grupo){
   const idx=extrasSeleccionados.findIndex(e=>e.id===id);
   const opt=document.getElementById('eo-'+id);
   const chk=document.getElementById('ec-'+id);
@@ -577,7 +624,7 @@ function toggleExtra(id, precio, nombre){
     opt.classList.remove('selected');
     chk.textContent='';
   } else {
-    extrasSeleccionados.push({id,nombre,precio:Number(precio)});
+    extrasSeleccionados.push({id, nombre, precio:Number(precio), grupo});
     opt.classList.add('selected');
     chk.textContent='✓';
   }
@@ -654,7 +701,23 @@ function actualizarCarrito(){
   }
   foot.style.display='block';
   body.innerHTML=carrito.map(i=>{
-    const extrasLabel=i.extras&&i.extras.length?`<small style="color:var(--mut);font-size:11px">${i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')}</small>`:'';
+    // Agrupar extras por grupo para mostrarlos mejor
+    let extrasLabel='';
+    if(i.extras&&i.extras.length){
+      const grupos={};const sinGrupo=[];
+      i.extras.forEach(e=>{
+        if(e.grupo){
+          if(!grupos[e.grupo]) grupos[e.grupo]=[];
+          grupos[e.grupo].push(e);
+        } else sinGrupo.push(e);
+      });
+      const partes=[];
+      Object.entries(grupos).forEach(([g,items])=>{
+        partes.push(`${g}: ${items.map(e=>e.nombre).join(', ')}`);
+      });
+      sinGrupo.forEach(e=>partes.push(e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')));
+      extrasLabel=`<small style="color:var(--mut);font-size:11px;display:block;margin-top:2px">↳ ${partes.join(' · ')}</small>`;
+    }
     return `<div class="ci">
       <div class="ci-ico">${i.img?`<img src="${i.img}" onerror="this.parentNode.innerHTML='<span style=font-size:26px>${i.emoji}</span>'" alt="${i.nombre}">`:`<span style="font-size:26px">${i.emoji}</span>`}</div>
       <div class="ci-info">
@@ -708,7 +771,17 @@ async function enviarPedido(){
 function abrirWA(wa,nom,tel,dir,nota,num,carr){
   const lineas=(carr||carrito).map(i=>{
     let l=`• ${i.qty}x ${i.nombre} — ${$f(i.precio*i.qty)}`;
-    if(i.extras&&i.extras.length) l+=`\n   ↳ ${i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')}`;
+    if(i.extras&&i.extras.length){
+      const grupos={};const sinGrupo=[];
+      i.extras.forEach(e=>{
+        if(e.grupo){if(!grupos[e.grupo])grupos[e.grupo]=[];grupos[e.grupo].push(e.nombre);}
+        else sinGrupo.push(e.nombre+(e.precio?` +${$f(e.precio)}`:''));
+      });
+      const partes=[];
+      Object.entries(grupos).forEach(([g,ns])=>partes.push(`${g}: ${ns.join(', ')}`));
+      sinGrupo.forEach(s=>partes.push(s));
+      l+=`\n   ↳ ${partes.join(' | ')}`;
+    }
     return l;
   }).join('\n');
   const total=$f((carr||carrito).reduce((a,i)=>a+i.precio*i.qty,0));
