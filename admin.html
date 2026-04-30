@@ -465,23 +465,49 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <div class="mtit" id="mex-tit">Nuevo Extra Global</div>
     <div class="msub" id="mex-sub">Se mostrará al cliente cuando agregue un producto de esa categoría</div>
     <input type="hidden" id="mex-id">
-    <input type="hidden" id="mex-tipo"> <!-- 'extra' | 'adicion' -->
-    <div class="fg"><label>Nombre *</label><input type="text" id="mex-nombre" placeholder="Ej: Porción de papas, Salsa extra..."></div>
-    <div class="fg"><label>Descripción (opcional)</label><input type="text" id="mex-desc" placeholder="Breve descripción"></div>
+    <input type="hidden" id="mex-tipo">
+
     <div class="fgrow">
-      <div class="fg" id="mex-precio-wrap">
-        <label>Precio (COP) *</label>
-        <input type="number" id="mex-precio" placeholder="2000" min="0">
-      </div>
       <div class="fg">
         <label>Categoría *</label>
         <select id="mex-cat"><option value="">Selecciona categoría</option></select>
       </div>
+      <div class="fg" id="mex-precio-wrap">
+        <label>Precio (COP) *</label>
+        <input type="number" id="mex-precio" placeholder="2000" min="0">
+      </div>
     </div>
+
+    <!-- Campo grupo: solo visible en adiciones -->
+    <div class="fg" id="mex-grupo-wrap">
+      <label>Nombre del grupo *
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Ej: "Sabor de helado", "Tipo de salsa"</span>
+      </label>
+      <input type="text" id="mex-grupo" placeholder="Ej: Sabor de helado">
+      <div style="margin-top:8px;background:var(--sur2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--mut);display:flex;gap:8px;align-items:flex-start">
+        <span style="font-size:16px;flex-shrink:0">💡</span>
+        <span>Las adiciones del mismo grupo se muestran juntas en el menú. El cliente puede elegir una o varias opciones dentro del grupo.</span>
+      </div>
+    </div>
+
     <div class="fg">
-      <label>¿Activo?</label>
-      <div class="checks"><label class="chk"><input type="checkbox" id="mex-activo" checked> Visible para clientes</label></div>
+      <label id="mex-nombre-label">Nombre de la adición *
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px" id="mex-nombre-hint">Ej: Vainilla, Chocolate, Fresa</span>
+      </label>
+      <input type="text" id="mex-nombre" placeholder="Ej: Vainilla">
     </div>
+
+    <div class="fg">
+      <label>Descripción <span style="font-size:11px;color:var(--mut);font-weight:400">(opcional)</span></label>
+      <input type="text" id="mex-desc" placeholder="Breve descripción...">
+    </div>
+
+    <div class="fg">
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="mex-activo" checked> Visible para clientes</label>
+      </div>
+    </div>
+
     <div class="mbtns">
       <button class="bpri" onclick="guardarExtra()">💾 Guardar</button>
       <button class="bsecm" onclick="cerrar('ov-extra')">Cancelar</button>
@@ -882,15 +908,75 @@ function renderExtraList(containerId, lista, tipo){
     el.innerHTML=`<div class="empty"><span>${tipo==='extra'?'💰':'🎁'}</span><p>Sin ${lbl} aún. ¡Crea el primero!</p></div>`;
     return;
   }
+
+  if(tipo==='adicion'){
+    // Agrupar adiciones por grupo
+    const grupos={};
+    const sinGrupo=[];
+    lista.forEach(e=>{
+      if(e.grupo){
+        const key=`${e.categoria_id}__${e.grupo}`;
+        if(!grupos[key]) grupos[key]={grupo:e.grupo,cat:e.categorias,items:[]};
+        grupos[key].items.push(e);
+      } else sinGrupo.push(e);
+    });
+
+    let html='';
+    Object.values(grupos).forEach(g=>{
+      html+=`
+      <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--sur2);border-bottom:1px solid var(--bdr)">
+          <div>
+            <span style="font-size:13px;font-weight:700;font-family:var(--fh)">🎁 ${g.grupo}</span>
+            <span style="font-size:11px;color:var(--mut);margin-left:8px">${g.cat?.emoji||''} ${g.cat?.nombre||''}</span>
+          </div>
+          <span style="font-size:11px;background:var(--sur);border:1px solid var(--bdr);border-radius:99px;padding:2px 10px;color:var(--mut)">${g.items.length} opciones</span>
+        </div>
+        ${g.items.map(e=>`
+        <div class="extra-row" style="border-radius:0;border:none;border-bottom:1px solid var(--bdr)">
+          <div class="extra-info" style="padding-left:8px">
+            <h4>${e.nombre}</h4>
+            <small>${e.descripcion||'Sin descripción'}</small>
+          </div>
+          <span class="extra-cat">${e.categorias?.emoji||''} ${e.categorias?.nombre||''}</span>
+          <span class="extra-precio" style="color:var(--grn);font-size:12px">✓ Incluido</span>
+          <div class="brow">
+            <button class="bsm bsms" onclick="editExtra('${e.id}')">✏️</button>
+            <button class="bsm bsmd" onclick="delExtra('${e.id}')">🗑️</button>
+          </div>
+        </div>`).join('')}
+      </div>`;
+    });
+
+    // Sin grupo
+    sinGrupo.forEach(e=>{
+      html+=`
+      <div class="extra-row">
+        <span class="extra-ico">🎁</span>
+        <div class="extra-info"><h4>${e.nombre}</h4><small>${e.descripcion||'Sin descripción'}</small></div>
+        <span class="extra-cat">${e.categorias?.emoji||''} ${e.categorias?.nombre||'Sin cat.'}</span>
+        <span class="extra-precio" style="color:var(--grn);font-size:13px">Incluido</span>
+        <div class="brow">
+          <button class="bsm bsms" onclick="editExtra('${e.id}')">✏️</button>
+          <button class="bsm bsmd" onclick="delExtra('${e.id}')">🗑️</button>
+        </div>
+      </div>`;
+    });
+
+    el.innerHTML=html||`<div class="empty"><span>🎁</span><p>Sin adiciones aún.</p></div>`;
+    return;
+  }
+
+  // Extras globales (sin grupos, listado simple)
   el.innerHTML=lista.map(e=>`
     <div class="extra-row">
-      <span class="extra-ico">${tipo==='extra'?'💰':'🎁'}</span>
+      <span class="extra-ico">💰</span>
       <div class="extra-info">
         <h4>${e.nombre}</h4>
         <small>${e.descripcion||'Sin descripción'}</small>
       </div>
       <span class="extra-cat">${e.categorias?.emoji||''} ${e.categorias?.nombre||'Sin cat.'}</span>
-      ${tipo==='extra'?`<span class="extra-precio">${$f(e.precio||0)}</span>`:'<span class="extra-precio" style="color:var(--grn);font-size:13px">Incluido</span>'}
+      <span class="extra-precio">${$f(e.precio||0)}</span>
       <div class="brow">
         <button class="bsm bsms" onclick="editExtra('${e.id}')">✏️</button>
         <button class="bsm bsmd" onclick="delExtra('${e.id}')">🗑️</button>
@@ -899,24 +985,49 @@ function renderExtraList(containerId, lista, tipo){
 }
 
 function abrirExtra(e=null){
-  // Determinar tipo activo
   const tipo=e?e.tipo:extraTab==='extras'?'extra':'adicion';
   const esExtra=tipo==='extra';
-  document.getElementById('mex-tit').textContent=e?(esExtra?'Editar Extra':'Editar Adición'):(esExtra?'Nuevo Extra Global':'Nueva Adición');
-  document.getElementById('mex-sub').textContent=esExtra?'Con costo adicional — el cliente podrá elegirlo':'Sin costo — incluido en el producto';
+  const esAdicion=tipo==='adicion';
+
+  document.getElementById('mex-tit').textContent=e
+    ?(esExtra?'Editar Extra Global':'Editar Adición')
+    :(esExtra?'Nuevo Extra Global':'Nueva Adición');
+  document.getElementById('mex-sub').textContent=esExtra
+    ?'Con costo adicional — el cliente podrá seleccionarlo al pedir'
+    :'Sin costo — agrupa opciones como sabores, tamaños, etc.';
+
   document.getElementById('mex-id').value=e?.id||'';
   document.getElementById('mex-tipo').value=tipo;
   document.getElementById('mex-nombre').value=e?.nombre||'';
   document.getElementById('mex-desc').value=e?.descripcion||'';
   document.getElementById('mex-precio').value=e?.precio||'';
+  document.getElementById('mex-grupo').value=e?.grupo||'';
   document.getElementById('mex-activo').checked=e?e.activo!==false:true;
-  // Precio solo visible en extras
+
+  // Precio solo en extras
   document.getElementById('mex-precio-wrap').style.display=esExtra?'block':'none';
+  // Grupo solo en adiciones
+  document.getElementById('mex-grupo-wrap').style.display=esAdicion?'block':'none';
+
+  // Etiqueta dinámica del campo nombre
+  document.getElementById('mex-nombre-label').childNodes[0].textContent=
+    esExtra?'Nombre del extra * ':'Nombre de la opción * ';
+  document.getElementById('mex-nombre-hint').textContent=
+    esExtra?'Ej: Porción de papas, Salsa BBQ':'Ej: Vainilla, Chocolate, Fresa';
+  document.getElementById('mex-nombre').placeholder=
+    esExtra?'Ej: Porción de papas':'Ej: Vainilla';
+
   // Categorías
-  document.getElementById('mex-cat').innerHTML='<option value="">Selecciona categoría</option>'+
+  document.getElementById('mex-cat').innerHTML=
+    '<option value="">Selecciona categoría</option>'+
     cats.map(c=>`<option value="${c.id}" ${e?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
+
   document.getElementById('ov-extra').classList.add('open');
-  setTimeout(()=>document.getElementById('mex-nombre').focus(),120);
+  setTimeout(()=>{
+    // Si es adición, enfocar grupo primero; si es extra, el nombre
+    const foco=esAdicion&&!e?'mex-grupo':'mex-nombre';
+    document.getElementById(foco).focus();
+  },120);
 }
 
 function editExtra(id){abrirExtra(extras.find(e=>e.id===id));}
@@ -926,20 +1037,29 @@ async function guardarExtra(){
   const tipo=document.getElementById('mex-tipo').value;
   const nombre=document.getElementById('mex-nombre').value.trim();
   const catId=document.getElementById('mex-cat').value;
+  const esExtra=tipo==='extra';
+
   if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
   if(!catId){toast('❌ Selecciona una categoría','err');return;}
-  const esExtra=tipo==='extra';
+
+  const grupo=(!esExtra)?document.getElementById('mex-grupo').value.trim()||null:null;
+  if(!esExtra&&!grupo){toast('❌ El nombre del grupo es obligatorio para adiciones','err');return;}
+
   const precio=esExtra?parseFloat(document.getElementById('mex-precio').value)||0:0;
   if(esExtra&&!precio){toast('❌ Ingresa un precio para el extra','err');return;}
+
   const d={
     nombre,
     tipo,
+    grupo,
     descripcion:document.getElementById('mex-desc').value.trim()||null,
     precio:esExtra?precio:0,
     categoria_id:catId,
     activo:document.getElementById('mex-activo').checked
   };
-  const {error}=id?await db.from('extras').update(d).eq('id',id):await db.from('extras').insert(d);
+  const {error}=id
+    ?await db.from('extras').update(d).eq('id',id)
+    :await db.from('extras').insert(d);
   if(!error){
     toast(id?'✅ Actualizado':'✅ Creado correctamente','ok');
     cerrar('ov-extra');
