@@ -673,7 +673,8 @@ function renderPeds(){
         <div class="iblk"><label>👤 Cliente</label><p>${p.cliente_nombre}</p></div>
         <div class="iblk"><label>📱 Teléfono</label><p>${p.cliente_telefono}</p></div>
         <div class="iblk s2"><label>📍 Dirección</label><p>${p.cliente_direccion}</p></div>
-        ${p.cliente_notas?`<div class="iblk s2"><label>📝 Notas</label><p>${p.cliente_notas}</p></div>`:''}
+        <div class="iblk"><label>💳 Medio de pago</label><p>${({efectivo:'💵 Efectivo',tarjeta:'💳 Tarjeta',nequi:'📱 Nequi',daviplata:'🏦 Daviplata'})[p.medio_pago]||'💵 Efectivo'}</p></div>
+        ${p.cliente_notas?`<div class="iblk"><label>📝 Notas</label><p>${p.cliente_notas}</p></div>`:''}
         <div class="iblk s2">
           <label>🧾 Productos</label>
           ${its.map(i=>`<div class="irow"><span><span class="iqty">${i.cantidad}x</span>${i.producto_nombre}</span><span>${$f(i.subtotal)}</span></div>`).join('')}
