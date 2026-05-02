@@ -271,7 +271,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 <!-- TOPBAR FLOTANTE -->
 <div class="topbar" id="topbar">
   <span class="topbar-brand" id="topbar-brand">🛵</span>
-  <button class="cart-fab" onclick="toggleDrawer()">🛒 <span class="cart-n" id="cart-n">0</span></button>
+  <button class="cart-fab" id="cart-fab-btn" onclick="toggleDrawer()">🛒 <span class="cart-n" id="cart-n">0</span></button>
 </div>
 
 <!-- HERO / PORTADA -->
@@ -446,12 +446,14 @@ function aplicarConfig(){
   document.getElementById('ip-hSab').textContent=cfg.horario_sabado||'—';
   document.getElementById('ip-hDom').textContent=cfg.horario_domingo||'—';
 
-  // Estado abierto/cerrado
+  // FIX 4: Estado abierto/cerrado automático por horario
+  const estaAbierto=calcularSiEstaAbierto();
   const badge=document.getElementById('estado-badge');
   const txt=document.getElementById('estado-txt');
-  if(cfg.abierto===false){
+  if(!estaAbierto){
     badge.className='estado-badge cerrado';
     txt.textContent='Cerrado';
+    aplicarModoFueraDeSevicio();
   } else {
     badge.className='estado-badge abierto';
     txt.textContent='Abierto';
@@ -466,10 +468,80 @@ function aplicarConfig(){
   // Portada
   if(cfg.portada_url){
     const hero=document.getElementById('hero');
-    document.getElementById('hero-default').remove();
+    const def=document.getElementById('hero-default');
+    if(def) def.remove();
     const img=document.createElement('img');
     img.className='hero-img';img.src=cfg.portada_url;img.alt='Portada';
     hero.insertBefore(img,hero.firstChild);
+  }
+}
+
+function calcularSiEstaAbierto(){
+  // Si el admin marcó explícitamente como cerrado, respetar eso
+  if(cfg.abierto===false) return false;
+
+  // Obtener horario del día actual
+  const ahora=new Date();
+  const diaSemana=ahora.getDay(); // 0=Dom,1=Lun...6=Sab
+  let horarioStr='';
+  if(diaSemana===0) horarioStr=cfg.horario_domingo||'';
+  else if(diaSemana===6) horarioStr=cfg.horario_sabado||'';
+  else horarioStr=cfg.horario_lunes_viernes||'';
+
+  // Si no hay horario definido, considerar abierto
+  if(!horarioStr||horarioStr==='—') return true;
+
+  // Parsear "HH:MM - HH:MM"
+  const match=horarioStr.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/);
+  if(!match) return true;
+
+  const [,hA,mA,hC,mC]=match;
+  const abre=parseInt(hA)*60+parseInt(mA);
+  const cierra=parseInt(hC)*60+parseInt(mC);
+  const actual=ahora.getHours()*60+ahora.getMinutes();
+
+  return actual>=abre && actual<cierra;
+}
+
+function aplicarModoFueraDeSevicio(){
+  // Banners de cerrado en el menú y carrito
+  const wrap=document.getElementById('menu-wrap');
+  const horarioHoy=()=>{
+    const d=new Date().getDay();
+    if(d===0) return cfg.horario_domingo;
+    if(d===6) return cfg.horario_sabado;
+    return cfg.horario_lunes_viernes;
+  };
+  const h=horarioHoy()||'';
+  const abrimos=h.split(/[-–]/)[0]?.trim()||'';
+
+  // Banner encima del menú
+  const banner=document.createElement('div');
+  banner.id='closed-banner';
+  banner.innerHTML=`
+    <div style="background:#1a0a00;border:1.5px solid #3d1a00;border-radius:16px;padding:20px 24px;margin:20px 0;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">🔒</div>
+      <div style="font-family:var(--fh);font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">Estamos cerrados</div>
+      ${abrimos?`<div style="font-size:13px;color:rgba(255,255,255,.6)">Horario de hoy: <strong style="color:#ffbe0b">${h}</strong></div>`:''}
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px">Vuelve pronto · Los pedidos estarán disponibles en horario de atención</div>
+    </div>`;
+  wrap.insertBefore(banner, wrap.firstChild);
+
+  // Deshabilitar botón de carrito y botón de enviar
+  const cartFab=document.getElementById('cart-fab-btn');
+  if(cartFab){ cartFab.disabled=true; cartFab.style.opacity='.4'; cartFab.style.pointerEvents='none'; }
+
+  // Deshabilitar todos los botones "+" de productos
+  document.querySelectorAll('.prod-add').forEach(b=>{ b.disabled=true; b.style.opacity='.4'; b.style.pointerEvents='none'; });
+
+  // Reemplazar botón de enviar pedido
+  const bwa=document.querySelector('.bwa');
+  if(bwa){
+    bwa.disabled=true;
+    bwa.style.opacity='.4';
+    bwa.style.pointerEvents='none';
+    bwa.innerHTML='🔒 Cerrado — no se aceptan pedidos';
+    bwa.style.background='#555';
   }
 }
 
@@ -556,6 +628,7 @@ function prodHTML(p){
 
 // ── CARRITO ──
 function addToCart(id){
+  if(!calcularSiEstaAbierto()){return;} // bloqueado si está cerrado
   const p=prods.find(x=>x.id===id);
   if(!p)return;
   // Buscar extras/adiciones de la categoría del producto
@@ -595,6 +668,9 @@ function abrirExtrasModal(p, extCat){
     Object.entries(grupos).forEach(([gNombre, gData])=>{
       const esObl=gData.obligatorio;
       const key=gNombre.replace(/\s+/g,'_');
+      // FIX 1: Solo mostrar opciones disponibles — las agotadas no aparecen
+      const opcsDisp=gData.items.filter(e=>e.disponible!==false);
+      if(!opcsDisp.length) return; // ocultar grupo si todas están agotadas
       html+=`
       <div class="mext-section" id="msec-${key}">
         <div class="mext-section-title">
@@ -603,19 +679,16 @@ function abrirExtrasModal(p, extCat){
             ?'<span style="font-size:10px;background:rgba(239,68,68,.15);color:#ef4444;border-radius:99px;padding:2px 8px;font-weight:700;text-transform:none;letter-spacing:0">⚠ Obligatorio</span>'
             :'<span style="font-size:10px;background:rgba(45,106,79,.15);color:#2d6a4f;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Opcional · Gratis</span>'}
         </div>
-        ${gData.items.map(e=>{
-          const noDisp=e.disponible===false;
-          return `
-          <div class="mext-opt${noDisp?' mext-opt-agotado':''}" id="eo-${e.id}"
-            ${!noDisp?`onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}','${gNombre.replace(/'/g,"\\'")}',${esObl})"`:''}>
-            <div class="mext-chk" id="ec-${e.id}">${noDisp?'—':''}</div>
+        ${opcsDisp.map(e=>`
+          <div class="mext-opt" id="eo-${e.id}"
+            onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}','${gNombre.replace(/'/g,"\\'")}',${esObl})">
+            <div class="mext-chk" id="ec-${e.id}"></div>
             <div class="mext-opt-info">
-              <h4 style="${noDisp?'text-decoration:line-through;color:var(--mut)':''}">${e.nombre}</h4>
-              ${noDisp?'<small style="color:var(--mut)">Agotado</small>':(e.descripcion?`<small>${e.descripcion}</small>`:'')}
+              <h4>${e.nombre}</h4>
+              ${e.descripcion?`<small>${e.descripcion}</small>`:''}
             </div>
-            ${noDisp?'<span style="font-size:11px;color:var(--mut);font-weight:600">Agotado</span>':'<span class="mext-opt-inc">Gratis ✓</span>'}
-          </div>`;
-        }).join('')}
+            <span class="mext-opt-inc">Gratis ✓</span>
+          </div>`).join('')}
         ${esObl?`<div id="oblig-err-${key}" style="display:none;font-size:12px;color:#ef4444;font-weight:600;padding:6px 4px;margin-top:2px">⚠ Debes elegir al menos una opción de "${gNombre}"</div>`:''}
       </div>`;
     });
@@ -809,6 +882,10 @@ function actualizarCarrito(){
 
 // ── ENVIAR PEDIDO ──
 async function enviarPedido(){
+  if(!calcularSiEstaAbierto()){
+    alert('Lo sentimos, estamos cerrados. No se pueden recibir pedidos en este momento.');
+    return;
+  }
   const nom=document.getElementById('c-nom').value.trim();
   const tel=document.getElementById('c-tel').value.trim();
   const dir=document.getElementById('c-dir').value.trim();
