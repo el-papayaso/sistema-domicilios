@@ -201,7 +201,56 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
 
-/* ── UPLOADER ── */
+/* ── VENTAS ── */
+.v-filtros{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px;
+  background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:16px 20px}
+.v-filtros label{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.v-modo{display:flex;gap:4px;background:var(--sur2);border-radius:10px;padding:4px}
+.vm{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;
+  color:var(--mut);transition:all .2s;border:none;background:transparent;font-family:var(--fb)}
+.vm.active{background:var(--acc);color:#fff}
+.v-date-wrap{display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap}
+.v-date-inp{background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);
+  border-radius:9px;padding:8px 12px;font-size:13px;font-family:var(--fb);cursor:pointer}
+.v-date-inp:focus{outline:none;border-color:var(--acc)}
+.v-btn-buscar{background:var(--acc);color:#fff;border:none;border-radius:9px;
+  padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.v-btn-buscar:hover{background:#e55a26}
+.v-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.vk{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.vk::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc);border-radius:2px 2px 0 0}
+.vk.grn::before{background:var(--grn)}
+.vk.blu::before{background:var(--blu)}
+.vk.pur::before{background:var(--pur)}
+.vk .kico{font-size:24px;margin-bottom:10px}
+.vk .kval{font-family:var(--fh);font-size:24px;font-weight:800;margin-bottom:4px}
+.vk .klbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.vk .ksub{font-size:12px;color:var(--mut);margin-top:6px}
+/* Medios de pago cards */
+.v-pagos{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.vp{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:16px 18px;
+  display:flex;align-items:center;gap:14px}
+.vp-ico{font-size:28px;flex-shrink:0}
+.vp-info{flex:1;min-width:0}
+.vp-nom{font-size:12px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.vp-val{font-family:var(--fh);font-size:18px;font-weight:800;color:var(--txt)}
+.vp-cnt{font-size:11px;color:var(--mut);margin-top:2px}
+/* Tabla ventas */
+.v-tabla-wrap{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden}
+.v-tabla-head{display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px;border-bottom:1px solid var(--bdr)}
+.v-tabla-head h3{font-family:var(--fh);font-size:16px;font-weight:800}
+.v-tabla-head span{font-size:12px;color:var(--mut)}
+table.vtbl{width:100%;border-collapse:collapse}
+table.vtbl th{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;
+  padding:10px 16px;text-align:left;border-bottom:1px solid var(--bdr);font-weight:600;background:var(--sur2)}
+table.vtbl td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--bdr)}
+table.vtbl tr:last-child td{border:none}
+table.vtbl tr:hover td{background:var(--sur2)}
+.v-empty{text-align:center;padding:48px 20px;color:var(--mut)}
+.v-empty span{font-size:48px;display:block;margin-bottom:12px}
+.v-periodo{font-size:13px;color:var(--mut);font-weight:500}
+.v-loading{text-align:center;padding:40px;color:var(--mut);font-size:14px}
 .uploader{position:relative}
 .upload-zone{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
@@ -262,6 +311,9 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   .cfg-card.full{grid-column:1}
   .abanner{flex-direction:column;gap:16px;align-items:flex-start;padding:18px}
   .bcreate{width:100%;justify-content:center}
+  .v-kpis{grid-template-columns:1fr 1fr}
+  .v-pagos{grid-template-columns:1fr 1fr}
+  .v-filtros{flex-direction:column;align-items:flex-start}
 }
 </style>
 </head>
@@ -275,6 +327,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <div class="tab" data-pg="productos" onclick="ir('productos')">🍔 Productos</div>
     <div class="tab" data-pg="categorias" onclick="ir('categorias')">🏷️ Categorías</div>
     <div class="tab" data-pg="extras" onclick="ir('extras')">➕ Extras</div>
+    <div class="tab" data-pg="ventas" onclick="ir('ventas')">📊 Ventas</div>
     <div class="tab" data-pg="config" onclick="ir('config')">⚙️ Configuración</div>
   </div>
   <div class="live"><span class="dot"></span>En vivo</div>
@@ -332,6 +385,83 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   <div class="extras-panel" id="ep-adiciones">
     <div class="extra-list" id="adiciones-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
   </div>
+</div>
+
+<!-- ── VENTAS ── -->
+<div class="page" id="pg-ventas">
+
+  <!-- FILTROS -->
+  <div class="v-filtros">
+    <div>
+      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Ver por</div>
+      <div class="v-modo">
+        <button class="vm active" data-modo="dia"   onclick="setModo('dia',this)">Día</button>
+        <button class="vm"        data-modo="mes"   onclick="setModo('mes',this)">Mes</button>
+        <button class="vm"        data-modo="anio"  onclick="setModo('anio',this)">Año</button>
+        <button class="vm"        data-modo="rango" onclick="setModo('rango',this)">Rango</button>
+      </div>
+    </div>
+    <div class="v-date-wrap">
+      <!-- Día -->
+      <div id="filtro-dia">
+        <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Fecha</div>
+        <input type="date" class="v-date-inp" id="v-fecha-dia">
+      </div>
+      <!-- Mes -->
+      <div id="filtro-mes" style="display:none">
+        <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Mes y año</div>
+        <input type="month" class="v-date-inp" id="v-fecha-mes">
+      </div>
+      <!-- Año -->
+      <div id="filtro-anio" style="display:none">
+        <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Año</div>
+        <select class="v-date-inp" id="v-fecha-anio"></select>
+      </div>
+      <!-- Rango -->
+      <div id="filtro-rango" style="display:none;display:none;gap:8px;align-items:flex-end">
+        <div>
+          <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Desde</div>
+          <input type="date" class="v-date-inp" id="v-rango-desde">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Hasta</div>
+          <input type="date" class="v-date-inp" id="v-rango-hasta">
+        </div>
+      </div>
+      <div style="margin-top:auto">
+        <button class="v-btn-buscar" onclick="cargarVentas()">🔍 Consultar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIS -->
+  <div class="v-kpis" id="v-kpis">
+    <div class="vk"><div class="kico">💰</div><div class="kval" id="vk-total">$0</div><div class="klbl">Total vendido</div><div class="ksub" id="vk-periodo">—</div></div>
+    <div class="vk grn"><div class="kico">🧾</div><div class="kval" id="vk-pedidos">0</div><div class="klbl">Pedidos</div><div class="ksub" id="vk-prom-sub">Ticket prom. <span id="vk-prom">$0</span></div></div>
+    <div class="vk blu"><div class="kico">📦</div><div class="kval" id="vk-entregados">0</div><div class="klbl">Entregados</div><div class="ksub" id="vk-entregados-pct">0% del total</div></div>
+    <div class="vk pur"><div class="kico">❌</div><div class="kval" id="vk-cancelados">0</div><div class="klbl">Cancelados</div><div class="ksub" id="vk-cancelados-pct">0% del total</div></div>
+  </div>
+
+  <!-- MEDIOS DE PAGO -->
+  <div style="font-family:var(--fh);font-size:15px;font-weight:800;margin-bottom:12px">💳 Ingresos por medio de pago</div>
+  <div class="v-pagos">
+    <div class="vp"><span class="vp-ico">💵</span><div class="vp-info"><div class="vp-nom">Efectivo</div><div class="vp-val" id="vp-efectivo">$0</div><div class="vp-cnt" id="vpc-efectivo">0 pedidos</div></div></div>
+    <div class="vp"><span class="vp-ico">💳</span><div class="vp-info"><div class="vp-nom">Tarjeta</div><div class="vp-val" id="vp-tarjeta">$0</div><div class="vp-cnt" id="vpc-tarjeta">0 pedidos</div></div></div>
+    <div class="vp"><span class="vp-ico">📱</span><div class="vp-info"><div class="vp-nom">Nequi</div><div class="vp-val" id="vp-nequi">$0</div><div class="vp-cnt" id="vpc-nequi">0 pedidos</div></div></div>
+    <div class="vp"><span class="vp-ico">🏦</span><div class="vp-info"><div class="vp-nom">Daviplata</div><div class="vp-val" id="vp-daviplata">$0</div><div class="vp-cnt" id="vpc-daviplata">0 pedidos</div></div></div>
+  </div>
+
+  <!-- TABLA DE VENTAS -->
+  <div class="v-tabla-wrap">
+    <div class="v-tabla-head">
+      <h3>🧾 Detalle de ventas</h3>
+      <span class="v-periodo" id="v-tabla-periodo">—</span>
+    </div>
+    <div id="v-tabla-body">
+      <div class="v-empty"><span>📊</span><p>Selecciona un período y pulsa Consultar</p></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── CONFIGURACIÓN ── -->
@@ -608,6 +738,7 @@ function ir(pg){
   if(pg==='productos') renderProds();
   if(pg==='config') renderConfig();
   if(pg==='extras') renderExtras();
+  if(pg==='ventas') initVentas();
 }
 
 // ═══════════════════════════════
@@ -650,7 +781,14 @@ function setupRealtime(){
 // PEDIDOS
 // ═══════════════════════════════
 async function loadPeds(){
-  const {data}=await db.from('pedidos').select('*, pedido_items(*)').order('created_at',{ascending:false});
+  // FIX 3: Solo cargar pedidos del día de hoy
+  const hoyStart=new Date(); hoyStart.setHours(0,0,0,0);
+  const hoyEnd=new Date(); hoyEnd.setHours(23,59,59,999);
+  const {data}=await db.from('pedidos')
+    .select('*, pedido_items(*)')
+    .gte('created_at', hoyStart.toISOString())
+    .lte('created_at', hoyEnd.toISOString())
+    .order('created_at',{ascending:false});
   peds=data||[];
   renderPeds();
   stats();
@@ -933,17 +1071,27 @@ function toast(msg,type=''){
   clearTimeout(_t);_t=setTimeout(()=>el.className='',4000);
 }
 function ping(){
+  // FIX 2: Sonido más notable — 3 beeps cortos y claros
   try{
     const a=new(window.AudioContext||window.webkitAudioContext)();
-    [880,660,440].forEach((freq,i)=>{
+    const beeps=[
+      {f:880,t:0,dur:.15},
+      {f:880,t:.2,dur:.15},
+      {f:1100,t:.4,dur:.3}
+    ];
+    beeps.forEach(b=>{
       const o=a.createOscillator(),g=a.createGain();
+      o.type='sine';
       o.connect(g);g.connect(a.destination);
-      o.frequency.value=freq;
-      g.gain.setValueAtTime(.2,a.currentTime+i*.12);
-      g.gain.exponentialRampToValueAtTime(.001,a.currentTime+i*.12+.2);
-      o.start(a.currentTime+i*.12);
-      o.stop(a.currentTime+i*.12+.2);
+      o.frequency.value=b.f;
+      g.gain.setValueAtTime(0,a.currentTime+b.t);
+      g.gain.linearRampToValueAtTime(.5,a.currentTime+b.t+.02);
+      g.gain.exponentialRampToValueAtTime(.001,a.currentTime+b.t+b.dur);
+      o.start(a.currentTime+b.t);
+      o.stop(a.currentTime+b.t+b.dur+.05);
     });
+    // Vibración en móvil
+    if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
   }catch(e){}
 }
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
@@ -1252,6 +1400,197 @@ async function delExtra(id){
   const {error}=await db.from('extras').delete().eq('id',id);
   if(!error){toast('✅ Eliminado','ok');await loadExtras();}
   else toast('❌ Error','err');
+}
+
+// ═══════════════════════════════
+// VENTAS
+// ═══════════════════════════════
+let vModo='dia'; // dia | mes | anio | rango
+
+function initVentas(){
+  // Poblar selector de años (últimos 5)
+  const sel=document.getElementById('v-fecha-anio');
+  if(!sel.options.length){
+    const anioActual=new Date().getFullYear();
+    for(let a=anioActual;a>=anioActual-4;a--){
+      const o=document.createElement('option');
+      o.value=a;o.textContent=a;sel.appendChild(o);
+    }
+  }
+  // Poner fecha de hoy por defecto
+  const hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('v-fecha-dia').value=hoy;
+  const mesActual=hoy.slice(0,7);
+  document.getElementById('v-fecha-mes').value=mesActual;
+  // Cargar automáticamente el día de hoy
+  cargarVentas();
+}
+
+function setModo(modo, el){
+  vModo=modo;
+  document.querySelectorAll('.vm').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  // Mostrar/ocultar filtros
+  ['dia','mes','anio','rango'].forEach(m=>{
+    const el2=document.getElementById('filtro-'+m);
+    if(el2) el2.style.display=(m===modo?'':(m==='rango'&&modo==='rango'?'flex':'none'));
+  });
+  if(modo==='rango') document.getElementById('filtro-rango').style.display='flex';
+}
+
+async function cargarVentas(){
+  const tbody=document.getElementById('v-tabla-body');
+  tbody.innerHTML='<div class="v-loading">⏳ Cargando ventas...</div>';
+  resetKpis();
+
+  let desde, hasta, labelPeriodo='';
+  const tz=-5; // Colombia UTC-5
+
+  try{
+    if(vModo==='dia'){
+      const fecha=document.getElementById('v-fecha-dia').value;
+      if(!fecha){toast('❌ Selecciona una fecha','err');return;}
+      desde=new Date(fecha+'T00:00:00');
+      hasta=new Date(fecha+'T23:59:59');
+      labelPeriodo=new Date(fecha+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    } else if(vModo==='mes'){
+      const val=document.getElementById('v-fecha-mes').value;
+      if(!val){toast('❌ Selecciona un mes','err');return;}
+      const [y,m]=val.split('-').map(Number);
+      desde=new Date(y,m-1,1,0,0,0);
+      hasta=new Date(y,m,0,23,59,59); // último día del mes
+      labelPeriodo=new Date(y,m-1,15).toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+    } else if(vModo==='anio'){
+      const y=parseInt(document.getElementById('v-fecha-anio').value);
+      desde=new Date(y,0,1,0,0,0);
+      hasta=new Date(y,11,31,23,59,59);
+      labelPeriodo='Año '+y;
+    } else { // rango
+      const d=document.getElementById('v-rango-desde').value;
+      const h=document.getElementById('v-rango-hasta').value;
+      if(!d||!h){toast('❌ Selecciona fechas de inicio y fin','err');return;}
+      if(d>h){toast('❌ La fecha inicial debe ser anterior a la final','err');return;}
+      desde=new Date(d+'T00:00:00');
+      hasta=new Date(h+'T23:59:59');
+      const fmtD=new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+      const fmtH=new Date(h+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+      labelPeriodo=fmtD+' → '+fmtH;
+    }
+
+    // Consultar TODOS los pedidos del período (sin filtro de estado, lo filtramos en JS)
+    const {data,error}=await db.from('pedidos')
+      .select('id,numero_pedido,cliente_nombre,cliente_telefono,medio_pago,total,estado,created_at')
+      .gte('created_at', desde.toISOString())
+      .lte('created_at', hasta.toISOString())
+      .order('created_at',{ascending:false});
+
+    if(error) throw error;
+    const pedidosRaw=data||[];
+
+    renderVentas(pedidosRaw, labelPeriodo);
+  } catch(err){
+    tbody.innerHTML=`<div class="v-empty"><span>❌</span><p>Error al cargar: ${err.message}</p></div>`;
+  }
+}
+
+function renderVentas(pedidos, label){
+  // Separar cancelados
+  const activos=pedidos.filter(p=>p.estado!=='cancelado');
+  const cancelados=pedidos.filter(p=>p.estado==='cancelado');
+  const entregados=pedidos.filter(p=>p.estado==='entregado');
+
+  const total=activos.reduce((a,p)=>a+(+p.total||0),0);
+  const prom=activos.length?total/activos.length:0;
+
+  // ── KPIs ──
+  document.getElementById('vk-total').textContent=$f(total);
+  document.getElementById('vk-periodo').textContent=label;
+  document.getElementById('vk-pedidos').textContent=activos.length;
+  document.getElementById('vk-prom').textContent=$f(prom);
+  document.getElementById('vk-entregados').textContent=entregados.length;
+  document.getElementById('vk-entregados-pct').textContent=
+    activos.length?Math.round(entregados.length/activos.length*100)+'% entregados':'—';
+  document.getElementById('vk-cancelados').textContent=cancelados.length;
+  document.getElementById('vk-cancelados-pct').textContent=
+    pedidos.length?Math.round(cancelados.length/pedidos.length*100)+'% del total':'—';
+
+  // ── MEDIOS DE PAGO (solo activos) ──
+  const medios={efectivo:0,tarjeta:0,nequi:0,daviplata:0};
+  const mediosCnt={efectivo:0,tarjeta:0,nequi:0,daviplata:0};
+  activos.forEach(p=>{
+    const m=p.medio_pago||'efectivo';
+    if(medios[m]!==undefined){
+      medios[m]+=(+p.total||0);
+      mediosCnt[m]++;
+    }
+  });
+  ['efectivo','tarjeta','nequi','daviplata'].forEach(m=>{
+    document.getElementById('vp-'+m).textContent=$f(medios[m]);
+    document.getElementById('vpc-'+m).textContent=mediosCnt[m]+' pedido'+(mediosCnt[m]!==1?'s':'');
+  });
+
+  // ── TABLA ──
+  document.getElementById('v-tabla-periodo').textContent=label;
+  const tbody=document.getElementById('v-tabla-body');
+
+  if(!pedidos.length){
+    tbody.innerHTML='<div class="v-empty"><span>🔍</span><p>Sin ventas en este período</p></div>';
+    return;
+  }
+
+  const pagoEmoji={efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'};
+  const pagoLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'};
+
+  tbody.innerHTML=`
+    <div style="overflow-x:auto">
+    <table class="vtbl">
+      <thead>
+        <tr>
+          <th>#Pedido</th>
+          <th>Fecha</th>
+          <th>Cliente</th>
+          <th>Medio de pago</th>
+          <th>Estado</th>
+          <th style="text-align:right">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${pedidos.map(p=>{
+          const fecha=new Date(p.created_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
+          const mp=p.medio_pago||'efectivo';
+          const esCancelado=p.estado==='cancelado';
+          return `<tr style="${esCancelado?'opacity:.5':''}">
+            <td><span style="font-family:var(--fh);font-weight:800;color:var(--acc)">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span></td>
+            <td style="color:var(--mut);font-size:12px">${fecha}</td>
+            <td style="font-weight:500">${p.cliente_nombre}</td>
+            <td>${pagoEmoji[mp]||''} ${pagoLabel[mp]||mp}</td>
+            <td><span class="chip s-${p.estado}">${elbl(p.estado)}</span></td>
+            <td style="text-align:right;font-family:var(--fh);font-weight:800;color:${esCancelado?'var(--mut)':'var(--acc2)'}">${esCancelado?'<s>'+$f(+p.total||0)+'</s>':$f(+p.total||0)}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--sur2)">
+          <td colspan="5" style="font-weight:700;font-size:13px;padding:12px 16px">
+            Total (${activos.length} pedido${activos.length!==1?'s':''} · ${cancelados.length} cancelado${cancelados.length!==1?'s':''})
+          </td>
+          <td style="text-align:right;font-family:var(--fh);font-weight:800;font-size:18px;color:var(--acc2);padding:12px 16px">${$f(total)}</td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>`;
+}
+
+function resetKpis(){
+  ['vk-total','vk-pedidos','vk-entregados','vk-cancelados'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('vk-periodo').textContent='Cargando...';
+  document.getElementById('vk-prom').textContent='$0';
+  document.getElementById('vk-entregados-pct').textContent='—';
+  document.getElementById('vk-cancelados-pct').textContent='—';
+  ['efectivo','tarjeta','nequi','daviplata'].forEach(m=>{
+    document.getElementById('vp-'+m).textContent='$0';
+    document.getElementById('vpc-'+m).textContent='0 pedidos';
+  });
 }
 
 // ═══════════════════════════════
