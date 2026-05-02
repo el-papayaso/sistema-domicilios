@@ -1417,13 +1417,20 @@ function initVentas(){
       o.value=a;o.textContent=a;sel.appendChild(o);
     }
   }
-  // Poner fecha de hoy por defecto
-  const hoy=new Date().toISOString().split('T')[0];
+  // Fecha de HOY en hora Colombia (UTC-5), no en UTC
+  const hoy=fechaHoyColombia();
   document.getElementById('v-fecha-dia').value=hoy;
-  const mesActual=hoy.slice(0,7);
-  document.getElementById('v-fecha-mes').value=mesActual;
-  // Cargar automáticamente el día de hoy
+  document.getElementById('v-fecha-mes').value=hoy.slice(0,7);
+  // Cargar automáticamente
   cargarVentas();
+}
+
+// Devuelve "YYYY-MM-DD" en hora Colombia (UTC-5) siempre
+function fechaHoyColombia(){
+  const ahora=new Date();
+  // Restar 5 horas para pasar de UTC a Colombia
+  const colombia=new Date(ahora.getTime() - 5*60*60*1000);
+  return colombia.toISOString().split('T')[0];
 }
 
 function setModo(modo, el){
@@ -1444,36 +1451,38 @@ async function cargarVentas(){
   resetKpis();
 
   let desde, hasta, labelPeriodo='';
-  const tz=-5; // Colombia UTC-5
 
   try{
     if(vModo==='dia'){
       const fecha=document.getElementById('v-fecha-dia').value;
       if(!fecha){toast('❌ Selecciona una fecha','err');return;}
-      desde=new Date(fecha+'T00:00:00');
-      hasta=new Date(fecha+'T23:59:59');
-      labelPeriodo=new Date(fecha+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      // Construir inicio y fin del día en Colombia (UTC-5 = +05:00 offset inverso)
+      desde=new Date(fecha+'T00:00:00-05:00');
+      hasta=new Date(fecha+'T23:59:59-05:00');
+      labelPeriodo=new Date(fecha+'T12:00:00-05:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
     } else if(vModo==='mes'){
       const val=document.getElementById('v-fecha-mes').value;
       if(!val){toast('❌ Selecciona un mes','err');return;}
       const [y,m]=val.split('-').map(Number);
-      desde=new Date(y,m-1,1,0,0,0);
-      hasta=new Date(y,m,0,23,59,59); // último día del mes
-      labelPeriodo=new Date(y,m-1,15).toLocaleDateString('es-CO',{month:'long',year:'numeric'});
+      desde=new Date(`${y}-${String(m).padStart(2,'0')}-01T00:00:00-05:00`);
+      // Último día del mes
+      const ultimoDia=new Date(y,m,0).getDate();
+      hasta=new Date(`${y}-${String(m).padStart(2,'0')}-${ultimoDia}T23:59:59-05:00`);
+      labelPeriodo=new Date(`${y}-${String(m).padStart(2,'0')}-15T12:00:00-05:00`).toLocaleDateString('es-CO',{month:'long',year:'numeric'});
     } else if(vModo==='anio'){
       const y=parseInt(document.getElementById('v-fecha-anio').value);
-      desde=new Date(y,0,1,0,0,0);
-      hasta=new Date(y,11,31,23,59,59);
+      desde=new Date(`${y}-01-01T00:00:00-05:00`);
+      hasta=new Date(`${y}-12-31T23:59:59-05:00`);
       labelPeriodo='Año '+y;
     } else { // rango
       const d=document.getElementById('v-rango-desde').value;
       const h=document.getElementById('v-rango-hasta').value;
       if(!d||!h){toast('❌ Selecciona fechas de inicio y fin','err');return;}
       if(d>h){toast('❌ La fecha inicial debe ser anterior a la final','err');return;}
-      desde=new Date(d+'T00:00:00');
-      hasta=new Date(h+'T23:59:59');
-      const fmtD=new Date(d+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
-      const fmtH=new Date(h+'T12:00:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+      desde=new Date(d+'T00:00:00-05:00');
+      hasta=new Date(h+'T23:59:59-05:00');
+      const fmtD=new Date(d+'T12:00:00-05:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
+      const fmtH=new Date(h+'T12:00:00-05:00').toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'});
       labelPeriodo=fmtD+' → '+fmtH;
     }
 
