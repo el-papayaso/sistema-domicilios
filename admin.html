@@ -330,7 +330,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="tab" data-pg="ventas" onclick="ir('ventas')">📊 Ventas</div>
     <div class="tab" data-pg="config" onclick="ir('config')">⚙️ Configuración</div>
   </div>
-  <div class="live"><span class="dot"></span>En vivo</div>
+  <div class="live"><span class="dot"></span>En vivo &nbsp;<button onclick="ping()" title="Probar sonido" style="background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--mut);font-size:11px;padding:3px 8px;cursor:pointer;font-family:var(--fb)">🔔 test</button></div>
 </nav>
 
 <!-- ── PEDIDOS ── -->
@@ -1070,29 +1070,53 @@ function toast(msg,type=''){
   el.innerHTML=msg;el.className='show '+(type==='ok'?'ok':type==='err'?'err':'info');
   clearTimeout(_t);_t=setTimeout(()=>el.className='',4000);
 }
-function ping(){
-  // FIX 2: Sonido más notable — 3 beeps cortos y claros
+// ═══════════════════════════════
+// AUDIO — Desbloqueo y sonido
+// ═══════════════════════════════
+let _audioCtx=null;
+
+// Desbloquear AudioContext en el primer clic/toque del usuario
+function desbloquearAudio(){
+  if(_audioCtx) return;
   try{
-    const a=new(window.AudioContext||window.webkitAudioContext)();
+    _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    // Reproducir silencio para desbloquear
+    const buf=_audioCtx.createBuffer(1,1,22050);
+    const src=_audioCtx.createBufferSource();
+    src.buffer=buf;src.connect(_audioCtx.destination);src.start(0);
+  }catch(e){}
+}
+document.addEventListener('click',desbloquearAudio,{once:false});
+document.addEventListener('touchstart',desbloquearAudio,{once:false});
+
+function ping(){
+  try{
+    // Crear contexto si no existe
+    if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    // Reanudar si fue suspendido por el navegador
+    if(_audioCtx.state==='suspended') _audioCtx.resume();
+    const a=_audioCtx;
     const beeps=[
-      {f:880,t:0,dur:.15},
-      {f:880,t:.2,dur:.15},
-      {f:1100,t:.4,dur:.3}
+      {f:880, t:0,   dur:.18},
+      {f:880, t:.25, dur:.18},
+      {f:1200,t:.5,  dur:.35}
     ];
     beeps.forEach(b=>{
-      const o=a.createOscillator(),g=a.createGain();
+      const o=a.createOscillator();
+      const g=a.createGain();
+      const comp=a.createDynamicsCompressor();
       o.type='sine';
-      o.connect(g);g.connect(a.destination);
       o.frequency.value=b.f;
-      g.gain.setValueAtTime(0,a.currentTime+b.t);
-      g.gain.linearRampToValueAtTime(.5,a.currentTime+b.t+.02);
-      g.gain.exponentialRampToValueAtTime(.001,a.currentTime+b.t+b.dur);
+      o.connect(g);g.connect(comp);comp.connect(a.destination);
+      g.gain.setValueAtTime(0, a.currentTime+b.t);
+      g.gain.linearRampToValueAtTime(0.7, a.currentTime+b.t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+b.t+b.dur);
       o.start(a.currentTime+b.t);
-      o.stop(a.currentTime+b.t+b.dur+.05);
+      o.stop(a.currentTime+b.t+b.dur+0.05);
     });
     // Vibración en móvil
     if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
-  }catch(e){}
+  }catch(e){ console.warn('Audio error:',e); }
 }
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 document.getElementById('ov-adicion').addEventListener('click',e=>{if(e.target===document.getElementById('ov-adicion'))cerrar('ov-adicion');});
