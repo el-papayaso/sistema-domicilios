@@ -304,6 +304,44 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .opcion-row input:focus{outline:none;border-color:var(--acc)}
 .opcion-del{width:34px;height:34px;border-radius:8px;border:none;background:rgba(239,68,68,.12);color:var(--red);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
 .opcion-del:hover{background:var(--red);color:#fff}
+/* ── CAJA ── */
+.caja-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:12px;padding:4px}
+.ctab{flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;user-select:none;border:none;background:transparent;font-family:var(--fb)}
+.ctab.active{background:var(--acc);color:#fff}
+.caja-panel{display:none}.caja-panel.active{display:block}
+.arqueo-card{background:var(--sur);border:1px solid var(--bdr);border-radius:16px;padding:22px;margin-bottom:16px}
+.arqueo-card h3{font-family:var(--fh);font-size:16px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.ar-line{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:14px;border-bottom:1px solid var(--bdr)}
+.ar-line:last-child{border:none}
+.ar-line.total{font-family:var(--fh);font-size:18px;font-weight:800;padding-top:14px;margin-top:4px}
+.ar-line.diff-pos{color:var(--grn)}.ar-line.diff-neg{color:var(--red)}.ar-line.diff-ok{color:var(--acc2)}
+.ar-result{background:var(--sur2);border-radius:12px;padding:16px;margin-top:14px}
+.ea-abierto{background:rgba(45,211,111,.15);color:var(--grn);display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.ea-cerrado{background:rgba(59,130,246,.15);color:var(--blu);display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.gasto-row{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.gasto-info{flex:1;min-width:0}
+.gasto-info h4{font-weight:600;font-size:14px;margin-bottom:3px}
+.gasto-info small{font-size:12px;color:var(--mut)}
+.gasto-monto{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--red);flex-shrink:0}
+.gbadge{font-size:10px;padding:2px 8px;border-radius:5px;font-weight:700;display:inline-block;margin-right:4px;margin-top:4px}
+.gb-cat{background:var(--sur2);color:var(--mut)}.gb-mp{background:rgba(59,130,246,.12);color:var(--blu)}
+.gb-pag{background:rgba(45,211,111,.12);color:var(--grn)}.gb-nopag{background:rgba(239,68,68,.12);color:var(--red)}
+.flujo-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:22px}
+.fk{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:20px;position:relative;overflow:hidden}
+.fk::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:2px 2px 0 0}
+.fk.ing::before{background:var(--grn)}.fk.gst::before{background:var(--red)}.fk.util::before{background:var(--acc2)}
+.fk .fkico{font-size:24px;margin-bottom:10px}
+.fk .fkval{font-family:var(--fh);font-size:22px;font-weight:800;margin-bottom:4px}
+.fk .fklbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px}
+.flujo-blk{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:14px}
+.flujo-bhead{padding:12px 18px;background:var(--sur2);border-bottom:1px solid var(--bdr);font-family:var(--fh);font-size:14px;font-weight:800}
+.flujo-brow{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;border-bottom:1px solid var(--bdr);font-size:13px}
+.flujo-brow:last-child{border:none}
+.flujo-brow.sub{background:rgba(255,255,255,.02);font-weight:700;font-size:14px}
+.semaforo{display:flex;align-items:center;gap:12px;padding:16px 20px;border-radius:14px;margin-bottom:20px;font-family:var(--fh);font-size:16px;font-weight:800}
+.semaforo.verde{background:rgba(45,211,111,.1);border:1px solid rgba(45,211,111,.25);color:var(--grn)}
+.semaforo.rojo{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+.semaforo.amarillo{background:rgba(255,190,11,.1);border:1px solid rgba(255,190,11,.25);color:var(--acc2)}
 @media(max-width:700px){
   .stats{grid-template-columns:1fr 1fr}
   .pbody{grid-template-columns:1fr}
@@ -314,6 +352,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
   .v-kpis{grid-template-columns:1fr 1fr}
   .v-pagos{grid-template-columns:1fr 1fr}
   .v-filtros{flex-direction:column;align-items:flex-start}
+  .flujo-kpis{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -328,6 +367,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="tab" data-pg="categorias" onclick="ir('categorias')">🏷️ Categorías</div>
     <div class="tab" data-pg="extras" onclick="ir('extras')">➕ Extras</div>
     <div class="tab" data-pg="ventas" onclick="ir('ventas')">📊 Ventas</div>
+    <div class="tab" data-pg="caja" onclick="ir('caja')">💰 Caja</div>
     <div class="tab" data-pg="config" onclick="ir('config')">⚙️ Configuración</div>
   </div>
   <div class="live"><span class="dot"></span>En vivo &nbsp;<button onclick="ping()" title="Probar sonido" style="background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--mut);font-size:11px;padding:3px 8px;cursor:pointer;font-family:var(--fb)">🔔 test</button></div>
@@ -462,6 +502,165 @@ table.vtbl tr:hover td{background:var(--sur2)}
     </div>
   </div>
 
+</div>
+
+<!-- ── CAJA ── -->
+<div class="page" id="pg-caja">
+  <div class="caja-tabs">
+    <button class="ctab active" data-ct="arqueo"  onclick="switchCTab('arqueo',this)">🏦 Arqueo del día</button>
+    <button class="ctab"        data-ct="gastos"  onclick="switchCTab('gastos',this)">💸 Gastos</button>
+    <button class="ctab"        data-ct="flujo"   onclick="switchCTab('flujo',this)">📈 Flujo de caja</button>
+  </div>
+
+  <!-- ══ ARQUEO ══ -->
+  <div class="caja-panel active" id="cp-arqueo">
+    <!-- Estado y botones de acción -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:var(--fh);font-size:18px;font-weight:800;margin-bottom:4px" id="arqueo-fecha-lbl">—</div>
+        <span id="arqueo-estado-badge" class="ea-abierto">● Abierto</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;box-shadow:0 4px 16px rgba(255,107,53,.3)" onclick="abrirArqueoModal()">
+          ✏️ <span id="btn-arqueo-lbl">Abrir caja</span>
+        </button>
+        <button class="bcreate" id="btn-cierre" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3);display:none" onclick="abrirCierreModal()">
+          🔒 Cerrar caja
+        </button>
+      </div>
+    </div>
+    <!-- Resultado del arqueo -->
+    <div class="arqueo-card" id="arqueo-resumen">
+      <h3>📊 Resumen del día</h3>
+      <div id="arqueo-content">
+        <div style="text-align:center;padding:40px;color:var(--mut)">
+          <div style="font-size:48px;margin-bottom:12px">🏦</div>
+          <p>No hay arqueo registrado para hoy.</p>
+          <p style="font-size:12px;margin-top:6px">Haz clic en <strong>Abrir caja</strong> para iniciar el día.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ GASTOS ══ -->
+  <div class="caja-panel" id="cp-gastos">
+    <!-- Sub-tabs -->
+    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--sur2);border-radius:10px;padding:4px;width:fit-content">
+      <button class="ctab active" data-gt="fijos"     onclick="switchGTab('fijos',this)"    style="min-width:140px">📌 Gastos Fijos</button>
+      <button class="ctab"        data-gt="variables" onclick="switchGTab('variables',this)" style="min-width:140px">📋 Gastos Variables</button>
+    </div>
+
+    <!-- Gastos Fijos -->
+    <div id="gp-fijos">
+      <div class="abanner" style="margin-bottom:20px">
+        <div class="abanner-txt">
+          <h2>📌 Gastos Fijos</h2>
+          <p>Registra manualmente los gastos fijos de cada mes</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <select id="gf-filtro-mes" class="estado-sel" style="width:110px" onchange="cargarGastosFijos()">
+            <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+            <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+            <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+            <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+          </select>
+          <select id="gf-filtro-anio" class="estado-sel" style="width:90px" onchange="cargarGastosFijos()"></select>
+          <button class="bcreate" style="padding:13px 22px;font-size:14px;animation:none;box-shadow:0 4px 16px rgba(255,107,53,.3)" onclick="abrirGastoFijo()">
+            <span style="font-size:18px">＋</span> Nuevo
+          </button>
+        </div>
+      </div>
+      <div id="gastos-fijos-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
+      <div id="gf-total-wrap" style="display:none;margin-top:12px;background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--mut);font-weight:600">Total gastos fijos del mes</span>
+        <span class="gasto-monto" id="gf-total">$0</span>
+      </div>
+    </div>
+
+    <!-- Gastos Variables -->
+    <div id="gp-variables" style="display:none">
+      <div class="abanner" style="margin-bottom:20px">
+        <div class="abanner-txt">
+          <h2>📋 Gastos Variables</h2>
+          <p>Gastos puntuales con fecha específica</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="month" id="gv-filtro-mes" class="v-date-inp" style="height:40px" onchange="cargarGastosVariables()">
+          <button class="bcreate" style="padding:13px 22px;font-size:14px;animation:none;box-shadow:0 4px 16px rgba(255,107,53,.3)" onclick="abrirGastoVariable()">
+            <span style="font-size:18px">＋</span> Nuevo
+          </button>
+        </div>
+      </div>
+      <div id="gastos-variables-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
+      <div id="gv-total-wrap" style="margin-top:12px;background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:14px 18px;display:none;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--mut);font-weight:600">Total gastos variables del mes</span>
+        <span class="gasto-monto" id="gv-total">$0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ FLUJO DE CAJA ══ -->
+  <div class="caja-panel" id="cp-flujo">
+    <div class="v-filtros" style="margin-bottom:22px">
+      <div>
+        <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Período</div>
+        <input type="month" id="flujo-mes" class="v-date-inp">
+      </div>
+      <div style="margin-top:auto">
+        <button class="v-btn-buscar" onclick="cargarFlujo()">🔍 Calcular</button>
+      </div>
+    </div>
+
+    <!-- Semáforo utilidad -->
+    <div class="semaforo verde" id="flujo-semaforo" style="display:none">
+      <span style="font-size:28px" id="flujo-semaforo-ico">✅</span>
+      <div>
+        <div id="flujo-semaforo-txt">Utilidad positiva</div>
+        <div style="font-size:13px;font-weight:400;opacity:.8" id="flujo-semaforo-sub"></div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="flujo-kpis" id="flujo-kpis">
+      <div class="fk ing"><div class="fkico">💰</div><div class="fkval" id="fk-ing">$0</div><div class="fklbl">Ingresos totales</div></div>
+      <div class="fk gst"><div class="fkico">💸</div><div class="fkval" id="fk-gst">$0</div><div class="fklbl">Total gastos</div></div>
+      <div class="fk util"><div class="fkico">📈</div><div class="fkval" id="fk-util">$0</div><div class="fklbl">Utilidad neta</div></div>
+    </div>
+
+    <!-- Detalle ingresos -->
+    <div class="flujo-blk">
+      <div class="flujo-bhead">💰 Ingresos</div>
+      <div class="flujo-brow"><span>Ventas (pedidos no cancelados)</span><span id="fl-ventas" style="font-weight:700;color:var(--grn)">$0</span></div>
+      <div class="flujo-brow"><span style="color:var(--mut)">↳ Efectivo</span><span id="fl-v-efectivo">$0</span></div>
+      <div class="flujo-brow"><span style="color:var(--mut)">↳ Nequi</span><span id="fl-v-nequi">$0</span></div>
+      <div class="flujo-brow"><span style="color:var(--mut)">↳ Daviplata</span><span id="fl-v-daviplata">$0</span></div>
+      <div class="flujo-brow"><span style="color:var(--mut)">↳ Tarjeta</span><span id="fl-v-tarjeta">$0</span></div>
+      <div class="flujo-brow"><span>Ingresos extraordinarios (préstamos/devoluciones)</span><span id="fl-ext" style="font-weight:700">$0</span></div>
+      <div class="flujo-brow sub"><span>Total ingresos</span><span id="fl-total-ing" style="color:var(--grn)">$0</span></div>
+    </div>
+
+    <!-- Detalle gastos fijos -->
+    <div class="flujo-blk">
+      <div class="flujo-bhead">📌 Gastos Fijos del mes</div>
+      <div id="fl-fijos-rows"><div style="padding:12px 18px;color:var(--mut);font-size:13px">Sin gastos fijos registrados este mes</div></div>
+      <div class="flujo-brow sub"><span>Total fijos</span><span id="fl-total-fijos" style="color:var(--red)">$0</span></div>
+    </div>
+
+    <!-- Detalle gastos variables -->
+    <div class="flujo-blk">
+      <div class="flujo-bhead">📋 Gastos Variables del mes</div>
+      <div id="fl-variables-rows"><div style="padding:12px 18px;color:var(--mut);font-size:13px">Sin gastos variables registrados este mes</div></div>
+      <div class="flujo-brow sub"><span>Total variables</span><span id="fl-total-variables" style="color:var(--red)">$0</span></div>
+    </div>
+
+    <!-- Total final -->
+    <div class="flujo-blk">
+      <div class="flujo-brow sub" style="padding:16px 18px">
+        <span style="font-family:var(--fh);font-size:16px">UTILIDAD NETA</span>
+        <span id="fl-utilidad" style="font-family:var(--fh);font-size:20px;font-weight:800">$0</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── CONFIGURACIÓN ── -->
@@ -711,6 +910,176 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 </div>
 
+<!-- ── MODAL APERTURA CAJA ── -->
+<div class="ov" id="ov-arqueo">
+  <div class="modal">
+    <div class="mtit" id="arq-tit">Abrir caja</div>
+    <div class="msub">Registra el dinero físico con el que inicias el día</div>
+    <input type="hidden" id="arq-id">
+    <div class="fg">
+      <label>Monto de apertura (efectivo físico) *</label>
+      <input type="number" id="arq-apertura" placeholder="50000" min="0">
+    </div>
+    <div class="fg">
+      <label>Ingreso extraordinario <span style="font-size:11px;color:var(--mut);font-weight:400">(opcional — dinero extra que entra a la caja)</span></label>
+      <input type="number" id="arq-ext" placeholder="0" min="0" oninput="toggleExtFields()">
+    </div>
+    <div id="arq-ext-fields" style="display:none">
+      <div class="fg">
+        <label>Tipo de ingreso extraordinario</label>
+        <select id="arq-ext-tipo">
+          <option value="capital_propio">💼 Capital propio (no afecta flujo de caja)</option>
+          <option value="prestamo">🏦 Préstamo (afecta flujo de caja)</option>
+          <option value="devolucion">↩️ Devolución de proveedor (afecta flujo de caja)</option>
+          <option value="otro">📌 Otro</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Concepto</label>
+        <input type="text" id="arq-ext-concepto" placeholder="Descripción del ingreso...">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Notas <span style="font-size:11px;color:var(--mut);font-weight:400">(opcional)</span></label>
+      <input type="text" id="arq-notas" placeholder="Observaciones del día...">
+    </div>
+    <div class="mbtns">
+      <button class="bpri" onclick="guardarArqueo()">💾 Guardar apertura</button>
+      <button class="bsecm" onclick="cerrar('ov-arqueo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CIERRE CAJA ── -->
+<div class="ov" id="ov-cierre">
+  <div class="modal">
+    <div class="mtit">Cerrar caja</div>
+    <div class="msub">Cuenta el efectivo físico actual y registra el cierre del día</div>
+    <div id="cierre-resumen" style="background:var(--sur2);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px"></div>
+    <div class="fg">
+      <label>Efectivo contado físicamente *</label>
+      <input type="number" id="cierre-monto" placeholder="0" min="0" oninput="calcularDiferencia()">
+    </div>
+    <div id="cierre-diferencia" style="margin-bottom:16px;font-family:var(--fh);font-size:16px;font-weight:800;text-align:center;padding:12px;border-radius:10px;display:none"></div>
+    <div class="fg">
+      <label>Notas de cierre</label>
+      <input type="text" id="cierre-notas" placeholder="Observaciones del cierre...">
+    </div>
+    <div class="mbtns">
+      <button class="bpri" style="background:var(--blu)" onclick="guardarCierre()">🔒 Cerrar caja</button>
+      <button class="bsecm" onclick="cerrar('ov-cierre')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GASTO FIJO ── -->
+<div class="ov" id="ov-gfijo">
+  <div class="modal">
+    <div class="mtit" id="gf-tit">Nuevo Gasto Fijo</div>
+    <div class="msub">Gasto recurrente del mes</div>
+    <input type="hidden" id="gf-id">
+    <div class="fg"><label>Nombre *</label><input type="text" id="gf-nombre" placeholder="Ej: Arriendo local"></div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Monto (COP) *</label>
+        <input type="number" id="gf-monto" placeholder="800000" min="0">
+      </div>
+      <div class="fg">
+        <label>Categoría</label>
+        <select id="gf-cat">
+          <option value="arriendo">🏠 Arriendo</option>
+          <option value="servicios_publicos">💡 Servicios públicos</option>
+          <option value="nomina">👥 Nómina</option>
+          <option value="internet_plataformas">📱 Internet/Plataformas</option>
+          <option value="otros_fijos">📌 Otros fijos</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Mes</label>
+        <select id="gf-mes">
+          <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+          <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+          <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+          <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Año</label>
+        <select id="gf-anio"></select>
+      </div>
+    </div>
+    <div class="fg">
+      <label>Medio de pago del gasto</label>
+      <select id="gf-mp">
+        <option value="transferencia">🏦 Transferencia bancaria</option>
+        <option value="efectivo">💵 Efectivo</option>
+        <option value="nequi">📱 Nequi</option>
+        <option value="tarjeta">💳 Tarjeta</option>
+        <option value="otro">📌 Otro</option>
+      </select>
+    </div>
+    <div class="fg">
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="gf-pagado"> ✅ Ya pagado</label>
+      </div>
+    </div>
+    <div class="fg"><label>Notas</label><input type="text" id="gf-notas" placeholder="Observaciones..."></div>
+    <div class="mbtns">
+      <button class="bpri" onclick="guardarGastoFijo()">💾 Guardar</button>
+      <button class="bsecm" onclick="cerrar('ov-gfijo')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL GASTO VARIABLE ── -->
+<div class="ov" id="ov-gvar">
+  <div class="modal">
+    <div class="mtit" id="gv-tit">Nuevo Gasto Variable</div>
+    <div class="msub">Gasto puntual con fecha específica</div>
+    <input type="hidden" id="gv-id">
+    <div class="fg"><label>Nombre *</label><input type="text" id="gv-nombre" placeholder="Ej: Compra de insumos"></div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Monto (COP) *</label>
+        <input type="number" id="gv-monto" placeholder="50000" min="0">
+      </div>
+      <div class="fg">
+        <label>Fecha *</label>
+        <input type="date" id="gv-fecha">
+      </div>
+    </div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Categoría</label>
+        <select id="gv-cat">
+          <option value="insumos">🥗 Insumos/Materias primas</option>
+          <option value="domiciliarios">🛵 Domiciliarios</option>
+          <option value="mantenimiento">🔧 Mantenimiento</option>
+          <option value="marketing">📣 Marketing</option>
+          <option value="otros_variables">📋 Otros variables</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Medio de pago del gasto</label>
+        <select id="gv-mp">
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="transferencia">🏦 Transferencia</option>
+          <option value="nequi">📱 Nequi</option>
+          <option value="tarjeta">💳 Tarjeta</option>
+          <option value="otro">📌 Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Descripción/Notas</label><textarea id="gv-notas" rows="2" placeholder="Detalle del gasto..."></textarea></div>
+    <div class="mbtns">
+      <button class="bpri" onclick="guardarGastoVariable()">💾 Guardar</button>
+      <button class="bsecm" onclick="cerrar('ov-gvar')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -739,6 +1108,7 @@ function ir(pg){
   if(pg==='config') renderConfig();
   if(pg==='extras') renderExtras();
   if(pg==='ventas') initVentas();
+  if(pg==='caja')   initCaja();
 }
 
 // ═══════════════════════════════
@@ -1624,6 +1994,447 @@ function resetKpis(){
     document.getElementById('vp-'+m).textContent='$0';
     document.getElementById('vpc-'+m).textContent='0 pedidos';
   });
+}
+
+// ═══════════════════════════════
+// MÓDULO CAJA
+// ═══════════════════════════════
+let cajaTab='arqueo', gastosTab='fijos';
+let arqueoHoy=null, gastosFijosData=[], gastosVariablesData=[];
+
+// ── Helpers ──
+function nomMes(m){return['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][m-1];}
+function fechaColCaja(){const n=new Date();return new Date(n.getTime()-5*60*60*1000).toISOString().split('T')[0];}
+function mesAnioActual(){const h=fechaColCaja();return{mes:parseInt(h.slice(5,7)),anio:parseInt(h.slice(0,4))};}
+function poblarAnios(selId){
+  const sel=document.getElementById(selId);
+  if(sel.options.length) return;
+  const y=new Date().getFullYear();
+  for(let a=y;a>=y-4;a--){const o=document.createElement('option');o.value=a;o.textContent=a;sel.appendChild(o);}
+}
+function mpLabel(m){return{efectivo:'💵 Efectivo',transferencia:'🏦 Transferencia',nequi:'📱 Nequi',tarjeta:'💳 Tarjeta',otro:'📌 Otro'}[m]||m;}
+function catFijoLabel(c){return{arriendo:'🏠 Arriendo',servicios_publicos:'💡 Servicios públicos',nomina:'👥 Nómina',internet_plataformas:'📱 Internet/Plataformas',otros_fijos:'📌 Otros fijos'}[c]||c;}
+function catVarLabel(c){return{insumos:'🥗 Insumos',domiciliarios:'🛵 Domiciliarios',mantenimiento:'🔧 Mantenimiento',marketing:'📣 Marketing',otros_variables:'📋 Otros variables'}[c]||c;}
+
+function initCaja(){
+  switchCTab('arqueo', document.querySelector('[data-ct="arqueo"]'));
+  poblarAnios('gf-filtro-anio');
+  poblarAnios('gf-anio');
+  // Fechas por defecto
+  const {mes,anio}=mesAnioActual();
+  document.getElementById('gf-filtro-mes').value=mes;
+  document.getElementById('gf-filtro-anio').value=anio;
+  document.getElementById('gv-filtro-mes').value=`${anio}-${String(mes).padStart(2,'0')}`;
+  document.getElementById('flujo-mes').value=`${anio}-${String(mes).padStart(2,'0')}`;
+  // Preseleccionar mes/año actuales en modales
+  document.getElementById('gf-mes').value=mes;
+  cargarArqueoHoy();
+}
+
+function switchCTab(tab,el){
+  cajaTab=tab;
+  document.querySelectorAll('.ctab[data-ct]').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.caja-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('cp-'+tab).classList.add('active');
+  if(tab==='gastos'){cargarGastosFijos();cargarGastosVariables();}
+  if(tab==='flujo') cargarFlujo();
+}
+
+function switchGTab(tab,el){
+  gastosTab=tab;
+  document.querySelectorAll('.ctab[data-gt]').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('gp-fijos').style.display=tab==='fijos'?'block':'none';
+  document.getElementById('gp-variables').style.display=tab==='variables'?'block':'none';
+}
+
+// ══ ARQUEO ══
+async function cargarArqueoHoy(){
+  const hoy=fechaColCaja();
+  document.getElementById('arqueo-fecha-lbl').textContent=
+    new Date(hoy+'T12:00:00-05:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const {data}=await db.from('arqueos_caja').select('*').eq('fecha',hoy).maybeSingle();
+  arqueoHoy=data||null;
+  renderArqueoHoy();
+}
+
+async function renderArqueoHoy(){
+  const hoy=fechaColCaja();
+  const badge=document.getElementById('arqueo-estado-badge');
+  const btnLbl=document.getElementById('btn-arqueo-lbl');
+  const btnCierre=document.getElementById('btn-cierre');
+
+  if(!arqueoHoy){
+    badge.className='ea-abierto';badge.textContent='● Sin abrir';
+    btnLbl.textContent='Abrir caja';btnCierre.style.display='none';
+    document.getElementById('arqueo-content').innerHTML=`
+      <div style="text-align:center;padding:40px;color:var(--mut)">
+        <div style="font-size:48px;margin-bottom:12px">🏦</div>
+        <p>No hay arqueo registrado para hoy.</p>
+        <p style="font-size:12px;margin-top:6px">Haz clic en <strong>Abrir caja</strong> para iniciar el día.</p>
+      </div>`;
+    return;
+  }
+
+  if(arqueoHoy.estado==='abierto'){
+    badge.className='ea-abierto';badge.textContent='● Abierto';
+    btnLbl.textContent='Editar apertura';btnCierre.style.display='flex';
+  } else {
+    badge.className='ea-cerrado';badge.textContent='✓ Cerrado';
+    btnLbl.textContent='Ver apertura';btnCierre.style.display='none';
+  }
+
+  // Ventas en efectivo del día
+  const inicioHoy=new Date(hoy+'T00:00:00-05:00').toISOString();
+  const finHoy=new Date(hoy+'T23:59:59-05:00').toISOString();
+  const {data:pedHoy}=await db.from('pedidos')
+    .select('total,medio_pago,estado')
+    .gte('created_at',inicioHoy).lte('created_at',finHoy)
+    .neq('estado','cancelado');
+  const ventasEfectivo=(pedHoy||[]).filter(p=>p.medio_pago==='efectivo').reduce((a,p)=>a+(+p.total||0),0);
+
+  // Gastos en efectivo del día
+  const {data:gvHoy}=await db.from('gastos_variables')
+    .select('monto').eq('fecha',hoy).eq('medio_pago_gasto','efectivo');
+  const gastosEfectivo=(gvHoy||[]).reduce((a,g)=>a+(+g.monto||0),0);
+
+  const apertura=+arqueoHoy.monto_apertura||0;
+  const extOrd=+arqueoHoy.ingreso_extraordinario||0;
+  const disponible=apertura+ventasEfectivo+extOrd;
+  const esperado=disponible-gastosEfectivo;
+  const cierre=arqueoHoy.monto_cierre!=null?+arqueoHoy.monto_cierre:null;
+  const diff=cierre!=null?cierre-esperado:null;
+
+  let diffHTML='';
+  if(diff!==null){
+    const cls=diff>0?'diff-pos':diff<0?'diff-neg':'diff-ok';
+    const lbl=diff>0?`+${$f(diff)} (sobrante)`:diff<0?`${$f(diff)} (faltante)`:'¡Cuadre exacto! ✓';
+    diffHTML=`<div class="ar-line total ${cls}"><span>Diferencia</span><span>${lbl}</span></div>`;
+  }
+
+  document.getElementById('arqueo-content').innerHTML=`
+    <div class="ar-result">
+      <div class="ar-line"><span>🏦 Monto de apertura</span><span style="font-weight:700">${$f(apertura)}</span></div>
+      <div class="ar-line"><span>💵 Ventas en efectivo del día</span><span style="font-weight:700;color:var(--grn)">${$f(ventasEfectivo)}</span></div>
+      ${extOrd>0?`<div class="ar-line"><span>➕ Ingreso extraordinario (${arqueoHoy.tipo_extraordinario||''})</span><span style="font-weight:700;color:var(--blu)">${$f(extOrd)}</span></div>`:''}
+      <div class="ar-line"><span>💸 Gastos en efectivo del día</span><span style="font-weight:700;color:var(--red)">−${$f(gastosEfectivo)}</span></div>
+      <div class="ar-line total"><span>Lo que debe haber en caja</span><span>${$f(esperado)}</span></div>
+      ${cierre!=null?`<div class="ar-line"><span>Efectivo contado físicamente</span><span style="font-weight:700">${$f(cierre)}</span></div>`:''}
+      ${diffHTML}
+      ${arqueoHoy.notas?`<div style="margin-top:12px;font-size:12px;color:var(--mut)">📝 ${arqueoHoy.notas}</div>`:''}
+    </div>`;
+}
+
+function abrirArqueoModal(){
+  document.getElementById('arq-id').value=arqueoHoy?.id||'';
+  document.getElementById('arq-apertura').value=arqueoHoy?.monto_apertura||'';
+  document.getElementById('arq-ext').value=arqueoHoy?.ingreso_extraordinario||'';
+  document.getElementById('arq-ext-tipo').value=arqueoHoy?.tipo_extraordinario||'capital_propio';
+  document.getElementById('arq-ext-concepto').value=arqueoHoy?.concepto_extraordinario||'';
+  document.getElementById('arq-notas').value=arqueoHoy?.notas||'';
+  toggleExtFields();
+  document.getElementById('ov-arqueo').classList.add('open');
+  setTimeout(()=>document.getElementById('arq-apertura').focus(),120);
+}
+
+function toggleExtFields(){
+  const v=parseFloat(document.getElementById('arq-ext').value)||0;
+  document.getElementById('arq-ext-fields').style.display=v>0?'block':'none';
+}
+
+async function guardarArqueo(){
+  const apertura=parseFloat(document.getElementById('arq-apertura').value)||0;
+  const ext=parseFloat(document.getElementById('arq-ext').value)||0;
+  const d={
+    fecha:fechaColCaja(),
+    monto_apertura:apertura,
+    ingreso_extraordinario:ext,
+    tipo_extraordinario:ext>0?document.getElementById('arq-ext-tipo').value:null,
+    concepto_extraordinario:ext>0?document.getElementById('arq-ext-concepto').value.trim():null,
+    notas:document.getElementById('arq-notas').value.trim()||null,
+    estado:'abierto'
+  };
+  const id=document.getElementById('arq-id').value;
+  const {error}=id
+    ?await db.from('arqueos_caja').update(d).eq('id',id)
+    :await db.from('arqueos_caja').insert(d);
+  if(!error){toast('✅ Apertura guardada','ok');cerrar('ov-arqueo');await cargarArqueoHoy();}
+  else toast('❌ Error: '+error.message,'err');
+}
+
+function abrirCierreModal(){
+  if(!arqueoHoy){return;}
+  // Construir resumen para el modal
+  document.getElementById('cierre-monto').value='';
+  document.getElementById('cierre-notas').value=arqueoHoy.notas||'';
+  document.getElementById('cierre-diferencia').style.display='none';
+  document.getElementById('cierre-resumen').innerHTML=`
+    <div style="font-size:12px;color:var(--mut);margin-bottom:8px">Resumen del día para cuadre:</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>Apertura:</span><strong>${$f(+arqueoHoy.monto_apertura)}</strong></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span>+ Ventas efectivo:</span><strong style="color:var(--grn)">Ver arriba</strong></div>
+    <div style="display:flex;justify-content:space-between"><span>− Gastos efectivo:</span><strong style="color:var(--red)">Ver arriba</strong></div>`;
+  document.getElementById('ov-cierre').classList.add('open');
+  setTimeout(()=>document.getElementById('cierre-monto').focus(),120);
+}
+
+function calcularDiferencia(){
+  // Cálculo visual rápido (sin re-consultar BD)
+  const contado=parseFloat(document.getElementById('cierre-monto').value)||0;
+  if(contado<=0){document.getElementById('cierre-diferencia').style.display='none';return;}
+  const el=document.getElementById('cierre-diferencia');
+  el.style.display='block';
+  el.textContent='Ingresaste: '+$f(contado)+' — El sistema calculará la diferencia al guardar.';
+  el.style.background='var(--sur2)';el.style.color='var(--txt)';
+}
+
+async function guardarCierre(){
+  const monto=parseFloat(document.getElementById('cierre-monto').value);
+  if(!monto&&monto!==0){toast('❌ Ingresa el monto contado','err');return;}
+  const {error}=await db.from('arqueos_caja').update({
+    monto_cierre:monto,
+    notas:document.getElementById('cierre-notas').value.trim()||null,
+    estado:'cerrado'
+  }).eq('id',arqueoHoy.id);
+  if(!error){toast('✅ Caja cerrada','ok');cerrar('ov-cierre');await cargarArqueoHoy();}
+  else toast('❌ Error: '+error.message,'err');
+}
+
+// ══ GASTOS FIJOS ══
+async function cargarGastosFijos(){
+  const mes=parseInt(document.getElementById('gf-filtro-mes').value);
+  const anio=parseInt(document.getElementById('gf-filtro-anio').value);
+  const {data}=await db.from('gastos_fijos').select('*').eq('mes',mes).eq('anio',anio).order('created_at',{ascending:false});
+  gastosFijosData=data||[];
+  renderGastosFijos();
+}
+
+function renderGastosFijos(){
+  const el=document.getElementById('gastos-fijos-list');
+  const total=gastosFijosData.reduce((a,g)=>a+(+g.monto||0),0);
+  if(!gastosFijosData.length){
+    el.innerHTML='<div class="empty"><span>📌</span><p>Sin gastos fijos este mes</p></div>';
+    document.getElementById('gf-total-wrap').style.display='none';return;
+  }
+  el.innerHTML=gastosFijosData.map(g=>`
+    <div class="gasto-row">
+      <div class="gasto-info">
+        <h4>${g.nombre}</h4>
+        <small>
+          <span class="gbadge gb-cat">${catFijoLabel(g.categoria)}</span>
+          <span class="gbadge gb-mp">${mpLabel(g.medio_pago_gasto)}</span>
+          <span class="gbadge ${g.pagado?'gb-pag':'gb-nopag'}">${g.pagado?'✓ Pagado':'Pendiente'}</span>
+          ${g.notas?`· ${g.notas}`:''}
+        </small>
+      </div>
+      <span class="gasto-monto">${$f(+g.monto)}</span>
+      <div class="brow">
+        <button class="bsm bsms" onclick="editarGastoFijo('${g.id}')">✏️</button>
+        <button class="bsm bsmd" onclick="eliminarGastoFijo('${g.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('gf-total').textContent=$f(total);
+  document.getElementById('gf-total-wrap').style.display='flex';
+}
+
+function abrirGastoFijo(g=null){
+  poblarAnios('gf-anio');
+  const {mes,anio}=mesAnioActual();
+  document.getElementById('gf-tit').textContent=g?'Editar Gasto Fijo':'Nuevo Gasto Fijo';
+  document.getElementById('gf-id').value=g?.id||'';
+  document.getElementById('gf-nombre').value=g?.nombre||'';
+  document.getElementById('gf-monto').value=g?.monto||'';
+  document.getElementById('gf-cat').value=g?.categoria||'arriendo';
+  document.getElementById('gf-mes').value=g?.mes||document.getElementById('gf-filtro-mes').value||mes;
+  document.getElementById('gf-anio').value=g?.anio||document.getElementById('gf-filtro-anio').value||anio;
+  document.getElementById('gf-mp').value=g?.medio_pago_gasto||'transferencia';
+  document.getElementById('gf-pagado').checked=g?.pagado||false;
+  document.getElementById('gf-notas').value=g?.notas||'';
+  document.getElementById('ov-gfijo').classList.add('open');
+  setTimeout(()=>document.getElementById('gf-nombre').focus(),120);
+}
+function editarGastoFijo(id){abrirGastoFijo(gastosFijosData.find(g=>g.id===id));}
+async function guardarGastoFijo(){
+  const nombre=document.getElementById('gf-nombre').value.trim();
+  const monto=parseFloat(document.getElementById('gf-monto').value);
+  if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
+  if(!monto||monto<=0){toast('❌ Ingresa un monto válido','err');return;}
+  const id=document.getElementById('gf-id').value;
+  const d={nombre,monto,categoria:document.getElementById('gf-cat').value,
+    mes:parseInt(document.getElementById('gf-mes').value),
+    anio:parseInt(document.getElementById('gf-anio').value),
+    medio_pago_gasto:document.getElementById('gf-mp').value,
+    pagado:document.getElementById('gf-pagado').checked,
+    notas:document.getElementById('gf-notas').value.trim()||null};
+  const {error}=id?await db.from('gastos_fijos').update(d).eq('id',id):await db.from('gastos_fijos').insert(d);
+  if(!error){toast(id?'✅ Actualizado':'✅ Gasto fijo guardado','ok');cerrar('ov-gfijo');await cargarGastosFijos();}
+  else toast('❌ Error: '+error.message,'err');
+}
+async function eliminarGastoFijo(id){
+  if(!confirm('¿Eliminar este gasto fijo?'))return;
+  await db.from('gastos_fijos').delete().eq('id',id);
+  toast('✅ Eliminado','ok');await cargarGastosFijos();
+}
+
+// ══ GASTOS VARIABLES ══
+async function cargarGastosVariables(){
+  const val=document.getElementById('gv-filtro-mes').value;
+  if(!val)return;
+  const [y,m]=val.split('-');
+  const desde=`${y}-${m}-01`;
+  const hasta=new Date(parseInt(y),parseInt(m),0).toISOString().split('T')[0];
+  const {data}=await db.from('gastos_variables').select('*').gte('fecha',desde).lte('fecha',hasta).order('fecha',{ascending:false});
+  gastosVariablesData=data||[];
+  renderGastosVariables();
+}
+
+function renderGastosVariables(){
+  const el=document.getElementById('gastos-variables-list');
+  const total=gastosVariablesData.reduce((a,g)=>a+(+g.monto||0),0);
+  if(!gastosVariablesData.length){
+    el.innerHTML='<div class="empty"><span>📋</span><p>Sin gastos variables este mes</p></div>';
+    document.getElementById('gv-total-wrap').style.display='none';return;
+  }
+  el.innerHTML=gastosVariablesData.map(g=>`
+    <div class="gasto-row">
+      <div class="gasto-info">
+        <h4>${g.nombre}</h4>
+        <small>
+          <span style="color:var(--mut)">${g.fecha}</span>
+          <span class="gbadge gb-cat">${catVarLabel(g.categoria)}</span>
+          <span class="gbadge gb-mp">${mpLabel(g.medio_pago_gasto)}</span>
+          ${g.notas?`· ${g.notas}`:''}
+        </small>
+      </div>
+      <span class="gasto-monto">${$f(+g.monto)}</span>
+      <div class="brow">
+        <button class="bsm bsms" onclick="editarGastoVariable('${g.id}')">✏️</button>
+        <button class="bsm bsmd" onclick="eliminarGastoVariable('${g.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+  document.getElementById('gv-total').textContent=$f(total);
+  document.getElementById('gv-total-wrap').style.display='flex';
+}
+
+function abrirGastoVariable(g=null){
+  document.getElementById('gv-tit').textContent=g?'Editar Gasto Variable':'Nuevo Gasto Variable';
+  document.getElementById('gv-id').value=g?.id||'';
+  document.getElementById('gv-nombre').value=g?.nombre||'';
+  document.getElementById('gv-monto').value=g?.monto||'';
+  document.getElementById('gv-fecha').value=g?.fecha||fechaColCaja();
+  document.getElementById('gv-cat').value=g?.categoria||'insumos';
+  document.getElementById('gv-mp').value=g?.medio_pago_gasto||'efectivo';
+  document.getElementById('gv-notas').value=g?.notas||'';
+  document.getElementById('ov-gvar').classList.add('open');
+  setTimeout(()=>document.getElementById('gv-nombre').focus(),120);
+}
+function editarGastoVariable(id){abrirGastoVariable(gastosVariablesData.find(g=>g.id===id));}
+async function guardarGastoVariable(){
+  const nombre=document.getElementById('gv-nombre').value.trim();
+  const monto=parseFloat(document.getElementById('gv-monto').value);
+  const fecha=document.getElementById('gv-fecha').value;
+  if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
+  if(!monto||monto<=0){toast('❌ Ingresa un monto válido','err');return;}
+  if(!fecha){toast('❌ Selecciona una fecha','err');return;}
+  const id=document.getElementById('gv-id').value;
+  const d={nombre,monto,fecha,categoria:document.getElementById('gv-cat').value,
+    medio_pago_gasto:document.getElementById('gv-mp').value,
+    notas:document.getElementById('gv-notas').value.trim()||null};
+  const {error}=id?await db.from('gastos_variables').update(d).eq('id',id):await db.from('gastos_variables').insert(d);
+  if(!error){toast(id?'✅ Actualizado':'✅ Gasto variable guardado','ok');cerrar('ov-gvar');await cargarGastosVariables();}
+  else toast('❌ Error: '+error.message,'err');
+}
+async function eliminarGastoVariable(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  await db.from('gastos_variables').delete().eq('id',id);
+  toast('✅ Eliminado','ok');await cargarGastosVariables();
+}
+
+// ══ FLUJO DE CAJA ══
+async function cargarFlujo(){
+  const val=document.getElementById('flujo-mes').value;
+  if(!val){toast('❌ Selecciona un mes','err');return;}
+  const [y,m]=val.split('-').map(Number);
+  const desdeISO=new Date(`${y}-${String(m).padStart(2,'0')}-01T00:00:00-05:00`).toISOString();
+  const ultimoDia=new Date(y,m,0).getDate();
+  const hastaISO=new Date(`${y}-${String(m).padStart(2,'0')}-${ultimoDia}T23:59:59-05:00`).toISOString();
+  const desdeDate=`${y}-${String(m).padStart(2,'0')}-01`;
+  const hastaDate=`${y}-${String(m).padStart(2,'0')}-${ultimoDia}`;
+
+  const [rPeds,rFijos,rVars,rArqueos]=await Promise.all([
+    db.from('pedidos').select('total,medio_pago,estado').gte('created_at',desdeISO).lte('created_at',hastaISO),
+    db.from('gastos_fijos').select('*').eq('mes',m).eq('anio',y),
+    db.from('gastos_variables').select('*').gte('fecha',desdeDate).lte('fecha',hastaDate),
+    db.from('arqueos_caja').select('ingreso_extraordinario,tipo_extraordinario').gte('fecha',desdeDate).lte('fecha',hastaDate)
+  ]);
+
+  const peds=(rPeds.data||[]).filter(p=>p.estado!=='cancelado');
+  const fijos=rFijos.data||[];
+  const vars=rVars.data||[];
+  const arqueos=rArqueos.data||[];
+
+  // Ingresos por ventas
+  const medios={efectivo:0,nequi:0,daviplata:0,tarjeta:0};
+  let totalVentas=0;
+  peds.forEach(p=>{totalVentas+=(+p.total||0);if(medios[p.medio_pago]!==undefined)medios[p.medio_pago]+=(+p.total||0);});
+
+  // Ingresos extraordinarios (solo préstamos y devoluciones)
+  const ingExt=arqueos.filter(a=>a.tipo_extraordinario==='prestamo'||a.tipo_extraordinario==='devolucion')
+    .reduce((a,r)=>a+(+r.ingreso_extraordinario||0),0);
+
+  const totalIng=totalVentas+ingExt;
+
+  // Gastos
+  const totalFijos=fijos.reduce((a,g)=>a+(+g.monto||0),0);
+  const totalVarsNum=vars.reduce((a,g)=>a+(+g.monto||0),0);
+  const totalGastos=totalFijos+totalVarsNum;
+  const utilidad=totalIng-totalGastos;
+
+  // Semáforo
+  const sem=document.getElementById('flujo-semaforo');
+  sem.style.display='flex';
+  if(utilidad>0){sem.className='semaforo verde';document.getElementById('flujo-semaforo-ico').textContent='✅';
+    document.getElementById('flujo-semaforo-txt').textContent='Mes rentable';
+    document.getElementById('flujo-semaforo-sub').textContent='Utilidad de '+$f(utilidad);}
+  else if(utilidad<0){sem.className='semaforo rojo';document.getElementById('flujo-semaforo-ico').textContent='🔴';
+    document.getElementById('flujo-semaforo-txt').textContent='Mes con pérdida';
+    document.getElementById('flujo-semaforo-sub').textContent='Pérdida de '+$f(Math.abs(utilidad));}
+  else{sem.className='semaforo amarillo';document.getElementById('flujo-semaforo-ico').textContent='🟡';
+    document.getElementById('flujo-semaforo-txt').textContent='Punto de equilibrio';
+    document.getElementById('flujo-semaforo-sub').textContent='Ingresos = Gastos';}
+
+  // KPIs
+  document.getElementById('fk-ing').textContent=$f(totalIng);
+  document.getElementById('fk-gst').textContent=$f(totalGastos);
+  const fkUtil=document.getElementById('fk-util');
+  fkUtil.textContent=$f(utilidad);
+  fkUtil.style.color=utilidad>=0?'var(--grn)':'var(--red)';
+
+  // Ingresos detalle
+  document.getElementById('fl-ventas').textContent=$f(totalVentas);
+  document.getElementById('fl-v-efectivo').textContent=$f(medios.efectivo);
+  document.getElementById('fl-v-nequi').textContent=$f(medios.nequi);
+  document.getElementById('fl-v-daviplata').textContent=$f(medios.daviplata);
+  document.getElementById('fl-v-tarjeta').textContent=$f(medios.tarjeta);
+  document.getElementById('fl-ext').textContent=$f(ingExt);
+  document.getElementById('fl-total-ing').textContent=$f(totalIng);
+
+  // Gastos fijos detalle
+  document.getElementById('fl-fijos-rows').innerHTML=fijos.length
+    ?fijos.map(g=>`<div class="flujo-brow"><span style="color:var(--mut)">${catFijoLabel(g.categoria)} · ${g.nombre}</span><span style="color:var(--red)">−${$f(+g.monto)}</span></div>`).join('')
+    :'<div style="padding:12px 18px;color:var(--mut);font-size:13px">Sin gastos fijos este mes</div>';
+  document.getElementById('fl-total-fijos').textContent='−'+$f(totalFijos);
+
+  // Gastos variables detalle
+  document.getElementById('fl-variables-rows').innerHTML=vars.length
+    ?vars.map(g=>`<div class="flujo-brow"><span style="color:var(--mut)">${catVarLabel(g.categoria)} · ${g.nombre} <span style="font-size:11px">(${g.fecha})</span></span><span style="color:var(--red)">−${$f(+g.monto)}</span></div>`).join('')
+    :'<div style="padding:12px 18px;color:var(--mut);font-size:13px">Sin gastos variables este mes</div>';
+  document.getElementById('fl-total-variables').textContent='−'+$f(totalVarsNum);
+
+  // Utilidad final
+  const flUtil=document.getElementById('fl-utilidad');
+  flUtil.textContent=$f(utilidad);
+  flUtil.style.color=utilidad>=0?'var(--grn)':'var(--red)';
 }
 
 // ═══════════════════════════════
