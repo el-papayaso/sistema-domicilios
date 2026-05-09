@@ -304,7 +304,52 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .opcion-row input:focus{outline:none;border-color:var(--acc)}
 .opcion-del{width:34px;height:34px;border-radius:8px;border:none;background:rgba(239,68,68,.12);color:var(--red);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
 .opcion-del:hover{background:var(--red);color:#fff}
-/* ── CAJA ── */
+/* Canal badges */
+.canal-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;flex-shrink:0}
+.canal-wa{background:rgba(37,211,102,.15);color:#25d366}
+.canal-llamada{background:rgba(59,130,246,.15);color:var(--blu)}
+/* POS page */
+.pos-wrap{display:grid;grid-template-columns:1fr 380px;gap:0;height:calc(100vh - 57px);overflow:hidden}
+.pos-menu{overflow-y:auto;padding:16px;border-right:1px solid var(--bdr)}
+.pos-orden{display:flex;flex-direction:column;background:var(--sur);overflow:hidden}
+.pos-cat-nav{display:flex;gap:6px;padding:12px 16px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--bdr);flex-shrink:0}
+.pos-cat-nav::-webkit-scrollbar{display:none}
+.pos-pill{flex-shrink:0;padding:7px 16px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--mut);white-space:nowrap}
+.pos-pill.active{background:var(--acc);color:#fff;border-color:var(--acc)}
+.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pos-prod{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s}
+.pos-prod:hover{border-color:var(--acc);transform:translateY(-2px)}
+.pos-prod:active{transform:scale(.97)}
+.pos-prod-img{height:100px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}
+.pos-prod-img img{width:100%;height:100%;object-fit:cover}
+.pos-prod-body{padding:10px}
+.pos-prod-body h4{font-size:13px;font-weight:700;margin-bottom:4px;line-height:1.3}
+.pos-prod-body .pp{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--acc2)}
+.pos-prod.nodist{opacity:.45;pointer-events:none}
+/* Orden lado derecho */
+.pos-orden-head{padding:14px 16px;border-bottom:1px solid var(--bdr);font-family:var(--fh);font-size:16px;font-weight:800;flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.pos-items{flex:1;overflow-y:auto;padding:8px 16px}
+.pos-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.pos-item:last-child{border:none}
+.pos-item-info{flex:1;min-width:0}
+.pos-item-info h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.pos-item-info small{font-size:11px;color:var(--mut)}
+.pos-item-price{font-family:var(--fh);font-size:13px;font-weight:800;color:var(--acc2);flex-shrink:0}
+.pos-footer{border-top:2px solid var(--bdr);padding:14px 16px;flex-shrink:0}
+.pos-total-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;color:var(--mut)}
+.pos-total-big{font-family:var(--fh);font-size:22px;font-weight:800;display:flex;justify-content:space-between;margin-bottom:14px}
+.pos-mp{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.pos-mp-btn{padding:8px;border-radius:10px;border:1.5px solid var(--bdr);background:var(--sur2);color:var(--mut);cursor:pointer;font-size:12px;font-weight:700;font-family:var(--fb);transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.pos-mp-btn.active{border-color:var(--acc);background:rgba(255,107,53,.1);color:var(--acc)}
+.pos-cobrar{width:100%;padding:16px;background:var(--grn);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--fh);transition:all .2s}
+.pos-cobrar:hover{background:#25b85d}
+.pos-cobrar:disabled{background:var(--sur2);color:var(--mut);cursor:not-allowed}
+.pos-vacio{text-align:center;padding:40px 16px;color:var(--mut)}
+.pos-vacio span{font-size:48px;display:block;margin-bottom:10px}
+@media(max-width:900px){
+  .pos-wrap{grid-template-columns:1fr;height:auto}
+  .pos-orden{border-top:2px solid var(--bdr);height:auto}
+}
 .caja-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:12px;padding:4px}
 .ctab{flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;user-select:none;border:none;background:transparent;font-family:var(--fb)}
 .ctab.active{background:var(--acc);color:#fff}
@@ -363,6 +408,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
   <div class="brand">🛵 Admin</div>
   <div class="tabs">
     <div class="tab active" data-pg="pedidos" onclick="ir('pedidos')">📋 Pedidos <span class="tbadge" id="badge">0</span></div>
+    <div class="tab" data-pg="pos" onclick="ir('pos')">🏪 POS</div>
     <div class="tab" data-pg="productos" onclick="ir('productos')">🍔 Productos</div>
     <div class="tab" data-pg="categorias" onclick="ir('categorias')">🏷️ Categorías</div>
     <div class="tab" data-pg="extras" onclick="ir('extras')">➕ Extras</div>
@@ -381,7 +427,57 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="sc"><div class="ico">🛵</div><div class="val" id="s-cam">0</div><div class="lbl">En camino</div></div>
     <div class="sc"><div class="ico">💰</div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div>
   </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+    <span style="font-size:13px;color:var(--mut)">Solo domicilios — los pedidos POS no aparecen aquí</span>
+    <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3)" onclick="abrirLlamada()">
+      📞 Pedido por llamada
+    </button>
+  </div>
   <div class="plist" id="plist"><div class="empty"><span>📭</span><p>Esperando pedidos en tiempo real...</p></div></div>
+</div>
+
+<!-- ── POS ── -->
+<div class="page" id="pg-pos" style="padding:0;max-width:100%">
+  <div class="pos-wrap">
+    <!-- Menú izquierda -->
+    <div class="pos-menu">
+      <div class="pos-cat-nav" id="pos-cat-nav">
+        <div class="pos-pill active" onclick="posFiltrar('all',this)">🍽️ Todo</div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="pos-grid" id="pos-grid">
+        <div class="empty" style="grid-column:1/-1"><span>⏳</span><p>Cargando...</p></div>
+      </div>
+    </div>
+    <!-- Orden derecha -->
+    <div class="pos-orden">
+      <div class="pos-orden-head">
+        <span>🧾 Orden</span>
+        <button onclick="limpiarPOS()" style="background:transparent;border:none;color:var(--mut);cursor:pointer;font-size:12px;font-weight:600">🗑 Limpiar</button>
+      </div>
+      <div class="pos-items" id="pos-items">
+        <div class="pos-vacio"><span>🛒</span><p>Agrega productos</p></div>
+      </div>
+      <div class="pos-footer">
+        <div class="pos-total-row"><span>Subtotal</span><span id="pos-subtotal">$0</span></div>
+        <div class="pos-total-big"><span>Total</span><span id="pos-total">$0</span></div>
+        <!-- Medio de pago -->
+        <div class="pos-mp">
+          <button class="pos-mp-btn active" data-mp="efectivo" onclick="posMp('efectivo',this)"><span>💵</span>Efectivo</button>
+          <button class="pos-mp-btn" data-mp="tarjeta"   onclick="posMp('tarjeta',this)"><span>💳</span>Tarjeta</button>
+          <button class="pos-mp-btn" data-mp="nequi"     onclick="posMp('nequi',this)"><span>📱</span>Nequi</button>
+          <button class="pos-mp-btn" data-mp="daviplata" onclick="posMp('daviplata',this)"><span>🏦</span>Daviplata</button>
+        </div>
+        <!-- Nombre cliente (opcional) -->
+        <div style="margin-bottom:10px">
+          <input type="text" id="pos-cliente" placeholder="👤 Nombre del cliente (opcional)"
+            style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none"
+            onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+        </div>
+        <button class="pos-cobrar" id="pos-cobrar-btn" onclick="cobrarPOS()" disabled>Cobrar $0</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── PRODUCTOS ── -->
@@ -1080,6 +1176,66 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 </div>
 
+<!-- ── MODAL PEDIDO POR LLAMADA ── -->
+<div class="ov" id="ov-llamada">
+  <div class="modal" style="max-width:580px">
+    <div class="mtit">📞 Pedido por Llamada</div>
+    <div class="msub">El cliente está en línea — registra su pedido manualmente</div>
+
+    <!-- Datos del cliente -->
+    <div class="fg-row">
+      <div class="fg"><label>Nombre del cliente *</label><input type="text" id="ll-nombre" placeholder="Nombre completo"></div>
+      <div class="fg"><label>Teléfono *</label><input type="tel" id="ll-tel" placeholder="3001234567"></div>
+    </div>
+    <div class="fg"><label>Dirección de entrega *</label><input type="text" id="ll-dir" placeholder="Calle, barrio, referencias..."></div>
+    <div class="fg-row">
+      <div class="fg">
+        <label>Medio de pago</label>
+        <select id="ll-mp">
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="tarjeta">💳 Tarjeta</option>
+          <option value="nequi">📱 Nequi</option>
+          <option value="daviplata">🏦 Daviplata</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Costo domicilio (COP)</label>
+        <input type="number" id="ll-domicilio" placeholder="0" min="0" value="0" oninput="recalcLlamada()">
+      </div>
+    </div>
+    <div class="fg"><label>Notas del pedido</label><input type="text" id="ll-notas" placeholder="Instrucciones especiales..."></div>
+
+    <!-- Selección de productos -->
+    <div class="fg">
+      <label>Productos *
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Busca y agrega los productos del pedido</span>
+      </label>
+      <input type="text" id="ll-buscar" placeholder="🔍 Buscar producto..." oninput="filtrarProdsLlamada()"
+        style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none;margin-bottom:8px"
+        onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+      <div id="ll-prods-lista" style="max-height:220px;overflow-y:auto;background:var(--sur2);border-radius:10px;border:1px solid var(--bdr)"></div>
+    </div>
+
+    <!-- Orden actual llamada -->
+    <div id="ll-orden-wrap" style="display:none">
+      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Orden del pedido</div>
+      <div id="ll-orden-items" style="background:var(--sur2);border-radius:10px;padding:8px 12px;margin-bottom:8px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sur2);border-radius:10px;border-top:2px solid var(--bdr)">
+        <div>
+          <div style="font-size:12px;color:var(--mut)">Subtotal: <span id="ll-subtotal">$0</span></div>
+          <div style="font-size:12px;color:var(--mut)">Domicilio: <span id="ll-dom-display">$0</span></div>
+        </div>
+        <div style="font-family:var(--fh);font-size:20px;font-weight:800;color:var(--acc2)">Total: <span id="ll-total">$0</span></div>
+      </div>
+    </div>
+
+    <div class="mbtns" style="margin-top:16px">
+      <button class="bpri" style="background:var(--blu)" onclick="guardarLlamada()">📞 Registrar pedido</button>
+      <button class="bsecm" onclick="cerrar('ov-llamada')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1109,6 +1265,7 @@ function ir(pg){
   if(pg==='extras') renderExtras();
   if(pg==='ventas') initVentas();
   if(pg==='caja')   initCaja();
+  if(pg==='pos')    initPOS();
 }
 
 // ═══════════════════════════════
@@ -1151,13 +1308,14 @@ function setupRealtime(){
 // PEDIDOS
 // ═══════════════════════════════
 async function loadPeds(){
-  // FIX 3: Solo cargar pedidos del día de hoy
+  // Solo pedidos del día de hoy, excluye POS (son presenciales, no domicilios)
   const hoyStart=new Date(); hoyStart.setHours(0,0,0,0);
   const hoyEnd=new Date(); hoyEnd.setHours(23,59,59,999);
   const {data}=await db.from('pedidos')
     .select('*, pedido_items(*)')
     .gte('created_at', hoyStart.toISOString())
     .lte('created_at', hoyEnd.toISOString())
+    .neq('canal','pos')
     .order('created_at',{ascending:false});
   peds=data||[];
   renderPeds();
@@ -1167,14 +1325,22 @@ async function loadPeds(){
 function renderPeds(){
   document.getElementById('badge').textContent=peds.filter(p=>p.estado==='pendiente').length;
   const el=document.getElementById('plist');
-  if(!peds.length){el.innerHTML='<div class="empty"><span>📭</span><p>Sin pedidos aún. ¡Llegarán aquí en tiempo real!</p></div>';return;}
+  if(!peds.length){el.innerHTML='<div class="empty"><span>📭</span><p>Sin pedidos de domicilio hoy. ¡Llegarán aquí en tiempo real!</p></div>';return;}
   el.innerHTML=peds.map((p,i)=>{
     const its=p.pedido_items||[];
     const f=new Date(p.created_at).toLocaleString('es-CO',{dateStyle:'short',timeStyle:'short'});
     const sid=`sel${p.id.replace(/-/g,'')}`;
+    const canal=p.canal||'whatsapp';
+    const canalBadge=canal==='llamada'
+      ?'<span class="canal-badge canal-llamada">📞 Llamada</span>'
+      :'<span class="canal-badge canal-wa">📱 WhatsApp</span>';
+    const dom=+p.domicilio||0;
     return `<div class="pcard${i===0?' nuevo':''}">
       <div class="ph">
-        <div><div class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</div><div class="ptime">${f}</div></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div><div class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</div><div class="ptime">${f}</div></div>
+          ${canalBadge}
+        </div>
         <span class="chip s-${p.estado}">${elbl(p.estado)}</span>
       </div>
       <div class="pbody">
@@ -1186,6 +1352,7 @@ function renderPeds(){
         <div class="iblk s2">
           <label>🧾 Productos</label>
           ${its.map(i=>`<div class="irow"><span><span class="iqty">${i.cantidad}x</span>${i.producto_nombre}</span><span>${$f(i.subtotal)}</span></div>`).join('')}
+          ${dom>0?`<div class="irow"><span style="color:var(--mut)">🛵 Domicilio</span><span>${$f(dom)}</span></div>`:''}
           <div class="tline"><span style="color:var(--mut);font-size:13px">Total:</span><span class="tamt">${$f(p.total)}</span></div>
         </div>
       </div>
@@ -2435,6 +2602,268 @@ async function cargarFlujo(){
   const flUtil=document.getElementById('fl-utilidad');
   flUtil.textContent=$f(utilidad);
   flUtil.style.color=utilidad>=0?'var(--grn)':'var(--red)';
+}
+
+// ═══════════════════════════════
+// POS — PUNTO DE VENTA
+// ═══════════════════════════════
+let posCarrito=[], posMpActual='efectivo', posCatActiva='all';
+
+function initPOS(){
+  renderPOSCats();
+  renderPOSGrid();
+  actualizarPOSTotal();
+}
+
+function renderPOSCats(){
+  const nav=document.getElementById('pos-cat-nav');
+  nav.innerHTML='<div class="pos-pill active" onclick="posFiltrar(\'all\',this)">🍽️ Todo</div>';
+  cats.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='pos-pill';
+    d.textContent=`${c.emoji} ${c.nombre}`;
+    d.onclick=()=>posFiltrar(c.id,d);
+    nav.appendChild(d);
+  });
+}
+
+function posFiltrar(id,el){
+  posCatActiva=id;
+  document.querySelectorAll('.pos-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderPOSGrid();
+}
+
+function renderPOSGrid(){
+  const grid=document.getElementById('pos-grid');
+  const filtrados=posCatActiva==='all'?prods:prods.filter(p=>p.categoria_id===posCatActiva);
+  if(!filtrados.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><span>🍽️</span><p>Sin productos</p></div>';
+    return;
+  }
+  grid.innerHTML=filtrados.map(p=>`
+    <div class="pos-prod${!p.disponible?' nodist':''}" onclick="posAgregar('${p.id}')">
+      <div class="pos-prod-img">
+        ${p.imagen_url?`<img src="${p.imagen_url}" onerror="this.parentNode.innerHTML='<span style=font-size:40px>${p.categorias?.emoji||'🍽️'}</span>'" alt="${p.nombre}">`:`<span style="font-size:40px">${p.categorias?.emoji||'🍽️'}</span>`}
+      </div>
+      <div class="pos-prod-body">
+        <h4>${p.nombre}</h4>
+        <div class="pp">${$f(p.precio)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function posAgregar(id){
+  const p=prods.find(x=>x.id===id);
+  if(!p)return;
+  const ex=posCarrito.find(i=>i.id===id);
+  if(ex){ex.qty++;ex.subtotal=ex.precio*ex.qty;}
+  else posCarrito.push({id,nombre:p.nombre,precio:p.precio,qty:1,subtotal:p.precio});
+  renderPOSItems();
+  actualizarPOSTotal();
+  // Flash visual
+  const card=document.querySelector(`[onclick="posAgregar('${id}')"]`);
+  if(card){card.style.borderColor='var(--acc)';setTimeout(()=>card.style.borderColor='',400);}
+}
+
+function posQty(id,delta){
+  const item=posCarrito.find(i=>i.id===id);
+  if(!item)return;
+  item.qty+=delta;
+  if(item.qty<=0) posCarrito=posCarrito.filter(i=>i.id!==id);
+  else item.subtotal=item.precio*item.qty;
+  renderPOSItems();
+  actualizarPOSTotal();
+}
+
+function renderPOSItems(){
+  const el=document.getElementById('pos-items');
+  if(!posCarrito.length){
+    el.innerHTML='<div class="pos-vacio"><span>🛒</span><p>Agrega productos</p></div>';
+    return;
+  }
+  el.innerHTML=posCarrito.map(i=>`
+    <div class="pos-item">
+      <div class="pos-item-info">
+        <h4>${i.nombre}</h4>
+        <small>${$f(i.precio)} c/u</small>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="qb" onclick="posQty('${i.id}',-1)">−</button>
+        <span class="qn">${i.qty}</span>
+        <button class="qb" onclick="posQty('${i.id}',1)">+</button>
+      </div>
+      <span class="pos-item-price">${$f(i.subtotal)}</span>
+    </div>`).join('');
+}
+
+function actualizarPOSTotal(){
+  const total=posCarrito.reduce((a,i)=>a+i.subtotal,0);
+  document.getElementById('pos-subtotal').textContent=$f(total);
+  document.getElementById('pos-total').textContent=$f(total);
+  const btn=document.getElementById('pos-cobrar-btn');
+  btn.disabled=!posCarrito.length;
+  btn.textContent=posCarrito.length?`Cobrar ${$f(total)}`:'Cobrar $0';
+}
+
+function posMp(mp,el){
+  posMpActual=mp;
+  document.querySelectorAll('.pos-mp-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function limpiarPOS(){
+  posCarrito=[];
+  renderPOSItems();
+  actualizarPOSTotal();
+  document.getElementById('pos-cliente').value='';
+}
+
+async function cobrarPOS(){
+  if(!posCarrito.length)return;
+  const total=posCarrito.reduce((a,i)=>a+i.subtotal,0);
+  const cliente=document.getElementById('pos-cliente').value.trim()||'Cliente POS';
+  try{
+    const {data:ped,error}=await db.from('pedidos').insert({
+      cliente_nombre:cliente,
+      cliente_telefono:'—',
+      cliente_direccion:'Presencial',
+      subtotal:total, total, domicilio:0,
+      medio_pago:posMpActual,
+      estado:'entregado', // POS se marca directo como entregado
+      canal:'pos'
+    }).select().single();
+    if(error)throw error;
+    await db.from('pedido_items').insert(posCarrito.map(i=>({
+      pedido_id:ped.id, producto_id:i.id,
+      producto_nombre:i.nombre, producto_precio:i.precio,
+      cantidad:i.qty, subtotal:i.subtotal
+    })));
+    toast(`✅ Cobrado ${$f(total)} — #${ped.numero_pedido||'POS'}`, 'ok');
+    ping();
+    limpiarPOS();
+  }catch(err){
+    toast('❌ Error al registrar: '+err.message,'err');
+  }
+}
+
+// ═══════════════════════════════
+// PEDIDO POR LLAMADA
+// ═══════════════════════════════
+let llamadaOrden=[];
+
+function abrirLlamada(){
+  llamadaOrden=[];
+  document.getElementById('ll-nombre').value='';
+  document.getElementById('ll-tel').value='';
+  document.getElementById('ll-dir').value='';
+  document.getElementById('ll-mp').value='efectivo';
+  document.getElementById('ll-domicilio').value='0';
+  document.getElementById('ll-notas').value='';
+  document.getElementById('ll-buscar').value='';
+  renderProdsLlamada(prods.filter(p=>p.disponible));
+  renderOrdenLlamada();
+  document.getElementById('ov-llamada').classList.add('open');
+  setTimeout(()=>document.getElementById('ll-nombre').focus(),120);
+}
+
+function filtrarProdsLlamada(){
+  const q=document.getElementById('ll-buscar').value.toLowerCase();
+  const filtrados=prods.filter(p=>p.disponible&&p.nombre.toLowerCase().includes(q));
+  renderProdsLlamada(filtrados);
+}
+
+function renderProdsLlamada(lista){
+  const el=document.getElementById('ll-prods-lista');
+  if(!lista.length){el.innerHTML='<div style="padding:12px 14px;color:var(--mut);font-size:13px">Sin resultados</div>';return;}
+  el.innerHTML=lista.map(p=>`
+    <div onclick="agregarLlamada('${p.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .2s" onmouseover="this.style.background='var(--sur)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-size:13px;font-weight:600">${p.categorias?.emoji||'🍽️'} ${p.nombre}</div>
+        ${p.descripcion?`<div style="font-size:11px;color:var(--mut)">${p.descripcion.slice(0,50)}...</div>`:''}
+      </div>
+      <div style="font-family:var(--fh);font-size:14px;font-weight:800;color:var(--acc2);flex-shrink:0;margin-left:12px">${$f(p.precio)}</div>
+    </div>`).join('');
+}
+
+function agregarLlamada(id){
+  const p=prods.find(x=>x.id===id);
+  if(!p)return;
+  const ex=llamadaOrden.find(i=>i.id===id);
+  if(ex){ex.qty++;ex.subtotal=ex.precio*ex.qty;}
+  else llamadaOrden.push({id,nombre:p.nombre,precio:p.precio,qty:1,subtotal:p.precio});
+  renderOrdenLlamada();
+  recalcLlamada();
+  // Limpiar búsqueda
+  document.getElementById('ll-buscar').value='';
+  renderProdsLlamada(prods.filter(p=>p.disponible));
+}
+
+function qtyLlamada(id,delta){
+  const item=llamadaOrden.find(i=>i.id===id);
+  if(!item)return;
+  item.qty+=delta;
+  if(item.qty<=0) llamadaOrden=llamadaOrden.filter(i=>i.id!==id);
+  else item.subtotal=item.precio*item.qty;
+  renderOrdenLlamada();
+  recalcLlamada();
+}
+
+function renderOrdenLlamada(){
+  const wrap=document.getElementById('ll-orden-wrap');
+  const el=document.getElementById('ll-orden-items');
+  if(!llamadaOrden.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  el.innerHTML=llamadaOrden.map(i=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)">
+      <div style="font-size:13px;font-weight:500;flex:1">${i.nombre}</div>
+      <div style="display:flex;align-items:center;gap:6px;margin:0 10px">
+        <button class="qb" onclick="qtyLlamada('${i.id}',-1)" style="width:24px;height:24px;font-size:14px">−</button>
+        <span style="font-weight:700;font-size:13px">${i.qty}</span>
+        <button class="qb" onclick="qtyLlamada('${i.id}',1)" style="width:24px;height:24px;font-size:14px">+</button>
+      </div>
+      <span style="font-family:var(--fh);font-size:13px;font-weight:800;color:var(--acc2)">${$f(i.subtotal)}</span>
+    </div>`).join('');
+}
+
+function recalcLlamada(){
+  const sub=llamadaOrden.reduce((a,i)=>a+i.subtotal,0);
+  const dom=parseFloat(document.getElementById('ll-domicilio').value)||0;
+  document.getElementById('ll-subtotal').textContent=$f(sub);
+  document.getElementById('ll-dom-display').textContent=$f(dom);
+  document.getElementById('ll-total').textContent=$f(sub+dom);
+}
+
+async function guardarLlamada(){
+  const nombre=document.getElementById('ll-nombre').value.trim();
+  const tel=document.getElementById('ll-tel').value.trim();
+  const dir=document.getElementById('ll-dir').value.trim();
+  if(!nombre||!tel||!dir){toast('❌ Nombre, teléfono y dirección son obligatorios','err');return;}
+  if(!llamadaOrden.length){toast('❌ Agrega al menos un producto','err');return;}
+  const dom=parseFloat(document.getElementById('ll-domicilio').value)||0;
+  const sub=llamadaOrden.reduce((a,i)=>a+i.subtotal,0);
+  const total=sub+dom;
+  try{
+    const {data:ped,error}=await db.from('pedidos').insert({
+      cliente_nombre:nombre, cliente_telefono:tel,
+      cliente_direccion:dir,
+      cliente_notas:document.getElementById('ll-notas').value.trim()||null,
+      medio_pago:document.getElementById('ll-mp').value,
+      subtotal:sub, domicilio:dom, total,
+      estado:'pendiente', canal:'llamada'
+    }).select().single();
+    if(error)throw error;
+    await db.from('pedido_items').insert(llamadaOrden.map(i=>({
+      pedido_id:ped.id, producto_id:i.id,
+      producto_nombre:i.nombre, producto_precio:i.precio,
+      cantidad:i.qty, subtotal:i.subtotal
+    })));
+    toast(`✅ Pedido #${ped.numero_pedido||''} registrado por llamada`,'ok');
+    cerrar('ov-llamada');
+    await loadPeds();
+  }catch(err){
+    toast('❌ Error: '+err.message,'err');
+  }
 }
 
 // ═══════════════════════════════
