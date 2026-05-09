@@ -955,20 +955,6 @@ function confirmarDesdeModal(){
   document.getElementById('mprod-ov').classList.remove('open');
   prodActual=null;extrasSeleccionados=[];notaProdActual='';
 }
-  const p=prods.find(x=>x.id===id);
-  if(!p)return;
-  // Buscar extras/adiciones de la categoría del producto
-  const catId=p.categoria_id;
-  const extCat=extrasDB.filter(e=>e.categoria_id===catId);
-  if(extCat.length>0){
-    // Mostrar modal de extras antes de agregar
-    abrirExtrasModal(p, extCat);
-    return;
-  }
-  // Sin extras: agregar directo
-  agregarAlCarrito(p,[]);
-  feedbackBtn(id);
-}
 
 function abrirExtrasModal(p, extCat){
   prodActual=p;
