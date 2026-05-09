@@ -920,10 +920,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="mtit" id="mc-tit">Nueva Categoría</div>
     <div class="msub">Agrupa tus productos</div>
     <input type="hidden" id="mc-id">
-    <div class="fgrow">
-      <div class="fg"><label>Nombre *</label><input type="text" id="mc-nombre" placeholder="Ej: Pizzas"></div>
-      <div class="fg"><label>Emoji</label><input type="text" id="mc-emoji" placeholder="🍕" maxlength="4" style="font-size:22px;text-align:center"></div>
-    </div>
+    <div class="fg"><label>Nombre *</label><input type="text" id="mc-nombre" placeholder="Ej: 🍔 Hamburguesas"></div>
     <div class="fg"><label>Descripción</label><input type="text" id="mc-desc" placeholder="Descripción breve..."></div>
     <div class="mbtns"><button class="bpri" onclick="guardarCat()">💾 Guardar</button><button class="bsecm" onclick="cerrar('ov-cat')">Cancelar</button></div>
   </div>
@@ -1391,10 +1388,9 @@ function renderPeds(){
         <span class="pdir">${{efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'}[mp]||''} ${mpLabel}</span>
       </div>
       <div class="pfoot">
-        <select class="esel" id="${sid}">
+        <select class="esel" id="${sid}" onchange="guardarEstado('${p.id}','${sid}')">
           ${['pendiente','aceptado','listo','en_camino','entregado','cancelado'].map(e=>`<option value="${e}" ${p.estado===e?'selected':''}>${elbl(e)}</option>`).join('')}
         </select>
-        <button class="gbtn bsave" onclick="guardarEstado('${p.id}','${sid}')">Guardar</button>
         <button class="gbtn bwa" onclick="notifWA('${p.cliente_telefono}','${p.cliente_nombre}','${sid}',${p.numero_pedido||0})">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WA
@@ -1546,7 +1542,6 @@ function abrirCat(c=null){
   document.getElementById('mc-tit').textContent=c?'Editar Categoría':'Nueva Categoría';
   document.getElementById('mc-id').value=c?.id||'';
   document.getElementById('mc-nombre').value=c?.nombre||'';
-  document.getElementById('mc-emoji').value=c?.emoji||'🍽️';
   document.getElementById('mc-desc').value=c?.descripcion||'';
   document.getElementById('ov-cat').classList.add('open');
   setTimeout(()=>document.getElementById('mc-nombre').focus(),120);
@@ -1556,7 +1551,7 @@ async function guardarCat(){
   const id=document.getElementById('mc-id').value;
   const nombre=document.getElementById('mc-nombre').value.trim();
   if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
-  const d={nombre,emoji:document.getElementById('mc-emoji').value.trim()||'🍽️',descripcion:document.getElementById('mc-desc').value.trim()||null};
+  const d={nombre,emoji:'',descripcion:document.getElementById('mc-desc').value.trim()||null};
   const {error}=id?await db.from('categorias').update(d).eq('id',id):await db.from('categorias').insert(d);
   if(!error){toast(id?'✅ Categoría actualizada':'✅ Categoría creada','ok');cerrar('ov-cat');await loadCats();renderCats();renderProds();}
   else toast('❌ Error: '+error.message,'err');
