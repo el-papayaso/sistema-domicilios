@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menú · Domicilios</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --acc:#ff6b35;--acc2:#2d6a4f;--bg:#f7f5f0;--sur:#fff;--bdr:#e8e2d9;
   --txt:#1a1a1a;--mut:#8a8278;--warm:#f2ede4;
-  --fh:'Fraunces',serif;--fb:'Plus Jakarta Sans',sans-serif;
+  --fh:'Playfair Display',serif;--fb:'Inter',sans-serif;
   --sh:0 2px 16px rgba(0,0,0,.07);--sh2:0 6px 32px rgba(0,0,0,.12);
   --r:16px;
 }
@@ -239,7 +239,86 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .bwa:hover{background:#1aad55}
 .dnote{font-size:11px;color:var(--mut);text-align:center;margin-top:8px}
 
-/* ════ SKELETON ════ */
+/* ════ MODAL DETALLE PRODUCTO ════ */
+.mprod-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150;
+  align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.mprod-ov.open{display:flex}
+.mprod-sheet{
+  background:var(--sur);width:100%;max-width:500px;border-radius:22px 22px 0 0;
+  max-height:92vh;display:flex;flex-direction:column;
+  animation:sheetUp .3s cubic-bezier(.4,0,.2,1);overflow:hidden;
+}
+.mprod-img{width:100%;height:220px;object-fit:cover;flex-shrink:0;background:var(--warm);
+  display:flex;align-items:center;justify-content:center;font-size:80px;position:relative}
+.mprod-img img{width:100%;height:100%;object-fit:cover}
+.mprod-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.9);
+  border:none;border-radius:99px;width:32px;height:32px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-weight:700;backdrop-filter:blur(4px)}
+.mprod-body{flex:1;overflow-y:auto;padding:20px}
+.mprod-body h2{font-family:var(--fh);font-size:22px;font-weight:700;margin-bottom:6px}
+.mprod-body .mprod-desc{font-size:14px;color:var(--mut);line-height:1.6;margin-bottom:12px}
+.mprod-price{font-family:var(--fh);font-size:24px;font-weight:700;color:var(--acc);margin-bottom:16px}
+/* Nota del producto */
+.nota-prod-wrap{margin-bottom:16px}
+.nota-prod-wrap label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.5px;color:var(--mut);margin-bottom:6px}
+.nota-prod-inp{width:100%;background:var(--warm);border:1.5px solid var(--bdr);border-radius:10px;
+  padding:10px 13px;font-size:13px;font-family:var(--fb);color:var(--txt);resize:none;
+  transition:border-color .2s}
+.nota-prod-inp:focus{outline:none;border-color:var(--acc)}
+.mprod-foot{padding:16px 20px;border-top:1px solid var(--bdr);flex-shrink:0}
+.mprod-add-btn{
+  width:100%;padding:15px;background:var(--acc);color:#fff;border:none;
+  border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;
+  font-family:var(--fh);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.mprod-add-btn:hover{background:#d04a1c}
+
+/* ════ FORMULARIO REDISEÑADO ════ */
+.form-section{margin-bottom:0}
+.form-field{margin-bottom:14px}
+.form-field-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:var(--mut);margin-bottom:6px}
+.form-inp{
+  width:100%;background:#fff;border:1.5px solid var(--bdr);border-radius:10px;
+  padding:13px 14px;font-size:15px;font-family:var(--fb);color:var(--txt);
+  transition:border-color .2s;
+}
+.form-inp:focus{outline:none;border-color:var(--acc)}
+.form-inp::placeholder{color:#c4b8ae;font-size:14px}
+/* Tel con prefijo CO +57 */
+.tel-wrap{display:flex;border:1.5px solid var(--bdr);border-radius:10px;overflow:hidden;background:#fff;transition:border-color .2s}
+.tel-wrap:focus-within{border-color:var(--acc)}
+.tel-prefix{display:flex;align-items:center;gap:6px;padding:0 14px;font-size:14px;font-weight:600;
+  color:var(--txt);background:#f8f6f3;border-right:1.5px solid var(--bdr);white-space:nowrap;flex-shrink:0}
+.tel-inp{flex:1;border:none;padding:13px 14px;font-size:15px;font-family:var(--fb);
+  color:var(--txt);background:transparent;outline:none}
+.tel-inp::placeholder{color:#c4b8ae;font-size:14px}
+/* Selector estilizado */
+.form-sel{
+  width:100%;background:#fff;border:1.5px solid var(--bdr);border-radius:10px;
+  padding:13px 14px;font-size:15px;font-family:var(--fb);color:var(--txt);
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238a8278' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  cursor:pointer;transition:border-color .2s;
+}
+.form-sel:focus{outline:none;border-color:var(--acc)}
+/* Cambio para efectivo */
+#cambio-wrap{display:none;margin-bottom:14px}
+/* Recordar datos */
+.recordar-wrap{
+  display:flex;align-items:flex-start;gap:12px;
+  background:var(--warm);border:1.5px solid var(--bdr);border-radius:12px;
+  padding:14px;margin-bottom:16px;cursor:pointer;transition:border-color .2s;
+}
+.recordar-wrap:hover{border-color:var(--acc)}
+.recordar-check{
+  width:22px;height:22px;border-radius:6px;border:2px solid var(--bdr);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  margin-top:1px;transition:all .2s;background:#fff;
+}
+.recordar-check.on{background:var(--acc);border-color:var(--acc);color:#fff;font-size:13px}
+.recordar-txt h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.recordar-txt p{font-size:12px;color:var(--mut);line-height:1.4}
 .skel{background:linear-gradient(90deg,var(--warm) 0%,var(--bdr) 50%,var(--warm) 100%);background-size:200%;animation:shim 1.5s infinite;border-radius:8px}
 @keyframes shim{0%{background-position:200%}100%{background-position:-200%}}
 
@@ -367,39 +446,106 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
       <div class="trow"><span>Domicilio</span><span>Por confirmar</span></div>
       <div class="trow big"><span>Total</span><span id="total">$0</span></div>
     </div>
-    <div class="cform">
-      <input class="cinp" id="c-nom" placeholder="👤 Tu nombre completo" type="text">
-      <input class="cinp" id="c-tel" placeholder="📱 WhatsApp (ej: 3001234567)" type="tel">
-      <input class="cinp" id="c-dir" placeholder="📍 Dirección de entrega" type="text">
-      <textarea class="cinp" id="c-nota" placeholder="📝 Notas adicionales (opcional)" rows="2"></textarea>
-      <!-- Medio de pago -->
-      <div>
-        <span class="pago-label">💳 Medio de pago *</span>
-        <div class="pago-grid">
-          <label class="pago-opt">
-            <input type="radio" name="medio_pago" value="efectivo" checked>
-            <div class="pago-btn"><span class="pago-ico">💵</span><span class="pago-nom">Efectivo</span></div>
-          </label>
-          <label class="pago-opt">
-            <input type="radio" name="medio_pago" value="tarjeta">
-            <div class="pago-btn"><span class="pago-ico">💳</span><span class="pago-nom">Tarjeta</span></div>
-          </label>
-          <label class="pago-opt">
-            <input type="radio" name="medio_pago" value="nequi">
-            <div class="pago-btn"><span class="pago-ico">📱</span><span class="pago-nom">Nequi</span></div>
-          </label>
-          <label class="pago-opt">
-            <input type="radio" name="medio_pago" value="daviplata">
-            <div class="pago-btn"><span class="pago-ico">🏦</span><span class="pago-nom">Daviplata</span></div>
-          </label>
+
+    <!-- FORMULARIO REDISEÑADO -->
+    <div class="form-section">
+
+      <div class="form-field">
+        <label class="form-field-label">Nombre</label>
+        <input class="form-inp" id="c-nom" placeholder="Tu nombre completo" type="text" autocomplete="name">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field-label">Teléfono</label>
+        <div class="tel-wrap">
+          <div class="tel-prefix">🇨🇴 CO +57</div>
+          <input class="tel-inp" id="c-tel" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
         </div>
       </div>
+
+      <div class="form-field">
+        <label class="form-field-label">Dirección de entrega</label>
+        <input class="form-inp" id="c-dir" placeholder="Calle, número, barrio..." type="text" autocomplete="street-address">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field-label">Referencia de la dirección <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+        <input class="form-inp" id="c-ref" placeholder="Ej: frente al parque, local azul, piso 3..." type="text">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field-label">Método de pago</label>
+        <select class="form-sel" id="c-mp" onchange="onMpChange()">
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="tarjeta">💳 Tarjeta</option>
+          <option value="nequi">📱 Nequi</option>
+          <option value="daviplata">🏦 Daviplata</option>
+        </select>
+      </div>
+
+      <div id="cambio-wrap">
+        <label class="form-field-label">¿Con cuánto va a pagar? <span style="font-weight:400;text-transform:none;letter-spacing:0">(para el cambio)</span></label>
+        <select class="form-sel" id="c-cambio">
+          <option value="exacto">Pago exacto, no necesito cambio</option>
+          <option value="20000">$20.000</option>
+          <option value="50000">$50.000</option>
+          <option value="100000">$100.000</option>
+          <option value="otro">Otro monto...</option>
+        </select>
+        <input class="form-inp" id="c-cambio-otro" placeholder="¿Con cuánto?" type="number" style="display:none;margin-top:8px" oninput="this.value=this.value.replace(/\D/g,'')">
+      </div>
+
+      <div class="form-field">
+        <label class="form-field-label">Notas del pedido <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+        <textarea class="form-inp" id="c-nota" placeholder="Ej: sin salsas, separar cubiertos..." rows="2" style="resize:none"></textarea>
+      </div>
+
+      <!-- Recordar datos -->
+      <div class="recordar-wrap" id="recordar-wrap" onclick="toggleRecordar()">
+        <div class="recordar-check" id="recordar-check">✓</div>
+        <div class="recordar-txt">
+          <h4>Guardar mis datos para la próxima vez</h4>
+          <p>Nombre, teléfono y dirección se guardan en este dispositivo</p>
+        </div>
+      </div>
+
     </div>
+
     <button class="bwa" onclick="enviarPedido()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       Enviar pedido por WhatsApp
     </button>
     <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PRODUCTO -->
+<div class="mprod-ov" id="mprod-ov" onclick="cerrarModalProd(event)">
+  <div class="mprod-sheet" id="mprod-sheet">
+    <div class="mprod-img" id="mprod-img">
+      <button class="mprod-close" onclick="cerrarModalProd(null)">✕</button>
+    </div>
+    <div class="mprod-body" id="mprod-body">
+      <h2 id="mprod-nombre"></h2>
+      <p class="mprod-desc" id="mprod-desc"></p>
+      <div class="mprod-price" id="mprod-price"></div>
+      <!-- Nota del producto -->
+      <div class="nota-prod-wrap">
+        <label>📝 Nota para este producto <span style="font-weight:400;font-size:11px;text-transform:none;letter-spacing:0;color:var(--mut)">(opcional)</span></label>
+        <textarea class="nota-prod-inp" id="mprod-nota" rows="2" placeholder="Ej: sin cebolla, sin tomate, término 3/4..."></textarea>
+      </div>
+      <!-- Extras/adiciones se inyectan aquí -->
+      <div id="mprod-extras"></div>
+    </div>
+    <div class="mprod-foot">
+      <div class="mext-total" id="mprod-total-wrap" style="margin-bottom:12px">
+        <span>Total:</span>
+        <strong id="mprod-total-val"></strong>
+      </div>
+      <button class="mprod-add-btn" onclick="confirmarDesdeModal()">
+        Agregar al carrito 🛒
+      </button>
+    </div>
   </div>
 </div>
 
@@ -446,6 +592,10 @@ async function init(){
   renderNav();
   renderMenu();
   scrollSpy();
+  cargarDatosGuardados(); // auto-fill si el usuario guardó datos antes
+  // Inicializar estado del checkbox recordar
+  document.getElementById('recordar-check').className='recordar-check on';
+  recordarDatos=true;
 }
 
 // ── CONFIGURACIÓN → UI ──
@@ -662,7 +812,149 @@ function prodHTML(p){
 
 // ── CARRITO ──
 function addToCart(id){
-  if(!calcularSiEstaAbierto()){return;} // bloqueado si está cerrado
+  if(!calcularSiEstaAbierto()){return;}
+  const p=prods.find(x=>x.id===id);
+  if(!p)return;
+  // Siempre abre el modal de detalle del producto
+  abrirModalProd(p);
+}
+
+// ── MODAL DETALLE PRODUCTO ──
+let notaProdActual='';
+
+function abrirModalProd(p){
+  prodActual=p;
+  extrasSeleccionados=[];
+  notaProdActual='';
+
+  // Imagen
+  const imgDiv=document.getElementById('mprod-img');
+  if(p.imagen_url){
+    imgDiv.innerHTML=`<img src="${p.imagen_url}" alt="${p.nombre}"><button class="mprod-close" onclick="cerrarModalProd(null)">✕</button>`;
+  } else {
+    imgDiv.innerHTML=`<span style="font-size:80px">${p.categorias?.emoji||'🍽️'}</span><button class="mprod-close" onclick="cerrarModalProd(null)">✕</button>`;
+  }
+
+  // Info
+  document.getElementById('mprod-nombre').textContent=p.nombre;
+  document.getElementById('mprod-desc').textContent=p.descripcion||'';
+  document.getElementById('mprod-price').textContent=$f(p.precio);
+  document.getElementById('mprod-nota').value='';
+  document.getElementById('mprod-total-val').textContent=$f(p.precio);
+
+  // Extras/adiciones de la categoría
+  const extCat=extrasDB.filter(e=>e.categoria_id===p.categoria_id&&e.activo!==false);
+  const extrasHtml=extCat.length?renderExtrasEnModal(p,extCat):'';
+  document.getElementById('mprod-extras').innerHTML=extrasHtml;
+
+  // Input nota — actualizar total al escribir
+  document.getElementById('mprod-nota').oninput=()=>{
+    notaProdActual=document.getElementById('mprod-nota').value;
+  };
+
+  document.getElementById('mprod-ov').classList.add('open');
+}
+
+function renderExtrasEnModal(p,extCat){
+  // Reusar misma lógica de abrirExtrasModal pero inyectando en mprod-extras
+  const globales=extCat.filter(e=>e.tipo==='extra');
+  const adics=extCat.filter(e=>e.tipo==='adicion');
+  let html='';
+
+  if(adics.length){
+    const grupos={};const sinGrupo=[];
+    adics.forEach(e=>{
+      if(e.grupo){
+        if(!grupos[e.grupo]) grupos[e.grupo]={items:[],obligatorio:e.obligatorio===true};
+        grupos[e.grupo].items.push(e);
+        if(e.obligatorio) grupos[e.grupo].obligatorio=true;
+      } else sinGrupo.push(e);
+    });
+    Object.entries(grupos).forEach(([gNombre,gData])=>{
+      const esObl=gData.obligatorio;
+      const key=gNombre.replace(/\s+/g,'_');
+      const opcsDisp=gData.items.filter(e=>e.disponible!==false);
+      if(!opcsDisp.length)return;
+      html+=`<div class="mext-section" id="msec-${key}">
+        <div class="mext-section-title">🎁 ${gNombre}
+          ${esObl?'<span style="font-size:10px;background:rgba(239,68,68,.15);color:#ef4444;border-radius:99px;padding:2px 8px;font-weight:700;text-transform:none;letter-spacing:0">⚠ Obligatorio</span>':'<span style="font-size:10px;background:rgba(45,106,79,.15);color:#2d6a4f;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Opcional · Gratis</span>'}
+        </div>
+        ${opcsDisp.map(e=>`
+          <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}','${gNombre.replace(/'/g,"\\'")}',${esObl});calcTotalModal()">
+            <div class="mext-chk" id="ec-${e.id}"></div>
+            <div class="mext-opt-info"><h4>${e.nombre}</h4>${e.descripcion?`<small>${e.descripcion}</small>`:''}</div>
+            <span class="mext-opt-inc">Gratis ✓</span>
+          </div>`).join('')}
+        ${esObl?`<div id="oblig-err-${key}" style="display:none;font-size:12px;color:#ef4444;font-weight:600;padding:6px 4px">⚠ Debes elegir al menos una opción de "${gNombre}"</div>`:''}
+      </div>`;
+    });
+    if(sinGrupo.length&&sinGrupo.some(e=>e.disponible!==false)){
+      html+=`<div class="mext-section"><div class="mext-section-title">🎁 Adiciones incluidas</div>
+        ${sinGrupo.filter(e=>e.disponible!==false).map(e=>`
+          <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',0,'${e.nombre.replace(/'/g,"\\'")}',null,false);calcTotalModal()">
+            <div class="mext-chk" id="ec-${e.id}"></div>
+            <div class="mext-opt-info"><h4>${e.nombre}</h4>${e.descripcion?`<small>${e.descripcion}</small>`:''}</div>
+            <span class="mext-opt-inc">Gratis ✓</span>
+          </div>`).join('')}
+      </div>`;
+    }
+  }
+  if(globales.length){
+    html+=`<div class="mext-section"><div class="mext-section-title">💰 Extras adicionales
+      <span style="font-size:10px;background:rgba(255,107,53,.12);color:#ff6b35;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Costo adicional</span>
+    </div>
+      ${globales.map(e=>`
+        <div class="mext-opt" id="eo-${e.id}" onclick="toggleExtra('${e.id}',${e.precio},'${e.nombre.replace(/'/g,"\\'")}',null,false);calcTotalModal()">
+          <div class="mext-chk" id="ec-${e.id}"></div>
+          <div class="mext-opt-info"><h4>${e.nombre}</h4>${e.descripcion?`<small>${e.descripcion}</small>`:''}</div>
+          <span class="mext-opt-precio">+${$f(e.precio)}</span>
+        </div>`).join('')}
+    </div>`;
+  }
+  // Guardar grupos obligatorios
+  prodActual._gruposObligatorios=Object.entries(
+    adics.reduce((acc,e)=>{if(e.grupo&&e.obligatorio){acc[e.grupo]=true;}return acc;},{})
+  ).map(([g])=>g);
+  return html;
+}
+
+function calcTotalModal(){
+  if(!prodActual)return;
+  const costoExtras=extrasSeleccionados.reduce((a,e)=>a+e.precio,0);
+  document.getElementById('mprod-total-val').textContent=$f(prodActual.precio+costoExtras);
+}
+
+function cerrarModalProd(e){
+  if(e&&e.target!==document.getElementById('mprod-ov'))return;
+  document.getElementById('mprod-ov').classList.remove('open');
+  prodActual=null;extrasSeleccionados=[];notaProdActual='';
+}
+
+function confirmarDesdeModal(){
+  if(!prodActual)return;
+  // Validar grupos obligatorios
+  const gruposOblig=prodActual._gruposObligatorios||[];
+  let hayError=false;
+  gruposOblig.forEach(g=>{
+    const key=g.replace(/\s+/g,'_');
+    const elegido=extrasSeleccionados.some(e=>e.grupo===g);
+    const errEl=document.getElementById('oblig-err-'+key);
+    const sec=document.getElementById('msec-'+key);
+    if(!elegido){
+      if(errEl)errEl.style.display='block';
+      if(sec&&!hayError)sec.scrollIntoView({behavior:'smooth',block:'center'});
+      hayError=true;
+    } else {
+      if(errEl)errEl.style.display='none';
+    }
+  });
+  if(hayError)return;
+  const nota=document.getElementById('mprod-nota').value.trim();
+  agregarAlCarrito(prodActual,extrasSeleccionados,nota);
+  feedbackBtn(prodActual.id);
+  document.getElementById('mprod-ov').classList.remove('open');
+  prodActual=null;extrasSeleccionados=[];notaProdActual='';
+}
   const p=prods.find(x=>x.id===id);
   if(!p)return;
   // Buscar extras/adiciones de la categoría del producto
@@ -795,25 +1087,17 @@ function toggleExtra(id, precio, nombre, grupo, esObligatorio){
 
 function confirmarExtras(){
   if(!prodActual)return;
-  // Validar grupos obligatorios
   const gruposOblig=prodActual._gruposObligatorios||[];
   let hayError=false;
   gruposOblig.forEach(g=>{
     const key=g.replace(/\s+/g,'_');
     const elegido=extrasSeleccionados.some(e=>e.grupo===g);
     const errEl=document.getElementById('oblig-err-'+key);
-    if(!elegido){
-      if(errEl){ errEl.style.display='block'; }
-      // Scroll al grupo con error
-      const sec=document.getElementById('msec-'+key);
-      if(sec&&!hayError) sec.scrollIntoView({behavior:'smooth',block:'center'});
-      hayError=true;
-    } else {
-      if(errEl) errEl.style.display='none';
-    }
+    if(!elegido){if(errEl){errEl.style.display='block';}const sec=document.getElementById('msec-'+key);if(sec&&!hayError)sec.scrollIntoView({behavior:'smooth',block:'center'});hayError=true;}
+    else{if(errEl)errEl.style.display='none';}
   });
-  if(hayError) return; // No pasar al carrito
-  agregarAlCarrito(prodActual, extrasSeleccionados);
+  if(hayError)return;
+  agregarAlCarrito(prodActual,extrasSeleccionados,'');
   feedbackBtn(prodActual.id);
   cerrarExtrasModal();
 }
@@ -831,24 +1115,25 @@ function cerrarExtrasModal(e){
   extrasSeleccionados=[];
 }
 
-function agregarAlCarrito(p, selectedExtras){
+function agregarAlCarrito(p, selectedExtras, notaProd){
   const costoExtras=selectedExtras.reduce((a,e)=>a+e.precio,0);
   const precioFinal=p.precio+costoExtras;
-  // Crear key única que incluya los extras
   const extrasKey=selectedExtras.map(e=>e.id).sort().join('|');
-  const cid=p.id+'__'+extrasKey;
+  const notaKey=(notaProd||'').trim().toLowerCase().slice(0,30);
+  const cid=p.id+'__'+extrasKey+'__'+notaKey;
   const ex=carrito.find(i=>i.cid===cid);
   if(ex){ex.qty++;}
   else{
     carrito.push({
-      cid, id:p.id,
+      cid,id:p.id,
       nombre:p.nombre,
       precio:precioFinal,
       precioBase:p.precio,
       emoji:p.categorias?.emoji||'🍽️',
       img:p.imagen_url,
       qty:1,
-      extras:selectedExtras
+      extras:selectedExtras,
+      nota:(notaProd||'').trim()||null
     });
   }
   actualizarCarrito();
@@ -892,28 +1177,21 @@ function actualizarCarrito(){
   }
   foot.style.display='block';
   body.innerHTML=carrito.map(i=>{
-    // Agrupar extras por grupo para mostrarlos mejor
-    let extrasLabel='';
-    if(i.extras&&i.extras.length){
-      const grupos={};const sinGrupo=[];
-      i.extras.forEach(e=>{
-        if(e.grupo){
-          if(!grupos[e.grupo]) grupos[e.grupo]=[];
-          grupos[e.grupo].push(e);
-        } else sinGrupo.push(e);
-      });
-      const partes=[];
-      Object.entries(grupos).forEach(([g,items])=>{
-        partes.push(`${g}: ${items.map(e=>e.nombre).join(', ')}`);
-      });
-      sinGrupo.forEach(e=>partes.push(e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')));
-      extrasLabel=`<small style="color:var(--mut);font-size:11px;display:block;margin-top:2px">↳ ${partes.join(' · ')}</small>`;
-    }
+    const grupos={};const sinGrupo=[];
+    (i.extras||[]).forEach(e=>{
+      if(e.grupo){if(!grupos[e.grupo])grupos[e.grupo]=[];grupos[e.grupo].push(e.nombre);}
+      else sinGrupo.push(e.nombre+(e.precio?` +${$f(e.precio)}`:''));
+    });
+    const partes=[];
+    Object.entries(grupos).forEach(([g,ns])=>partes.push(`${g}: ${ns.join(', ')}`));
+    sinGrupo.forEach(s=>partes.push(s));
+    const extrasLabel=partes.length?`<small style="color:var(--mut);font-size:11px;display:block;margin-top:2px">↳ ${partes.join(' · ')}</small>`:'';
+    const notaLabel=i.nota?`<small style="color:var(--acc);font-size:11px;display:block;margin-top:1px">📝 ${i.nota}</small>`:'';
     return `<div class="ci">
       <div class="ci-ico">${i.img?`<img src="${i.img}" onerror="this.parentNode.innerHTML='<span style=font-size:26px>${i.emoji}</span>'" alt="${i.nombre}">`:`<span style="font-size:26px">${i.emoji}</span>`}</div>
       <div class="ci-info">
         <h4>${i.nombre}</h4>
-        ${extrasLabel}
+        ${extrasLabel}${notaLabel}
         <p>${$f(i.precio)} c/u</p>
       </div>
       <div class="qc">
@@ -925,6 +1203,42 @@ function actualizarCarrito(){
   }).join('');
 }
 
+// ── FORMULARIO — HELPERS ──
+let recordarDatos=true;
+
+function onMpChange(){
+  const mp=document.getElementById('c-mp').value;
+  const cambioWrap=document.getElementById('cambio-wrap');
+  cambioWrap.style.display=mp==='efectivo'?'block':'none';
+}
+
+document.getElementById('c-cambio')?.addEventListener('change',function(){
+  const otro=document.getElementById('c-cambio-otro');
+  otro.style.display=this.value==='otro'?'block':'none';
+});
+
+function toggleRecordar(){
+  recordarDatos=!recordarDatos;
+  const check=document.getElementById('recordar-check');
+  check.className='recordar-check'+(recordarDatos?' on':'');
+}
+
+function cargarDatosGuardados(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('papayaso_datos')||'{}');
+    if(saved.nombre) document.getElementById('c-nom').value=saved.nombre;
+    if(saved.tel)    document.getElementById('c-tel').value=saved.tel;
+    if(saved.dir)    document.getElementById('c-dir').value=saved.dir;
+    if(saved.ref)    document.getElementById('c-ref').value=saved.ref;
+  }catch(e){}
+}
+
+function guardarDatos(nom,tel,dir,ref){
+  try{
+    localStorage.setItem('papayaso_datos',JSON.stringify({nombre:nom,tel,dir,ref}));
+  }catch(e){}
+}
+
 // ── ENVIAR PEDIDO ──
 async function enviarPedido(){
   if(!calcularSiEstaAbierto()){
@@ -934,85 +1248,90 @@ async function enviarPedido(){
   const nom=document.getElementById('c-nom').value.trim();
   const tel=document.getElementById('c-tel').value.trim();
   const dir=document.getElementById('c-dir').value.trim();
+  const ref=document.getElementById('c-ref').value.trim();
   const nota=document.getElementById('c-nota').value.trim();
-  const medioPago=document.querySelector('input[name="medio_pago"]:checked')?.value||'efectivo';
+  const mp=document.getElementById('c-mp').value;
 
   if(!nom||!tel||!dir){
     alert('Por favor completa tu nombre, teléfono y dirección 📍');
     return;
   }
-  if(!carrito.length){
-    alert('Agrega productos al carrito primero');
-    return;
+  if(tel.length<10){alert('Ingresa un número de teléfono válido (10 dígitos)');return;}
+  if(!carrito.length){alert('Agrega productos al carrito primero');return;}
+
+  // Cambio para efectivo
+  let cambioInfo='';
+  if(mp==='efectivo'){
+    const cambioSel=document.getElementById('c-cambio').value;
+    if(cambioSel==='exacto') cambioInfo='Pago exacto';
+    else if(cambioSel==='otro'){
+      const otro=document.getElementById('c-cambio-otro').value;
+      cambioInfo=otro?`Con $${parseInt(otro).toLocaleString('es-CO')}`:'';
+    } else cambioInfo=`Con $${parseInt(cambioSel).toLocaleString('es-CO')}`;
   }
+
+  // Guardar datos si está activado
+  if(recordarDatos) guardarDatos(nom,tel,dir,ref);
 
   const waRaw=(cfg.whatsapp||'573001234567').replace(/\D/g,'');
   const waNum=waRaw.startsWith('57')?waRaw:'57'+waRaw;
-
   const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  const telCompleto='57'+tel;
+
+  // Construir líneas del pedido
   const lineas=carrito.map(i=>{
     let l=`• ${i.qty}x ${i.nombre} — ${$f(i.precio*i.qty)}`;
-    if(i.extras&&i.extras.length){
-      const grupos={};const sinGrupo=[];
-      i.extras.forEach(e=>{
-        if(e.grupo){if(!grupos[e.grupo])grupos[e.grupo]=[];grupos[e.grupo].push(e.nombre);}
-        else sinGrupo.push(e.nombre+(e.precio?` +${$f(e.precio)}`:''));
-      });
-      const partes=[];
-      Object.entries(grupos).forEach(([g,ns])=>partes.push(`${g}: ${ns.join(', ')}`));
-      sinGrupo.forEach(s=>partes.push(s));
-      l+=`\n   ↳ ${partes.join(' | ')}`;
-    }
+    const grupos={};const sinGrupo=[];
+    (i.extras||[]).forEach(e=>{
+      if(e.grupo){if(!grupos[e.grupo])grupos[e.grupo]=[];grupos[e.grupo].push(e.nombre);}
+      else sinGrupo.push(e.nombre+(e.precio?` +${$f(e.precio)}`:''));
+    });
+    const partes=[];
+    Object.entries(grupos).forEach(([g,ns])=>partes.push(`${g}: ${ns.join(', ')}`));
+    sinGrupo.forEach(s=>partes.push(s));
+    if(partes.length) l+=`\n   ↳ ${partes.join(' | ')}`;
+    if(i.nota) l+=`\n   📝 ${i.nota}`;
     return l;
   }).join('\n');
 
-  // Emoji por medio de pago
   const pagoEmoji={efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'};
   const pagoLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'};
+  const dirCompleta=ref?`${dir} (${ref})`:dir;
 
-  const msg=`🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* ${tel}\n📍 *Dirección:* ${dir}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${pagoEmoji[medioPago]} *Pago:* ${pagoLabel[medioPago]}\n💰 *Total: ${$f(subtotal)}*`;
+  const msg=`🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${pagoEmoji[mp]} *Pago:* ${pagoLabel[mp]}${cambioInfo?' · '+cambioInfo:''}\n💰 *Total: ${$f(subtotal)}*`;
   const waUrl=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
 
-  // Abrir WhatsApp PRIMERO (antes de cualquier await)
+  // Abrir WhatsApp PRIMERO
   const waWindow=window.open(waUrl,'_blank');
 
   // Guardar en Supabase en segundo plano
   try{
     const {data:ped,error}=await db.from('pedidos').insert({
-      cliente_nombre:nom, cliente_telefono:tel,
-      cliente_direccion:dir, cliente_notas:nota||null,
-      medio_pago:medioPago,
-      subtotal, total:subtotal, estado:'pendiente'
+      cliente_nombre:nom, cliente_telefono:telCompleto,
+      cliente_direccion:dirCompleta, cliente_notas:nota||null,
+      medio_pago:mp, subtotal, total:subtotal, domicilio:0,
+      estado:'pendiente', canal:'whatsapp'
     }).select().single();
-
     if(!error&&ped){
       await db.from('pedido_items').insert(carrito.map(i=>({
         pedido_id:ped.id, producto_id:i.id,
-        producto_nombre:i.nombre+(i.extras&&i.extras.length
-          ?' ('+i.extras.map(e=>e.nombre).join(', ')+')'
-          :''),
+        producto_nombre:i.nombre+(i.extras&&i.extras.length?' ('+i.extras.map(e=>e.nombre).join(', ')+')':''),
         producto_precio:i.precio,
         cantidad:i.qty, subtotal:i.precio*i.qty,
-        notas:i.extras&&i.extras.length
-          ?i.extras.map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')).join(', ')
-          :null
+        notas:[...(i.extras||[]).map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')),i.nota?`Nota: ${i.nota}`:null].filter(Boolean).join(', ')||null
       })));
       const num=ped.numero_pedido||ped.id.slice(0,6).toUpperCase();
       const msgConNum=msg.replace('*NUEVO PEDIDO*',`*PEDIDO #${num}*`);
-      try{ if(waWindow&&!waWindow.closed){ waWindow.location.href=`https://wa.me/${waNum}?text=${encodeURIComponent(msgConNum)}`; } }catch(_){}
+      try{if(waWindow&&!waWindow.closed){waWindow.location.href=`https://wa.me/${waNum}?text=${encodeURIComponent(msgConNum)}`;}}catch(_){}
     }
-  }catch(err){
-    console.error('Error guardando pedido:',err);
-  }
+  }catch(err){console.error('Error guardando pedido:',err);}
 
-  carrito=[];
-  actualizarCarrito();
-  toggleDrawer();
-  ['c-nom','c-tel','c-dir','c-nota'].forEach(id=>document.getElementById(id).value='');
-  // Resetear medio de pago a efectivo
-  const defPago=document.querySelector('input[name="medio_pago"][value="efectivo"]');
-  if(defPago) defPago.checked=true;
+  carrito=[];actualizarCarrito();toggleDrawer();
+  ['c-nom','c-tel','c-dir','c-ref','c-nota'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-mp').value='efectivo';
+  onMpChange();
 }
+
 
 // ── DRAWER ──
 function toggleDrawer(){
