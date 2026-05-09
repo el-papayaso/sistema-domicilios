@@ -90,24 +90,36 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .cat-pill:hover:not(.active){border-color:var(--acc);color:var(--acc)}
 
 /* ════ TOPBAR FLOTANTE ════ */
+/* Topbar transparente — solo muestra brand al hacer scroll */
 .topbar{
   position:fixed;top:0;left:0;right:0;z-index:50;
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 16px;
   background:rgba(247,245,240,0);backdrop-filter:blur(0px);
   transition:all .3s;
+  pointer-events:none;
 }
-.topbar.scrolled{background:rgba(247,245,240,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr)}
+.topbar.scrolled{background:rgba(247,245,240,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr);pointer-events:all}
 .topbar-brand{font-family:var(--fh);font-size:17px;font-weight:900;color:#fff;opacity:0;transition:opacity .3s}
 .topbar.scrolled .topbar-brand{color:var(--acc);opacity:1}
+
+/* CARRITO FLOTANTE — siempre visible en la parte superior derecha */
 .cart-fab{
+  position:fixed;top:14px;right:16px;z-index:60;
   display:flex;align-items:center;gap:8px;
   background:var(--acc);color:#fff;border:none;border-radius:99px;
-  padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;
-  font-family:var(--fh);box-shadow:var(--sh2);transition:all .2s;
+  padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;
+  font-family:var(--fh);
+  box-shadow:0 4px 20px rgba(232,93,47,.45);
+  transition:all .25s;
+  pointer-events:all;
 }
-.cart-fab:hover{background:#d04a1c;transform:scale(1.03)}
-.cart-n{background:#fff;color:var(--acc);border-radius:99px;padding:1px 7px;font-size:12px;font-weight:800}
+.cart-fab:hover{background:#d04a1c;transform:scale(1.04)}
+.cart-fab.vacio{background:#9ca3af;box-shadow:none}
+.cart-n{background:#fff;color:var(--acc);border-radius:99px;padding:1px 7px;font-size:12px;font-weight:800;min-width:20px;text-align:center}
+.cart-fab.vacio .cart-n{color:#9ca3af}
+/* Total en el carrito flotante */
+.cart-total-fab{font-size:13px;font-weight:700}
 
 /* ════ SECCIÓN PRODUCTOS ════ */
 .menu-wrap{padding:0 16px 120px}
@@ -118,29 +130,29 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .sec-title h2{font-family:var(--fh);font-size:20px;font-weight:900;display:flex;align-items:center;gap:8px}
 .sec-count{font-size:12px;color:var(--mut);background:var(--warm);border-radius:99px;padding:3px 10px}
 
-/* ITEM FILA (estilo imagen referencia) */
+/* ITEM FILA — imagen más grande */
 .prod-item{
   display:flex;align-items:center;gap:14px;
-  background:var(--sur);border-radius:14px;
-  padding:14px;margin-bottom:10px;
+  background:var(--sur);border-radius:16px;
+  padding:12px;margin-bottom:10px;
   box-shadow:var(--sh);cursor:pointer;
   transition:transform .2s,box-shadow .2s;
   border:1px solid transparent;
 }
 .prod-item:hover{transform:translateY(-2px);box-shadow:var(--sh2);border-color:rgba(232,93,47,.2)}
 .prod-thumb{
-  width:80px;height:80px;border-radius:12px;flex-shrink:0;overflow:hidden;
-  background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:36px;
+  width:110px;height:110px;border-radius:14px;flex-shrink:0;overflow:hidden;
+  background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:44px;
 }
 .prod-thumb img{width:100%;height:100%;object-fit:cover}
 .prod-info{flex:1;min-width:0}
 .prod-info h3{font-family:var(--fh);font-size:15px;font-weight:700;margin-bottom:4px;line-height:1.3}
-.prod-info p{font-size:12px;color:var(--mut);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.prod-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.prod-info p{font-size:12px;color:var(--mut);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.prod-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
 .prod-price{font-family:var(--fh);font-size:17px;font-weight:900;color:var(--acc)}
 .prod-add{
-  width:36px;height:36px;border-radius:99px;background:var(--acc);color:#fff;
-  border:none;font-size:22px;font-weight:700;cursor:pointer;
+  width:38px;height:38px;border-radius:99px;background:var(--acc);color:#fff;
+  border:none;font-size:24px;font-weight:700;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 10px rgba(232,93,47,.4);transition:all .2s;flex-shrink:0;
 }
@@ -281,7 +293,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 @media(max-width:480px){
   .perfil-info h1{font-size:19px}
-  .prod-thumb{width:70px;height:70px;font-size:30px}
+  .prod-thumb{width:90px;height:90px;font-size:36px}
 }
 </style>
 </head>
@@ -290,7 +302,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 <!-- TOPBAR FLOTANTE -->
 <div class="topbar" id="topbar">
   <span class="topbar-brand" id="topbar-brand">🛵</span>
-  <button class="cart-fab" id="cart-fab-btn" onclick="toggleDrawer()">🛒 <span class="cart-n" id="cart-n">0</span></button>
+  <button class="cart-fab vacio" id="cart-fab-btn" onclick="toggleDrawer()">
+  🛒 <span class="cart-n" id="cart-n">0</span>
+  <span class="cart-total-fab" id="cart-total-fab" style="display:none">· $0</span>
+</button>
 </div>
 
 <!-- HERO / PORTADA -->
@@ -858,6 +873,17 @@ function actualizarCarrito(){
   document.getElementById('cart-n').textContent=count;
   document.getElementById('subtotal').textContent=$f(total);
   document.getElementById('total').textContent=$f(total);
+  // Carrito flotante: mostrar total y quitar clase vacio
+  const fab=document.getElementById('cart-fab-btn');
+  const totalFab=document.getElementById('cart-total-fab');
+  if(count>0){
+    fab.classList.remove('vacio');
+    totalFab.style.display='inline';
+    totalFab.textContent='· '+$f(total);
+  } else {
+    fab.classList.add('vacio');
+    totalFab.style.display='none';
+  }
   const body=document.getElementById('dbody');
   const foot=document.getElementById('dfoot');
   if(!carrito.length){
