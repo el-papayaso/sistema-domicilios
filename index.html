@@ -419,7 +419,7 @@ let cats=[],prods=[],carrito=[],cfg={},catActiva='all',extrasDB=[],prodActual=nu
 async function init(){
   const [c,p,co,ex]=await Promise.all([
     db.from('categorias').select('*').eq('activo',true).order('orden'),
-    db.from('productos').select('*, categorias(nombre,emoji)').eq('disponible',true).order('orden'),
+    db.from('productos').select('*, categorias(nombre,emoji)').eq('disponible',true).neq('canal_venta','solo_local').order('orden'),
     db.from('configuracion').select('*').limit(1).single(),
     db.from('extras').select('*').eq('activo',true).order('grupo').order('nombre')
   ]);
