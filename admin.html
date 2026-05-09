@@ -882,6 +882,16 @@ table.vtbl tr:hover td{background:var(--sur2)}
       <label class="chk"><input type="checkbox" id="mp-disp" checked> ✅ Disponible</label>
       <label class="chk"><input type="checkbox" id="mp-dest"> ⭐ Destacado</label>
     </div></div>
+    <div class="fg">
+      <label>Canal de venta
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">¿Dónde aparece este producto?</span>
+      </label>
+      <select id="mp-canal">
+        <option value="todos">🌐 Todos los canales (domicilio + local)</option>
+        <option value="solo_domicilio">🛵 Solo domicilio (no aparece en POS)</option>
+        <option value="solo_local">🏪 Solo local / POS (no aparece en el menú)</option>
+      </select>
+    </div>
     <div class="mbtns"><button class="bpri" onclick="guardarProd()">💾 Guardar</button><button class="bsecm" onclick="cerrar('ov-prod')">Cancelar</button></div>
   </div>
 </div>
@@ -1435,6 +1445,7 @@ function renderProds(){
       </div>
       <div class="prbody"><h4>${p.nombre}</h4><p>${p.descripcion||'Sin descripción'}</p>
         <div class="prmeta"><span class="prprice">${$f(p.precio)}</span><span class="prcat">${p.categorias?.emoji||''} ${p.categorias?.nombre||'Sin cat.'}</span></div>
+        ${p.canal_venta&&p.canal_venta!=='todos'?`<div style="margin-top:6px"><span style="font-size:10px;padding:2px 8px;border-radius:5px;font-weight:700;background:${p.canal_venta==='solo_local'?'rgba(139,92,246,.15)':'rgba(45,211,111,.12)'};color:${p.canal_venta==='solo_local'?'var(--pur)':'var(--grn)'}">${p.canal_venta==='solo_local'?'🏪 Solo local':'🛵 Solo domicilio'}</span></div>`:''}
       </div>
       <div class="practs">
         <button class="bdsp ${p.disponible?'bon':'boff'}" onclick="toggleD('${p.id}',${p.disponible})">${p.disponible?'✓ Activo':'✗ Inactivo'}</button>
@@ -1452,6 +1463,7 @@ function abrirProd(p=null){
   document.getElementById('mp-precio').value=p?.precio||'';
   document.getElementById('mp-disp').checked=p?p.disponible:true;
   document.getElementById('mp-dest').checked=p?.destacado||false;
+  document.getElementById('mp-canal').value=p?.canal_venta||'todos';
   document.getElementById('mp-cat').innerHTML='<option value="">Sin categoría</option>'+cats.map(c=>`<option value="${c.id}" ${p?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
   // Imagen: cargar existente o limpiar
   document.getElementById('mp-img').value=p?.imagen_url||'';
@@ -1472,7 +1484,8 @@ async function guardarProd(){
     categoria_id:document.getElementById('mp-cat').value||null,
     imagen_url:document.getElementById('mp-img').value||null,
     disponible:document.getElementById('mp-disp').checked,
-    destacado:document.getElementById('mp-dest').checked};
+    destacado:document.getElementById('mp-dest').checked,
+    canal_venta:document.getElementById('mp-canal').value||'todos'};
   const {error}=id?await db.from('productos').update(d).eq('id',id):await db.from('productos').insert(d);
   if(!error){toast(id?'✅ Producto actualizado':'✅ Producto creado','ok');cerrar('ov-prod');await loadProds();}
   else toast('❌ Error: '+error.message,'err');
@@ -2636,15 +2649,18 @@ function posFiltrar(id,el){
 
 function renderPOSGrid(){
   const grid=document.getElementById('pos-grid');
-  const filtrados=posCatActiva==='all'?prods:prods.filter(p=>p.categoria_id===posCatActiva);
+  // POS solo muestra productos que NO son solo_domicilio
+  const disponibles=prods.filter(p=>p.canal_venta!=='solo_domicilio');
+  const filtrados=posCatActiva==='all'?disponibles:disponibles.filter(p=>p.categoria_id===posCatActiva);
   if(!filtrados.length){
-    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><span>🍽️</span><p>Sin productos</p></div>';
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><span>🍽️</span><p>Sin productos para este canal</p></div>';
     return;
   }
   grid.innerHTML=filtrados.map(p=>`
     <div class="pos-prod${!p.disponible?' nodist':''}" onclick="posAgregar('${p.id}')">
       <div class="pos-prod-img">
         ${p.imagen_url?`<img src="${p.imagen_url}" onerror="this.parentNode.innerHTML='<span style=font-size:40px>${p.categorias?.emoji||'🍽️'}</span>'" alt="${p.nombre}">`:`<span style="font-size:40px">${p.categorias?.emoji||'🍽️'}</span>`}
+        ${p.canal_venta==='solo_local'?'<div style="position:absolute;top:4px;right:4px;background:rgba(139,92,246,.9);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px">🏪 Local</div>':''}
       </div>
       <div class="pos-prod-body">
         <h4>${p.nombre}</h4>
@@ -2761,7 +2777,9 @@ function abrirLlamada(){
   document.getElementById('ll-domicilio').value='0';
   document.getElementById('ll-notas').value='';
   document.getElementById('ll-buscar').value='';
-  renderProdsLlamada(prods.filter(p=>p.disponible));
+  // Solo productos de domicilio (excluir solo_local)
+  const prodsdom=prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local');
+  renderProdsLlamada(prodsdom);
   renderOrdenLlamada();
   document.getElementById('ov-llamada').classList.add('open');
   setTimeout(()=>document.getElementById('ll-nombre').focus(),120);
@@ -2769,7 +2787,8 @@ function abrirLlamada(){
 
 function filtrarProdsLlamada(){
   const q=document.getElementById('ll-buscar').value.toLowerCase();
-  const filtrados=prods.filter(p=>p.disponible&&p.nombre.toLowerCase().includes(q));
+  // Filtrar solo productos de domicilio
+  const filtrados=prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local'&&p.nombre.toLowerCase().includes(q));
   renderProdsLlamada(filtrados);
 }
 
