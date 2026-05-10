@@ -822,7 +822,7 @@ function addToCart(id){
 // ── MODAL DETALLE PRODUCTO ──
 let notaProdActual='';
 
-function abrirModalProd(p){
+async function abrirModalProd(p){
   prodActual=p;
   extrasSeleccionados=[];
   notaProdActual='';
@@ -841,18 +841,67 @@ function abrirModalProd(p){
   document.getElementById('mprod-price').textContent=$f(p.precio);
   document.getElementById('mprod-nota').value='';
   document.getElementById('mprod-total-val').textContent=$f(p.precio);
+  document.getElementById('mprod-extras').innerHTML='<div style="text-align:center;padding:12px;color:var(--mut);font-size:13px">⏳</div>';
+  document.getElementById('mprod-ov').classList.add('open');
 
-  // Extras/adiciones de la categoría
-  const extCat=extrasDB.filter(e=>e.categoria_id===p.categoria_id&&e.activo!==false);
-  const extrasHtml=extCat.length?renderExtrasEnModal(p,extCat):'';
-  document.getElementById('mprod-extras').innerHTML=extrasHtml;
+  // Cargar opciones específicas del producto (desde BD) y extras de categoría en paralelo
+  const [opcsRes, extCat] = await Promise.all([
+    db.from('producto_opciones')
+      .select('*').eq('producto_id',p.id).eq('activo',true)
+      .eq('disponible',true).order('orden').order('nombre'),
+    Promise.resolve(extrasDB.filter(e=>e.categoria_id===p.categoria_id&&e.activo!==false))
+  ]);
+  const opcsEspecificas=opcsRes.data||[];
 
-  // Input nota — actualizar total al escribir
+  let html='';
+
+  // 1. Opciones específicas del producto (primero)
+  if(opcsEspecificas.length){
+    const grupos={};
+    opcsEspecificas.forEach(o=>{
+      if(!grupos[o.grupo]) grupos[o.grupo]={items:[],obligatorio:o.obligatorio,tipo:o.tipo};
+      grupos[o.grupo].items.push(o);
+      if(o.obligatorio) grupos[o.grupo].obligatorio=true;
+    });
+    Object.entries(grupos).forEach(([gNombre,gData])=>{
+      const esObl=gData.obligatorio;
+      const key='prod_'+gNombre.replace(/\s+/g,'_');
+      html+=`<div class="mext-section" id="msec-${key}">
+        <div class="mext-section-title">🎛️ ${gNombre}
+          ${esObl
+            ?'<span style="font-size:10px;background:rgba(239,68,68,.15);color:#ef4444;border-radius:99px;padding:2px 8px;font-weight:700;text-transform:none;letter-spacing:0">⚠ Obligatorio</span>'
+            :'<span style="font-size:10px;background:rgba(45,106,79,.15);color:#2d6a4f;border-radius:99px;padding:2px 8px;font-weight:600;text-transform:none;letter-spacing:0">Opcional</span>'}
+        </div>
+        ${gData.items.map(o=>`
+          <div class="mext-opt" id="eo-${o.id}"
+            onclick="toggleExtra('${o.id}',${o.precio},'${o.nombre.replace(/'/g,"\\'")}','${gNombre.replace(/'/g,"\\'")}',${esObl});calcTotalModal()">
+            <div class="mext-chk" id="ec-${o.id}"></div>
+            <div class="mext-opt-info">
+              <h4>${o.nombre}</h4>
+              ${o.descripcion?`<small>${o.descripcion}</small>`:''}
+            </div>
+            ${gData.tipo==='extra'
+              ?`<span class="mext-opt-precio">+${$f(o.precio)}</span>`
+              :'<span class="mext-opt-inc">Gratis ✓</span>'}
+          </div>`).join('')}
+        ${esObl?`<div id="oblig-err-${key}" style="display:none;font-size:12px;color:#ef4444;font-weight:600;padding:6px 4px">⚠ Debes elegir una opción de "${gNombre}"</div>`:''}
+      </div>`;
+    });
+    // Registrar grupos obligatorios de opciones específicas
+    const oblEsp=Object.entries(grupos)
+      .filter(([,g])=>g.obligatorio).map(([name])=>name);
+    prodActual._gruposObligatoriosEsp=oblEsp.map(g=>'prod_'+g.replace(/\s+/g,'_'));
+  }
+
+  // 2. Extras/adiciones de categoría (después)
+  if(extCat.length) html+=renderExtrasEnModal(p,extCat);
+
+  document.getElementById('mprod-extras').innerHTML=html||'';
+
+  // Input nota
   document.getElementById('mprod-nota').oninput=()=>{
     notaProdActual=document.getElementById('mprod-nota').value;
   };
-
-  document.getElementById('mprod-ov').classList.add('open');
 }
 
 function renderExtrasEnModal(p,extCat){
@@ -932,12 +981,18 @@ function cerrarModalProd(e){
 
 function confirmarDesdeModal(){
   if(!prodActual)return;
-  // Validar grupos obligatorios
-  const gruposOblig=prodActual._gruposObligatorios||[];
+  // Validar grupos obligatorios: específicos del producto + de categoría
+  const todosOblig=[
+    ...(prodActual._gruposObligatoriosEsp||[]),
+    ...(prodActual._gruposObligatorios||[])
+  ];
   let hayError=false;
-  gruposOblig.forEach(g=>{
-    const key=g.replace(/\s+/g,'_');
-    const elegido=extrasSeleccionados.some(e=>e.grupo===g);
+  todosOblig.forEach(key=>{
+    // El grupo está identificado por su key de msec-
+    const elegido=extrasSeleccionados.some(e=>{
+      const k=(e.grupo||'').replace(/\s+/g,'_');
+      return 'prod_'+k===key || k===key;
+    });
     const errEl=document.getElementById('oblig-err-'+key);
     const sec=document.getElementById('msec-'+key);
     if(!elegido){
