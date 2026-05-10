@@ -405,7 +405,41 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .semaforo.verde{background:rgba(45,211,111,.1);border:1px solid rgba(45,211,111,.25);color:var(--grn)}
 .semaforo.rojo{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
 .semaforo.amarillo{background:rgba(255,190,11,.1);border:1px solid rgba(255,190,11,.25);color:var(--acc2)}
-@media(max-width:700px){
+/* ── OPCIONES PRODUCTO ── */
+.opciones-section{margin-top:18px;border-top:1.5px solid var(--bdr);padding-top:16px}
+.opciones-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  color:var(--mut);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.opcion-grupo{background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;
+  margin-bottom:10px;overflow:hidden}
+.opcion-grupo-head{display:flex;align-items:center;gap:10px;padding:10px 12px;
+  background:var(--sur2);border-bottom:1px solid var(--bdr)}
+.opcion-grupo-head input{flex:1;background:var(--sur);border:1px solid var(--bdr);
+  border-radius:7px;padding:7px 10px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none}
+.opcion-grupo-head input:focus{border-color:var(--acc)}
+.opcion-grupo-items{padding:8px 10px;display:flex;flex-direction:column;gap:6px}
+.opcion-item-row{display:flex;align-items:center;gap:6px}
+.opcion-item-row input[type=text]{flex:1;background:var(--sur);border:1px solid var(--bdr);
+  border-radius:7px;padding:6px 9px;font-size:12px;font-family:var(--fb);color:var(--txt);outline:none}
+.opcion-item-row input[type=text]:focus{border-color:var(--acc)}
+.opcion-item-row input[type=number]{width:90px;background:var(--sur);border:1px solid var(--bdr);
+  border-radius:7px;padding:6px 9px;font-size:12px;font-family:var(--fb);color:var(--txt);outline:none}
+.opcion-item-row input[type=number]:focus{border-color:var(--acc)}
+.opcion-precio-lbl{font-size:10px;color:var(--mut);white-space:nowrap}
+.opc-del{background:transparent;border:none;color:var(--red);cursor:pointer;font-size:15px;
+  width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex-shrink:0;transition:background .2s}
+.opc-del:hover{background:#fee2e2}
+.btn-add-opcion-item{background:transparent;border:1px dashed var(--bdr);border-radius:7px;
+  padding:5px 10px;font-size:11px;color:var(--mut);cursor:pointer;width:100%;
+  font-family:var(--fb);transition:all .2s;margin-top:2px}
+.btn-add-opcion-item:hover{border-color:var(--acc);color:var(--acc)}
+.opc-checks{display:flex;gap:10px;padding:6px 12px;border-top:1px solid var(--bdr)}
+.opc-chk{display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer}
+.opc-chk input{accent-color:var(--acc);cursor:pointer}
+.btn-add-grupo{background:transparent;border:1.5px dashed var(--bdr);border-radius:9px;
+  padding:9px;font-size:12px;color:var(--mut);cursor:pointer;width:100%;
+  font-family:var(--fb);transition:all .2s;margin-top:2px}
+.btn-add-grupo:hover{border-color:var(--acc);color:var(--acc)}
   .stats{grid-template-columns:1fr 1fr}
   .pbody{grid-template-columns:1fr}
   .config-grid{grid-template-columns:1fr}
@@ -910,11 +944,21 @@ table.vtbl tr:hover td{background:var(--sur2)}
         <option value="solo_local">🏪 Solo local / POS (no aparece en el menú)</option>
       </select>
     </div>
+    <!-- ── OPCIONES ESPECÍFICAS DEL PRODUCTO ── -->
+    <div class="opciones-section" id="mp-opciones-section" style="display:none">
+      <div class="opciones-section-title">
+        <span>🎛️ Opciones específicas de este producto</span>
+        <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--mutl)">Grupos de elección solo para este producto</span>
+      </div>
+      <div id="mp-grupos-list"></div>
+      <button type="button" class="btn-add-grupo" onclick="agregarGrupoOpcion()">
+        ＋ Agregar grupo de opciones
+      </button>
+    </div>
+
     <div class="mbtns"><button class="bpri" onclick="guardarProd()">💾 Guardar</button><button class="bsecm" onclick="cerrar('ov-prod')">Cancelar</button></div>
   </div>
 </div>
-
-<!-- ── MODAL CATEGORÍA ── -->
 <div class="ov" id="ov-cat">
   <div class="modal">
     <div class="mtit" id="mc-tit">Nueva Categoría</div>
@@ -1477,6 +1521,9 @@ function renderProds(){
       </div>
     </div>`).join('');
 }
+// Estado local de grupos de opciones del modal
+let mpGrupos=[]; // [{grupo:'',obligatorio:false,tipo:'adicion',items:[{nombre:'',precio:0}]}]
+
 function abrirProd(p=null){
   document.getElementById('mp-tit').textContent=p?'Editar Producto':'Nuevo Producto';
   document.getElementById('mp-sub').textContent=p?`Editando: ${p.nombre}`:'Completa los datos del nuevo producto';
@@ -1488,15 +1535,155 @@ function abrirProd(p=null){
   document.getElementById('mp-dest').checked=p?.destacado||false;
   document.getElementById('mp-canal').value=p?.canal_venta||'todos';
   document.getElementById('mp-cat').innerHTML='<option value="">Sin categoría</option>'+cats.map(c=>`<option value="${c.id}" ${p?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
-  // Imagen: cargar existente o limpiar
   document.getElementById('mp-img').value=p?.imagen_url||'';
   document.getElementById('mp-file').value='';
   resetUploadZone('prod');
   if(p?.imagen_url) mostrarPrevProd(p.imagen_url);
+
+  // Opciones: solo disponible al editar (necesitamos el ID)
+  const seccion=document.getElementById('mp-opciones-section');
+  if(p?.id){
+    seccion.style.display='block';
+    cargarOpcionesProd(p.id);
+  } else {
+    seccion.style.display='none';
+    mpGrupos=[];
+    renderGruposModal();
+  }
+
   document.getElementById('ov-prod').classList.add('open');
   setTimeout(()=>document.getElementById('mp-nombre').focus(),120);
 }
+
+async function cargarOpcionesProd(prodId){
+  const {data}=await db.from('producto_opciones')
+    .select('*').eq('producto_id',prodId).eq('activo',true).order('orden').order('nombre');
+  // Agrupar por grupo
+  const mapa={};
+  (data||[]).forEach(o=>{
+    if(!mapa[o.grupo]) mapa[o.grupo]={
+      grupo:o.grupo, obligatorio:o.obligatorio, tipo:o.tipo,
+      items:[], _ids:[]
+    };
+    mapa[o.grupo].items.push({id:o.id,nombre:o.nombre,precio:o.precio,disponible:o.disponible});
+    mapa[o.grupo]._ids.push(o.id);
+  });
+  mpGrupos=Object.values(mapa);
+  // Si no hay nada, empezar con un grupo vacío solo si el usuario quiere
+  renderGruposModal();
+}
+
+function renderGruposModal(){
+  const lista=document.getElementById('mp-grupos-list');
+  if(!mpGrupos.length){
+    lista.innerHTML='<p style="font-size:12px;color:var(--mutl);text-align:center;padding:8px 0 12px">Sin opciones específicas aún</p>';
+    return;
+  }
+  lista.innerHTML=mpGrupos.map((g,gi)=>`
+    <div class="opcion-grupo">
+      <div class="opcion-grupo-head">
+        <input type="text" value="${g.grupo.replace(/"/g,'&quot;')}" placeholder="Nombre del grupo Ej: ¿Cómo lo quieres?"
+          oninput="mpGrupos[${gi}].grupo=this.value">
+        <button class="opc-del" onclick="eliminarGrupo(${gi})" title="Eliminar grupo">✕</button>
+      </div>
+      <div class="opc-checks">
+        <label class="opc-chk">
+          <input type="checkbox" ${g.obligatorio?'checked':''} onchange="mpGrupos[${gi}].obligatorio=this.checked">
+          ⚠ Obligatorio
+        </label>
+        <label class="opc-chk" style="margin-left:8px">
+          <input type="checkbox" ${g.tipo==='extra'?'checked':''} onchange="mpGrupos[${gi}].tipo=this.checked?'extra':'adicion';renderGruposModal()">
+          💰 Con costo
+        </label>
+      </div>
+      <div class="opcion-grupo-items" id="grupo-items-${gi}">
+        ${g.items.map((item,ii)=>`
+          <div class="opcion-item-row">
+            <input type="text" value="${item.nombre.replace(/"/g,'&quot;')}" placeholder="Ej: Caliente"
+              oninput="mpGrupos[${gi}].items[${ii}].nombre=this.value">
+            ${g.tipo==='extra'?`
+              <span class="opcion-precio-lbl">+$</span>
+              <input type="number" value="${item.precio||0}" min="0" placeholder="0"
+                oninput="mpGrupos[${gi}].items[${ii}].precio=parseFloat(this.value)||0"
+                style="width:80px">
+            `:''}
+            <button class="opc-del" onclick="eliminarItem(${gi},${ii})" title="Eliminar">✕</button>
+          </div>`).join('')}
+        <button type="button" class="btn-add-opcion-item" onclick="agregarItem(${gi})">＋ Agregar opción</button>
+      </div>
+    </div>`).join('');
+}
+
+function agregarGrupoOpcion(){
+  mpGrupos.push({grupo:'',obligatorio:false,tipo:'adicion',items:[{id:'',nombre:'',precio:0}],_ids:[]});
+  renderGruposModal();
+  // Scroll al nuevo grupo
+  setTimeout(()=>{
+    const lista=document.getElementById('mp-grupos-list');
+    lista.lastElementChild?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },100);
+}
+
+function eliminarGrupo(gi){
+  if(!confirm(`¿Eliminar el grupo "${mpGrupos[gi].grupo||'sin nombre'}" y todas sus opciones?`))return;
+  mpGrupos.splice(gi,1);
+  renderGruposModal();
+}
+
+function agregarItem(gi){
+  mpGrupos[gi].items.push({id:'',nombre:'',precio:0});
+  renderGruposModal();
+}
+
+function eliminarItem(gi,ii){
+  if(mpGrupos[gi].items.length<=1){toast('❌ El grupo debe tener al menos una opción','err');return;}
+  mpGrupos[gi].items.splice(ii,1);
+  renderGruposModal();
+}
+
+async function guardarOpcionesProd(prodId){
+  if(!mpGrupos.length) return;
+  // 1. Obtener IDs existentes del producto
+  const {data:existentes}=await db.from('producto_opciones')
+    .select('id').eq('producto_id',prodId);
+  const idsExistentes=new Set((existentes||[]).map(r=>r.id));
+
+  // 2. IDs que siguen en el modal
+  const idsNuevos=new Set(
+    mpGrupos.flatMap(g=>g.items.filter(i=>i.id).map(i=>i.id))
+  );
+
+  // 3. Eliminar los que ya no están
+  const aBorrar=[...idsExistentes].filter(id=>!idsNuevos.has(id));
+  if(aBorrar.length) await db.from('producto_opciones').delete().in('id',aBorrar);
+
+  // 4. Upsert de todos los items válidos
+  const upserts=[];
+  mpGrupos.forEach((g,gi)=>{
+    if(!g.grupo.trim()) return;
+    g.items.forEach((item,ii)=>{
+      if(!item.nombre.trim()) return;
+      upserts.push({
+        ...(item.id?{id:item.id}:{}),
+        producto_id:prodId,
+        grupo:g.grupo.trim(),
+        nombre:item.nombre.trim(),
+        tipo:g.tipo,
+        precio:g.tipo==='extra'?(item.precio||0):0,
+        obligatorio:g.obligatorio,
+        disponible:item.disponible!==false,
+        activo:true,
+        orden:gi*10+ii
+      });
+    });
+  });
+  if(upserts.length){
+    await db.from('producto_opciones').upsert(upserts,{onConflict:'id'});
+  }
+}
+
 function editProd(id){abrirProd(prods.find(p=>p.id===id));}
+
 async function guardarProd(){
   const id=document.getElementById('mp-id').value;
   const nombre=document.getElementById('mp-nombre').value.trim();
@@ -1509,9 +1696,23 @@ async function guardarProd(){
     disponible:document.getElementById('mp-disp').checked,
     destacado:document.getElementById('mp-dest').checked,
     canal_venta:document.getElementById('mp-canal').value||'todos'};
-  const {error}=id?await db.from('productos').update(d).eq('id',id):await db.from('productos').insert(d);
-  if(!error){toast(id?'✅ Producto actualizado':'✅ Producto creado','ok');cerrar('ov-prod');await loadProds();}
-  else toast('❌ Error: '+error.message,'err');
+
+  let prodId=id;
+  if(id){
+    const {error}=await db.from('productos').update(d).eq('id',id);
+    if(error){toast('❌ Error: '+error.message,'err');return;}
+  } else {
+    const {data:nuevo,error}=await db.from('productos').insert(d).select().single();
+    if(error){toast('❌ Error: '+error.message,'err');return;}
+    prodId=nuevo.id;
+  }
+
+  // Guardar opciones específicas
+  if(prodId) await guardarOpcionesProd(prodId);
+
+  toast(id?'✅ Producto actualizado':'✅ Producto creado','ok');
+  cerrar('ov-prod');
+  await loadProds();
 }
 async function toggleD(id,actual){await db.from('productos').update({disponible:!actual}).eq('id',id);await loadProds();}
 async function delProd(id){
