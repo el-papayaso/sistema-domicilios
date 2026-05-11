@@ -973,7 +973,7 @@ function renderExtrasEnModal(p,extCat){
   // Guardar grupos obligatorios
   prodActual._gruposObligatorios=Object.entries(
     adics.reduce((acc,e)=>{if(e.grupo&&e.obligatorio){acc[e.grupo]=true;}return acc;},{})
-  ).map(([g])=>g);
+  ).map(([g])=>g.replace(/\s+/g,'_'));
   return html;
 }
 
