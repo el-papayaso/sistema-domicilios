@@ -1552,12 +1552,12 @@ async function guardarEstado(pid,sid){
 function notifWA(tel,nombre,sid,num){
   const estado=document.getElementById(sid).value;
   const msgs={
-    pendiente:`Hola ${nombre} 👋 Recibimos tu pedido #${num}. Lo estamos revisando.`,
-    aceptado:`Hola ${nombre} ✅ Tu pedido #${num} fue *aceptado* y está en preparación.`,
-    listo:`Hola ${nombre} 🎉 Tu pedido #${num} está *listo* y será despachado pronto.`,
-    en_camino:`Hola ${nombre} 🛵 Tu pedido #${num} está *en camino*. ¡Ya casi llega!`,
-    entregado:`Hola ${nombre} 📦 Tu pedido #${num} fue *entregado*. ¡Buen provecho! Gracias ❤️`,
-    cancelado:`Hola ${nombre} ❌ Lo sentimos, tu pedido #${num} fue *cancelado*. Escríbenos.`
+    pendiente:`¡Hola, ${nombre}! 👋 Acabamos de recibir tu pedido #${num} y ya lo tenemos en pantalla.\n\nEn un momento lo confirmamos. ¡Gracias por elegirnos! ❤️`,
+    aceptado:`¡Hola, ${nombre}! 🎉 Tu pedido #${num} fue *ACEPTADO*. ✅\n\nNuestro equipo ya está preparando todo con mucho cariño para que quede perfecto 👨‍🍳✨\n\n¡Gracias por tu preferencia! En un ratico te lo enviamos 🛵`,
+    listo:`¡${nombre}, tu pedido #${num} está *LISTO*! 🎉🔥\n\nTodo quedó perfecto y ya está siendo empacado con amor 📦❤️\nEn instantes sale para donde estás. ¡Que lo disfrutes muchísimo!`,
+    en_camino:`¡${nombre}, prepárate! 🛵💨\n\nTu pedido #${num} ya salió y está en camino hacia ti. Nuestro domiciliario ya va llegando 📍\n\n¡En pocos minutos lo tienes en tus manos! 🙌`,
+    entregado:`¡Listo, ${nombre}! Tu pedido #${num} fue *ENTREGADO*. 📦✅\n\nEsperamos que lo disfrutes muchísimo 😋❤️\nFue un placer servirte. ¡Hasta la próxima!\n\n👉 Si tienes algún comentario, con gusto te escuchamos 🙏`,
+    cancelado:`¡Hola, ${nombre}! 😔\n\nLamentamos informarte que tu pedido #${num} fue *cancelado*.\n\nPor favor escríbenos para contarte el motivo y buscar la mejor solución para ti. ¡Estamos aquí para ayudarte! 🙏❤️`
   };
   const n=tel.replace(/\D/g,'');
   const w=n.startsWith('57')?n:(n.length===10?'57'+n:n);
