@@ -4,23 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin · Domicilios</title>
-<script>
-// ── GUARD DE SESIÓN — debe ejecutarse antes que cualquier otra cosa ──
-(function() {
-  try {
-    var raw = localStorage.getItem('papayaso_admin_session');
-    if (!raw) { window.location.replace('login.html'); return; }
-    var session = JSON.parse(raw);
-    if (!session || !session.access_token || Date.now() >= (session.expires_at || 0)) {
-      localStorage.removeItem('papayaso_admin_session');
-      window.location.replace('login.html');
-    }
-  } catch(e) {
-    window.location.replace('login.html');
-  }
-})();
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --bg:#f4f5f7;--sur:#ffffff;--sur2:#f8f9fa;--bdr:#e2e5e9;
@@ -1404,6 +1388,19 @@ const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const {createClient}=supabase;
 const db=createClient(SURL,SKEY);
 
+// ── GUARD DE SESIÓN ── (aquí ya cargó el SDK y el DOM está disponible)
+(function(){
+  try{
+    var raw=localStorage.getItem('papayaso_admin_session');
+    if(!raw){window.location.replace('login.html');return;}
+    var s=JSON.parse(raw);
+    if(!s||!s.access_token||Date.now()>=(s.expires_at||0)){
+      localStorage.removeItem('papayaso_admin_session');
+      window.location.replace('login.html');
+    }
+  }catch(e){window.location.replace('login.html');}
+})();
+
 let cats=[],prods=[],peds=[],cfg={},cfFiltro='all',extras=[],extraTab='extras';
 
 // ── INIT ──
@@ -1428,9 +1425,10 @@ function closeSidebar(){
   document.getElementById('hbtn').classList.remove('open');
 }
 
-// ── NAVEGACIÓN ──
+// ── NAVEGACIÓN ── PGNAMES declarado ANTES de ir() para evitar TDZ
 const PGNAMES={pedidos:'Pedidos',pos:'POS',productos:'Productos',
   categorias:'Categorías',extras:'Extras',ventas:'Ventas',caja:'Caja',config:'Configuración'};
+
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
