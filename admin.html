@@ -4,7 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin · Domicilios</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── GUARD DE SESIÓN — debe ejecutarse antes que cualquier otra cosa ──
+(function() {
+  try {
+    var raw = localStorage.getItem('papayaso_admin_session');
+    if (!raw) { window.location.replace('login.html'); return; }
+    var session = JSON.parse(raw);
+    if (!session || !session.access_token || Date.now() >= (session.expires_at || 0)) {
+      localStorage.removeItem('papayaso_admin_session');
+      window.location.replace('login.html');
+    }
+  } catch(e) {
+    window.location.replace('login.html');
+  }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -533,6 +548,8 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <span class="dot" style="display:inline-block;margin-right:5px"></span>En vivo
     &nbsp;·&nbsp;
     <button onclick="ping()" style="background:transparent;border:1px solid var(--bdr);border-radius:5px;color:var(--mut);font-size:10px;padding:2px 7px;cursor:pointer;font-family:var(--fb)">🔔 test</button>
+    &nbsp;·&nbsp;
+    <button onclick="cerrarSesion()" style="background:transparent;border:1px solid #fecaca;border-radius:5px;color:var(--red);font-size:10px;padding:2px 7px;cursor:pointer;font-family:var(--fb)">🚪 Salir</button>
   </div>
 </div>
 
@@ -1938,6 +1955,14 @@ function toast(msg,type=''){
   el.innerHTML=msg;el.className='show '+(type==='ok'?'ok':type==='err'?'err':'info');
   clearTimeout(_t);_t=setTimeout(()=>el.className='',4000);
 }
+// ── CERRAR SESIÓN ──────────────────────────────────────────────
+function cerrarSesion(){
+  if(!confirm('¿Cerrar sesión?')) return;
+  try { localStorage.removeItem('papayaso_admin_session'); } catch(e) {}
+  try { sessionStorage.setItem('papayaso_logout_flag','1'); } catch(e) {}
+  window.location.replace('login.html');
+}
+
 // ═══════════════════════════════
 // AUDIO — Desbloqueo y sonido
 // ═══════════════════════════════
