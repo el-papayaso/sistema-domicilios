@@ -3257,25 +3257,114 @@ function actualizarTimers(){
 const BUCKET = 'imagenes';
 
 /**
- * Sube un File al bucket y devuelve la URL pública.
- * ctx: 'prod' | 'logo' | 'portada'
+ * Comprime y redimensiona una imagen en el navegador antes de subirla.
+ * Devuelve un Blob WebP/JPEG con máximo 800px de ancho y ~75% de calidad.
  */
-async function subirImagen(file, ctx) {
-  if (!file) return null;
-  if (file.size > 5 * 1024 * 1024) { toast('❌ La imagen supera 5 MB', 'err'); return null; }
+function comprimirImagen(file) {
+  return new Promise((resolve) => {
+    const MAX_W = 800;
+    const QUALITY = 0.75;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Calcular dimensiones manteniendo proporción
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
 
-  const ext = file.name.split('.').pop().toLowerCase();
-  const nombre = `${ctx}_${Date.now()}.${ext}`;
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        // Intentar WebP, caer a JPEG si no está soportado
+        const tryWebP = () => new Promise(res => {
+          canvas.toBlob(b => res(b), 'image/webp', QUALITY);
+        });
+        const tryJPEG = () => new Promise(res => {
+          canvas.toBlob(b => res(b), 'image/jpeg', QUALITY);
+        });
+
+        tryWebP().then(blob => {
+          if (blob && blob.size > 0 && blob.type === 'image/webp') resolve(blob);
+          else tryJPEG().then(resolve);
+        });
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Extrae el nombre del archivo desde una URL pública de Supabase Storage.
+ * Ej: https://xxx.supabase.co/storage/v1/object/public/imagenes/prod_123.webp → prod_123.webp
+ */
+function extraerNombreArchivo(url) {
+  if (!url) return null;
+  try {
+    const partes = url.split('/imagenes/');
+    if (partes.length < 2) return null;
+    // Quitar query params si los hay
+    return partes[1].split('?')[0];
+  } catch(e) { return null; }
+}
+
+/**
+ * Borra una imagen antigua del bucket de forma segura.
+ * Nunca lanza error — si falla, solo avisa en consola.
+ */
+async function borrarImagenAntigua(urlAntigua) {
+  if (!urlAntigua) return;
+  const nombre = extraerNombreArchivo(urlAntigua);
+  if (!nombre) return;
+  try {
+    await db.storage.from(BUCKET).remove([nombre]);
+  } catch(e) {
+    console.warn('No se pudo borrar imagen antigua:', nombre, e);
+  }
+}
+
+/**
+ * Comprime, sube un archivo al bucket y devuelve la URL pública.
+ * ctx: 'prod' | 'logo' | 'portada'
+ * urlAntigua: URL a borrar antes de subir (opcional)
+ */
+async function subirImagen(file, ctx, urlAntigua = null) {
+  if (!file) return null;
+
   const prog = document.getElementById(ctx + '-prog');
   const bar  = document.getElementById(ctx + '-bar');
+  if (prog) { prog.style.display = 'block'; bar.style.width = '10%'; }
 
-  // Mostrar barra
-  if (prog) { prog.style.display = 'block'; bar.style.width = '20%'; }
+  // 1. Comprimir en el navegador
+  let blob;
+  try {
+    blob = await comprimirImagen(file);
+  } catch(e) {
+    toast('❌ Error al procesar la imagen', 'err');
+    if (prog) prog.style.display = 'none';
+    return null;
+  }
 
-  const { data, error } = await db.storage.from(BUCKET).upload(nombre, file, {
+  if (bar) bar.style.width = '35%';
+
+  // 2. Borrar imagen antigua (sin bloquear si falla)
+  await borrarImagenAntigua(urlAntigua);
+
+  if (bar) bar.style.width = '55%';
+
+  // 3. Generar nombre con extensión correcta
+  const ext   = blob.type === 'image/webp' ? 'webp' : 'jpg';
+  const nombre = `${ctx}_${Date.now()}.${ext}`;
+
+  // 4. Subir al bucket
+  const { error } = await db.storage.from(BUCKET).upload(nombre, blob, {
     cacheControl: '3600',
     upsert: false,
-    contentType: file.type,
+    contentType: blob.type,
   });
 
   if (error) {
@@ -3285,7 +3374,10 @@ async function subirImagen(file, ctx) {
   }
 
   if (bar) bar.style.width = '100%';
-  setTimeout(() => { if (prog) prog.style.display = 'none'; if (bar) bar.style.width = '0%'; }, 800);
+  setTimeout(() => {
+    if (prog) prog.style.display = 'none';
+    if (bar)  bar.style.width = '0%';
+  }, 800);
 
   const { data: pub } = db.storage.from(BUCKET).getPublicUrl(nombre);
   return pub.publicUrl;
@@ -3295,17 +3387,25 @@ async function subirImagen(file, ctx) {
 async function onFileChange(input, ctx) {
   const file = input.files[0];
   if (!file) return;
-  // Preview local inmediata
+  if (!file.type.startsWith('image/')) { toast('❌ Solo se aceptan imágenes', 'err'); return; }
+
+  // Preview local inmediata (antes de comprimir)
   const reader = new FileReader();
   reader.onload = e => mostrarPreview(ctx, e.target.result);
   reader.readAsDataURL(file);
-  // Subir a Storage
-  toast('⬆️ Subiendo imagen...', 'info');
-  const url = await subirImagen(file, ctx);
+
+  // Leer URL antigua ANTES de subir (para borrarla)
+  const urlAntigua = ctx === 'prod'    ? document.getElementById('mp-img').value
+                   : ctx === 'logo'    ? document.getElementById('cfg-logo').value
+                   : ctx === 'portada' ? document.getElementById('cfg-portada').value
+                   : null;
+
+  toast('⬆️ Procesando y subiendo imagen...', 'info');
+  const url = await subirImagen(file, ctx, urlAntigua || null);
   if (url) {
     guardarUrlEnInput(ctx, url);
     mostrarPreview(ctx, url);
-    toast('✅ Imagen subida correctamente', 'ok');
+    toast('✅ Imagen subida y optimizada correctamente', 'ok');
   }
 }
 
@@ -3322,7 +3422,6 @@ async function zoneDrop(e, inputId, ctx) {
   const file = e.dataTransfer.files[0];
   if (!file || !file.type.startsWith('image/')) { toast('❌ Solo se aceptan imágenes', 'err'); return; }
   const input = document.getElementById(inputId);
-  // Simular asignación
   const dt = new DataTransfer();
   dt.items.add(file);
   input.files = dt.files;
@@ -3332,7 +3431,7 @@ async function zoneDrop(e, inputId, ctx) {
 /** Muestra la preview según el contexto */
 function mostrarPreview(ctx, url) {
   if (ctx === 'prod') mostrarPrevProd(url);
-  else if (ctx === 'logo') { actualizarPrevLogo(url); }
+  else if (ctx === 'logo')    { actualizarPrevLogo(url); }
   else if (ctx === 'portada') { actualizarPrevPortada(url); }
 }
 
@@ -3345,7 +3444,7 @@ function mostrarPrevProd(url) {
 
 /** Guarda la URL en el input hidden correcto */
 function guardarUrlEnInput(ctx, url) {
-  if (ctx === 'prod')    document.getElementById('mp-img').value = url;
+  if (ctx === 'prod')         document.getElementById('mp-img').value = url;
   else if (ctx === 'logo')    document.getElementById('cfg-logo').value = url;
   else if (ctx === 'portada') document.getElementById('cfg-portada').value = url;
 }
