@@ -3300,37 +3300,46 @@ function comprimirImagen(file) {
 
 /**
  * Extrae el nombre del archivo desde una URL pública de Supabase Storage.
- * Ej: https://xxx.supabase.co/storage/v1/object/public/imagenes/prod_123.webp → prod_123.webp
+ * Usa .pop() para tomar el último segmento — más robusto que split por carpeta.
  */
 function extraerNombreArchivo(url) {
-  if (!url) return null;
+  if (!url || typeof url !== 'string') return null;
   try {
-    const partes = url.split('/imagenes/');
-    if (partes.length < 2) return null;
-    // Quitar query params si los hay
-    return partes[1].split('?')[0];
+    // Quitar query params primero, luego tomar el último segmento
+    const sinParams = url.split('?')[0];
+    const nombre = sinParams.split('/').pop();
+    return nombre || null;
   } catch(e) { return null; }
 }
 
 /**
  * Borra una imagen antigua del bucket de forma segura.
- * Nunca lanza error — si falla, solo avisa en consola.
+ * Nunca lanza error — si falla, registra en consola para diagnóstico.
  */
 async function borrarImagenAntigua(urlAntigua) {
   if (!urlAntigua) return;
   const nombre = extraerNombreArchivo(urlAntigua);
-  if (!nombre) return;
+  if (!nombre) {
+    console.warn('borrarImagenAntigua: no se pudo extraer nombre de:', urlAntigua);
+    return;
+  }
+  console.log('Intentando borrar archivo:', nombre);
   try {
-    await db.storage.from(BUCKET).remove([nombre]);
+    const { data, error } = await db.storage.from(BUCKET).remove([nombre]);
+    if (error) {
+      console.error('Error al borrar imagen antigua:', nombre, error);
+    } else {
+      console.log('Imagen antigua borrada exitosamente:', nombre, data);
+    }
   } catch(e) {
-    console.warn('No se pudo borrar imagen antigua:', nombre, e);
+    console.error('Excepción al borrar imagen antigua:', nombre, e);
   }
 }
 
 /**
  * Comprime, sube un archivo al bucket y devuelve la URL pública.
  * ctx: 'prod' | 'logo' | 'portada'
- * urlAntigua: URL a borrar antes de subir (opcional)
+ * urlAntigua: URL a borrar DESPUÉS de subir exitosamente (opcional)
  */
 async function subirImagen(file, ctx, urlAntigua = null) {
   if (!file) return null;
@@ -3349,18 +3358,13 @@ async function subirImagen(file, ctx, urlAntigua = null) {
     return null;
   }
 
-  if (bar) bar.style.width = '35%';
+  if (bar) bar.style.width = '40%';
 
-  // 2. Borrar imagen antigua (sin bloquear si falla)
-  await borrarImagenAntigua(urlAntigua);
-
-  if (bar) bar.style.width = '55%';
-
-  // 3. Generar nombre con extensión correcta
-  const ext   = blob.type === 'image/webp' ? 'webp' : 'jpg';
+  // 2. Generar nombre con extensión correcta
+  const ext    = blob.type === 'image/webp' ? 'webp' : 'jpg';
   const nombre = `${ctx}_${Date.now()}.${ext}`;
 
-  // 4. Subir al bucket
+  // 3. Subir la nueva imagen al bucket
   const { error } = await db.storage.from(BUCKET).upload(nombre, blob, {
     cacheControl: '3600',
     upsert: false,
@@ -3371,6 +3375,13 @@ async function subirImagen(file, ctx, urlAntigua = null) {
     toast('❌ Error al subir: ' + error.message, 'err');
     if (prog) prog.style.display = 'none';
     return null;
+  }
+
+  if (bar) bar.style.width = '80%';
+
+  // 4. Borrar imagen antigua SOLO si la subida fue exitosa y había URL previa
+  if (urlAntigua) {
+    await borrarImagenAntigua(urlAntigua);
   }
 
   if (bar) bar.style.width = '100%';
