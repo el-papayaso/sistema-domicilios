@@ -661,6 +661,7 @@ function aplicarConfig(){
     ['closed-banner','pausa-banner-index'].forEach(id=>{
       document.getElementById(id)?.remove();
     });
+    document.body.style.paddingTop='';
   }
 
   // Logo
@@ -691,24 +692,19 @@ function aplicarModoPausa(){
   // Quitar banner anterior si existe
   document.getElementById('pausa-banner-index')?.remove();
 
-  const wrap=document.getElementById('menu-wrap');
-  const pausaHasta=cfg.pausa_hasta?new Date(cfg.pausa_hasta):null;
-  let tiempoTxt='';
-  if(pausaHasta){
-    const diffMin=Math.round((pausaHasta-Date.now())/60000);
-    tiempoTxt=diffMin>0?`Volvemos en aproximadamente ${diffMin} minuto${diffMin!==1?'s':''}.`:'Volvemos pronto.';
-  }
-
   const banner=document.createElement('div');
   banner.id='pausa-banner-index';
+  // Fix 1: posición fija en la parte superior — visible sin hacer scroll
+  banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:55;background:#fff7ed;border-bottom:2px solid #fed7aa;padding:12px 20px;text-align:center;box-shadow:0 2px 12px rgba(194,65,12,.15)';
   banner.innerHTML=`
-    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:16px;padding:20px 24px;margin:20px 0;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">⏸</div>
-      <div style="font-family:var(--fh);font-size:18px;font-weight:900;color:#c2410c;margin-bottom:6px">Pedidos pausados temporalmente</div>
-      <div style="font-size:13px;color:#9a3412">${tiempoTxt||'Estamos preparando todo para atenderte mejor.'}</div>
-      <div style="font-size:12px;color:#b45309;margin-top:6px">Puedes seguir viendo el menú. ¡Volvemos pronto! 🙌</div>
-    </div>`;
-  wrap.insertBefore(banner, wrap.firstChild);
+    <div style="font-size:22px;margin-bottom:4px">⏸</div>
+    <div style="font-family:var(--fh);font-size:16px;font-weight:900;color:#c2410c;margin-bottom:4px">Pedidos pausados temporalmente</div>
+    <div style="font-size:13px;color:#9a3412">Lo sentimos, tenemos muchos pedidos en espera 😔</div>
+    <div style="font-size:12px;color:#b45309;margin-top:4px">Puedes seguir viendo el menú. ¡Volvemos pronto! 🙌</div>`;
+  document.body.insertBefore(banner, document.body.firstChild);
+
+  // Empujar el contenido hacia abajo para que no quede tapado por el banner fijo
+  document.body.style.paddingTop='110px';
 
   // Deshabilitar botones igual que en cerrado
   const cartFab=document.getElementById('cart-fab-btn');
