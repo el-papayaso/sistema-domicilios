@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menú · Domicilios</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
   --acc:#ff6b35;--acc2:#2d6a4f;--bg:#f7f5f0;--sur:#fff;--bdr:#e8e2d9;
   --txt:#1a1a1a;--mut:#8a8278;--warm:#f2ede4;
-  --fh:'Playfair Display',serif;--fb:'Inter',sans-serif;
+  --fh:'Inter',sans-serif;--fb:'Inter',sans-serif;
   --sh:0 2px 16px rgba(0,0,0,.07);--sh2:0 6px 32px rgba(0,0,0,.12);
   --r:16px;
 }
@@ -1410,8 +1410,15 @@ async function enviarPedido(){
   const pagoEmoji={efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'};
   const pagoLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'};
   const dirCompleta=ref?`${dir} (${ref})`:dir;
+  const nombreNegocio=cfg.nombre_local||'el restaurante';
 
-  const msg=`🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${pagoEmoji[mp]} *Pago:* ${pagoLabel[mp]}${cambioInfo?' · '+cambioInfo:''}\n💰 *Total: ${$f(subtotal)}*`;
+  // Fix 4: saludo al inicio
+  const saludo=`Hola👋🏻 vengo del menú de *${nombreNegocio}* y quisiera ordenar el siguiente pedido 📝 Espero su confirmación ✅`;
+
+  // Fix 2: cambio incluido en línea de pago
+  const lineaPago=`${pagoEmoji[mp]} *Pago:* ${pagoLabel[mp]}${cambioInfo?' · '+cambioInfo:''}`;
+
+  const msg=`${saludo}\n\n🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${lineaPago}\n💰 *Total: ${$f(subtotal)}*`;
   const waUrl=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
 
   // Abrir WhatsApp PRIMERO
@@ -1433,6 +1440,7 @@ async function enviarPedido(){
         cantidad:i.qty, subtotal:i.precio*i.qty,
         notas:[...(i.extras||[]).map(e=>e.nombre+(e.precio?` +${$f(e.precio)}`:'✓')),i.nota?`Nota: ${i.nota}`:null].filter(Boolean).join(', ')||null
       })));
+      // Fix 3: actualizar mensaje con número de pedido real
       const num=ped.numero_pedido||ped.id.slice(0,6).toUpperCase();
       const msgConNum=msg.replace('*NUEVO PEDIDO*',`*PEDIDO #${num}*`);
       try{if(waWindow&&!waWindow.closed){waWindow.location.href=`https://wa.me/${waNum}?text=${encodeURIComponent(msgConNum)}`;}}catch(_){}
@@ -1450,6 +1458,9 @@ async function enviarPedido(){
 function toggleDrawer(){
   document.getElementById('drawer').classList.toggle('open');
   document.getElementById('dov').classList.toggle('open');
+  // Mostrar/ocultar campo cambio según medio de pago seleccionado al abrir
+  const isOpen=document.getElementById('drawer').classList.contains('open');
+  if(isOpen) onMpChange();
 }
 
 // ── INFO PANEL ──
