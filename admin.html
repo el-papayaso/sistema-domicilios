@@ -3301,18 +3301,20 @@ let _timerInterval=null;
 function iniciarTimers(){
   if(_timerInterval) clearInterval(_timerInterval);
   actualizarTimers();
-  _timerInterval=setInterval(actualizarTimers, 10000); // actualizar cada 10s
+  _timerInterval=setInterval(actualizarTimers, 1000); // cada segundo para MM:SS
 }
 
 function actualizarTimers(){
   document.querySelectorAll('.ptimer[data-inicio]').forEach(el=>{
     const inicio=new Date(el.dataset.inicio);
-    const minutos=Math.floor((Date.now()-inicio.getTime())/60000);
+    const totalSeg=Math.floor((Date.now()-inicio.getTime())/1000);
+    const minutos=Math.floor(totalSeg/60);
+    const segundos=totalSeg%60;
     if(minutos>=60){
       el.textContent='⏱ 60 min +';
       el.classList.add('warn');
     } else {
-      el.textContent=`⏱ ${minutos} min`;
+      el.textContent=`⏱ ${minutos}:${String(segundos).padStart(2,'0')}`;
       el.classList.toggle('warn', minutos>=30);
     }
   });
