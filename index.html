@@ -600,10 +600,10 @@ async function init(){
   renderNav();
   renderMenu();
   scrollSpy();
-  cargarDatosGuardados(); // auto-fill si el usuario guardó datos antes
-  // Inicializar estado del checkbox recordar
+  cargarDatosGuardados();
   document.getElementById('recordar-check').className='recordar-check on';
   recordarDatos=true;
+  setupConfigRealtime(); // escuchar cambios de pausa en tiempo real
 }
 
 // ── CONFIGURACIÓN → UI ──
@@ -642,13 +642,25 @@ function aplicarConfig(){
   const estaAbierto=calcularSiEstaAbierto();
   const badge=document.getElementById('estado-badge');
   const txt=document.getElementById('estado-txt');
+
+  // Verificar pausa de pedidos (tiene prioridad sobre horario abierto)
+  const estaPausado=verificarPausa();
+
   if(!estaAbierto){
     badge.className='estado-badge cerrado';
     txt.textContent='Cerrado';
     aplicarModoFueraDeSevicio();
+  } else if(estaPausado){
+    badge.className='estado-badge cerrado';
+    txt.textContent='⏸ Pausado';
+    aplicarModoPausa();
   } else {
     badge.className='estado-badge abierto';
     txt.textContent='Abierto';
+    // Quitar banners si existían
+    ['closed-banner','pausa-banner-index'].forEach(id=>{
+      document.getElementById(id)?.remove();
+    });
   }
 
   // Logo
@@ -666,6 +678,55 @@ function aplicarConfig(){
     img.className='hero-img';img.src=cfg.portada_url;img.alt='Portada';
     hero.insertBefore(img,hero.firstChild);
   }
+}
+
+function verificarPausa(){
+  if(!cfg.pedidos_pausados) return false;
+  // Si tiene tiempo límite y ya pasó, no está pausado
+  if(cfg.pausa_hasta && new Date(cfg.pausa_hasta)<=new Date()) return false;
+  return true;
+}
+
+function aplicarModoPausa(){
+  // Quitar banner anterior si existe
+  document.getElementById('pausa-banner-index')?.remove();
+
+  const wrap=document.getElementById('menu-wrap');
+  const pausaHasta=cfg.pausa_hasta?new Date(cfg.pausa_hasta):null;
+  let tiempoTxt='';
+  if(pausaHasta){
+    const diffMin=Math.round((pausaHasta-Date.now())/60000);
+    tiempoTxt=diffMin>0?`Volvemos en aproximadamente ${diffMin} minuto${diffMin!==1?'s':''}.`:'Volvemos pronto.';
+  }
+
+  const banner=document.createElement('div');
+  banner.id='pausa-banner-index';
+  banner.innerHTML=`
+    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:16px;padding:20px 24px;margin:20px 0;text-align:center">
+      <div style="font-size:36px;margin-bottom:8px">⏸</div>
+      <div style="font-family:var(--fh);font-size:18px;font-weight:900;color:#c2410c;margin-bottom:6px">Pedidos pausados temporalmente</div>
+      <div style="font-size:13px;color:#9a3412">${tiempoTxt||'Estamos preparando todo para atenderte mejor.'}</div>
+      <div style="font-size:12px;color:#b45309;margin-top:6px">Puedes seguir viendo el menú. ¡Volvemos pronto! 🙌</div>
+    </div>`;
+  wrap.insertBefore(banner, wrap.firstChild);
+
+  // Deshabilitar botones igual que en cerrado
+  const cartFab=document.getElementById('cart-fab-btn');
+  if(cartFab){cartFab.disabled=true;cartFab.style.opacity='.4';cartFab.style.pointerEvents='none';}
+  document.querySelectorAll('.prod-add').forEach(b=>{b.disabled=true;b.style.opacity='.4';b.style.pointerEvents='none';});
+  const bwa=document.querySelector('.bwa');
+  if(bwa){bwa.disabled=true;bwa.style.opacity='.4';bwa.style.pointerEvents='none';bwa.innerHTML='⏸ Pedidos pausados temporalmente';bwa.style.background='#ea580c';}
+}
+
+// Realtime: detectar cambios de pausa en tiempo real sin recargar
+function setupConfigRealtime(){
+  db.channel('cfg-pausa-realtime')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'configuracion'},
+      (payload)=>{
+        cfg={...cfg,...payload.new};
+        aplicarConfig();
+      })
+    .subscribe();
 }
 
 function calcularSiEstaAbierto(){
@@ -821,6 +882,7 @@ function prodHTML(p){
 // ── CARRITO ──
 function addToCart(id){
   if(!calcularSiEstaAbierto()){return;}
+  if(verificarPausa()){return;}
   const p=prods.find(x=>x.id===id);
   if(!p)return;
   // Siempre abre el modal de detalle del producto
@@ -1294,6 +1356,10 @@ function guardarDatos(nom,tel,dir,ref){
 async function enviarPedido(){
   if(!calcularSiEstaAbierto()){
     alert('Lo sentimos, estamos cerrados. No se pueden recibir pedidos en este momento.');
+    return;
+  }
+  if(verificarPausa()){
+    alert('Los pedidos están pausados temporalmente. ¡Volvemos pronto! 🙌');
     return;
   }
   const nom=document.getElementById('c-nom').value.trim();
