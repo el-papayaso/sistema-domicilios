@@ -484,6 +484,19 @@ table.vtbl tr:hover td{background:var(--sur2)}
   .v-filtros{flex-direction:column;align-items:flex-start}
   .flujo-kpis{grid-template-columns:1fr}
 }
+/* ── PAUSA DE PEDIDOS ── */
+.pausa-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s;white-space:nowrap;flex-shrink:0}
+.pausa-btn.activa{background:#fef2f2;color:var(--red);border:1.5px solid #fecaca}
+.pausa-btn.activa:hover{background:#fee2e2}
+.pausa-btn.inactiva{background:var(--sur2);color:var(--mut);border:1.5px solid var(--bdr)}
+.pausa-btn.inactiva:hover{border-color:var(--acc);color:var(--acc)}
+.pausa-countdown{display:inline-flex;align-items:center;gap:5px;background:#fef2f2;color:var(--red);border:1px solid #fecaca;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700}
+.pausa-modal-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.pausa-opt{padding:12px;border:1.5px solid var(--bdr);border-radius:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;background:var(--sur2)}
+.pausa-opt:hover,.pausa-opt.sel{border-color:var(--acc);background:#fff5f1;color:var(--acc)}
+.pausa-banner{background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pausa-banner-txt{font-size:13px;font-weight:600;color:var(--red)}
+.pausa-banner-sub{font-size:11px;color:#b91c1c;margin-top:2px}
 </style>
 </head>
 <body>
@@ -554,8 +567,21 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="sc"><div class="ico">🛵</div><div class="val" id="s-cam">0</div><div class="lbl">En camino</div></div>
     <div class="sc"><div class="ico">💰</div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div>
   </div>
+
+  <!-- Banner pausa activa -->
+  <div class="pausa-banner" id="pausa-banner" style="display:none">
+    <div>
+      <div class="pausa-banner-txt">⏸ Pedidos pausados — los clientes no pueden hacer pedidos ahora</div>
+      <div class="pausa-banner-sub" id="pausa-banner-sub"></div>
+    </div>
+    <button class="pausa-btn activa" onclick="reanudarPedidos()" style="padding:6px 14px;font-size:12px">▶ Reanudar ahora</button>
+  </div>
+
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-    <span style="font-size:13px;color:var(--mut)">Solo domicilios — los pedidos POS no aparecen aquí</span>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--mut)">Solo domicilios</span>
+      <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar pedidos</button>
+    </div>
     <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3)" onclick="abrirLlamada()">
       📞 Pedido por llamada
     </button>
@@ -1380,6 +1406,35 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 </div>
 
+<!-- ── MODAL PAUSA PEDIDOS ── -->
+<div class="ov" id="ov-pausa">
+  <div class="modal" style="max-width:420px">
+    <div class="mtit">⏸ Pausar pedidos</div>
+    <div class="msub">Los clientes no podrán hacer pedidos durante este tiempo</div>
+
+    <div class="fg"><label>¿Cuánto tiempo?</label></div>
+    <div class="pausa-modal-opts">
+      <div class="pausa-opt sel" data-min="15"  onclick="selPausaOpt(this,15)">15 minutos</div>
+      <div class="pausa-opt"     data-min="30"  onclick="selPausaOpt(this,30)">30 minutos</div>
+      <div class="pausa-opt"     data-min="45"  onclick="selPausaOpt(this,45)">45 minutos</div>
+      <div class="pausa-opt"     data-min="60"  onclick="selPausaOpt(this,60)">1 hora</div>
+      <div class="pausa-opt"     data-min="120" onclick="selPausaOpt(this,120)">2 horas</div>
+      <div class="pausa-opt"     data-min="0"   onclick="selPausaOpt(this,0)">Manual (sin límite)</div>
+    </div>
+
+    <div class="fg">
+      <label>Mensaje para el cliente <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <input type="text" id="pausa-msg" placeholder="Ej: Alta demanda, volvemos pronto"
+        style="width:100%;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--fb)">
+    </div>
+
+    <div class="mbtns">
+      <button class="bpri" style="background:var(--red)" onclick="activarPausa()">⏸ Activar pausa</button>
+      <button class="bsecm" onclick="cerrar('ov-pausa')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1451,17 +1506,16 @@ function ir(pg){
 // REALTIME — PEDIDOS
 // ═══════════════════════════════
 function setupRealtime(){
+  // Canal pedidos
   db.channel('pedidos-realtime')
     .on('postgres_changes',{
       event:'INSERT',
       schema:'public',
       table:'pedidos'
     }, async (payload)=>{
-      // Nuevo pedido → recargar y notificar
       await loadPeds();
       ping();
       toast(`🔔 Nuevo pedido #${payload.new.numero_pedido||''}`, 'info');
-      // Resaltar la tarjeta brevemente
       setTimeout(()=>{
         const el=document.querySelector('.pcard');
         if(el){el.classList.add('nuevo');setTimeout(()=>el.classList.remove('nuevo'),3000);}
@@ -1481,6 +1535,18 @@ function setupRealtime(){
         document.querySelector('.dot').style.background='var(--red)';
       }
     });
+
+  // Canal configuracion — detecta cambios de pausa en tiempo real
+  db.channel('config-realtime')
+    .on('postgres_changes',{
+      event:'UPDATE',
+      schema:'public',
+      table:'configuracion'
+    }, (payload)=>{
+      cfg={...cfg,...payload.new};
+      actualizarUIPausa();
+    })
+    .subscribe();
 }
 
 // ═══════════════════════════════
@@ -1881,6 +1947,7 @@ async function delCat(id){
 async function loadConfig(){
   const {data}=await db.from('configuracion').select('*').limit(1).single();
   cfg=data||{};
+  actualizarUIPausa();
 }
 function renderConfig(){
   document.getElementById('cfg-nombre').value=cfg.nombre_local||'';
@@ -3249,6 +3316,103 @@ function actualizarTimers(){
       el.classList.toggle('warn', minutos>=30);
     }
   });
+}
+
+// ═══════════════════════════════
+// PAUSA DE PEDIDOS
+// ═══════════════════════════════
+let _pausaMinutos=15;
+let _pausaInterval=null;
+
+function selPausaOpt(el,min){
+  document.querySelectorAll('.pausa-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  _pausaMinutos=min;
+}
+
+function abrirModalPausa(){
+  document.getElementById('pausa-msg').value='';
+  // Reset selección a 15 min
+  document.querySelectorAll('.pausa-opt').forEach(o=>o.classList.remove('sel'));
+  document.querySelector('.pausa-opt[data-min="15"]').classList.add('sel');
+  _pausaMinutos=15;
+  document.getElementById('ov-pausa').classList.add('open');
+}
+
+async function activarPausa(){
+  const msg=document.getElementById('pausa-msg').value.trim();
+  const hasta=_pausaMinutos>0
+    ? new Date(Date.now()+_pausaMinutos*60*1000).toISOString()
+    : null;
+
+  const {error}=await db.from('configuracion').update({
+    pedidos_pausados:true,
+    pausa_hasta:hasta,
+    ...(msg?{slogan_pausa:msg}:{})
+  }).eq('id',cfg.id);
+
+  if(error){toast('❌ Error al pausar: '+error.message,'err');return;}
+
+  cfg.pedidos_pausados=true;
+  cfg.pausa_hasta=hasta;
+  cerrar('ov-pausa');
+  actualizarUIPausa();
+  toast('⏸ Pedidos pausados'+(hasta?' por '+_pausaMinutos+' min':''),'ok');
+}
+
+async function reanudarPedidos(){
+  const {error}=await db.from('configuracion').update({
+    pedidos_pausados:false,
+    pausa_hasta:null
+  }).eq('id',cfg.id);
+
+  if(error){toast('❌ Error al reanudar: '+error.message,'err');return;}
+
+  cfg.pedidos_pausados=false;
+  cfg.pausa_hasta=null;
+  actualizarUIPausa();
+  toast('▶ Pedidos reanudados','ok');
+}
+
+function actualizarUIPausa(){
+  const pausado=cfg.pedidos_pausados===true;
+  const banner=document.getElementById('pausa-banner');
+  const btnPausa=document.getElementById('btn-pausa');
+  const sub=document.getElementById('pausa-banner-sub');
+
+  // Cancelar interval anterior
+  if(_pausaInterval){clearInterval(_pausaInterval);_pausaInterval=null;}
+
+  if(pausado){
+    banner.style.display='flex';
+    btnPausa.textContent='▶ Reanudar pedidos';
+    btnPausa.className='pausa-btn activa';
+    btnPausa.onclick=reanudarPedidos;
+
+    if(cfg.pausa_hasta){
+      // Mostrar cuenta regresiva
+      const actualizarContador=()=>{
+        const diff=new Date(cfg.pausa_hasta)-Date.now();
+        if(diff<=0){
+          // Tiempo cumplido — reanudar automáticamente
+          reanudarPedidos();
+          return;
+        }
+        const min=Math.floor(diff/60000);
+        const seg=Math.floor((diff%60000)/1000);
+        sub.textContent=`Se reanuda automáticamente en ${min}:${String(seg).padStart(2,'0')}`;
+      };
+      actualizarContador();
+      _pausaInterval=setInterval(actualizarContador,1000);
+    } else {
+      sub.textContent='Pausa manual activa — sin tiempo límite';
+    }
+  } else {
+    banner.style.display='none';
+    btnPausa.textContent='⏸ Pausar pedidos';
+    btnPausa.className='pausa-btn inactiva';
+    btnPausa.onclick=abrirModalPausa;
+  }
 }
 
 // ═══════════════════════════════
