@@ -513,7 +513,25 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .dom-info{flex:1}
 .dom-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
 .dom-info small{font-size:12px;color:var(--mut)}
-.pausa-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:9px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .2s;white-space:nowrap;flex-shrink:0}
+/* ── ENCUESTAS REALTIME ── */
+.enc-section{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;margin-bottom:18px;overflow:hidden;box-shadow:var(--sh)}
+.enc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bdr);background:var(--sur2)}
+.enc-head-tit{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+.enc-list{display:flex;flex-direction:column;max-height:300px;overflow-y:auto}
+.enc-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bdr);transition:background .15s;animation:slideIn .4s ease}
+.enc-item:last-child{border:none}
+.enc-item.mala{background:#fff5f5;border-left:3px solid var(--red)}
+.enc-item.buena{background:var(--sur)}
+.enc-stars{font-size:15px;flex-shrink:0;line-height:1.5;letter-spacing:1px}
+.enc-body{flex:1;min-width:0}
+.enc-cliente{font-size:13px;font-weight:700;margin-bottom:1px}
+.enc-tel{font-size:11px;color:var(--mut);margin-bottom:4px}
+.enc-comentario{font-size:13px;color:var(--txt);line-height:1.5;font-style:italic;margin-bottom:4px}
+.enc-tiempo{font-size:11px;color:var(--mutl)}
+.enc-wa{background:#25d366;color:#fff;border:none;border-radius:7px;padding:0 11px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fb);flex-shrink:0;height:30px;display:flex;align-items:center;gap:5px;transition:all .2s;white-space:nowrap}
+.enc-wa:hover{background:#1aad55}
+.enc-empty{text-align:center;padding:24px;color:var(--mutl);font-size:13px}
+/* ── PAUSA DE PEDIDOS ── */
 .pausa-btn.activa{background:#fef2f2;color:var(--red);border:2px solid #fecaca}
 .pausa-btn.activa:hover{background:#fee2e2}
 .pausa-btn.inactiva{background:#fff7ed;color:#c2410c;border:2px solid #fed7aa;box-shadow:0 2px 8px rgba(194,65,12,.15)}
@@ -601,6 +619,20 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="sc"><div class="ico">⏳</div><div class="val" id="s-pend">0</div><div class="lbl">Pendientes</div></div>
     <div class="sc"><div class="ico">🛵</div><div class="val" id="s-cam">0</div><div class="lbl">En camino</div></div>
     <div class="sc"><div class="ico">💰</div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div>
+  </div>
+
+  <!-- Encuestas en tiempo real -->
+  <div class="enc-section" id="enc-section">
+    <div class="enc-head">
+      <div class="enc-head-tit">
+        ⭐ Calificaciones recientes
+        <span id="enc-badge-malas" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800"></span>
+      </div>
+      <span style="font-size:11px;color:var(--mut)">Últimas 10 · Tiempo real</span>
+    </div>
+    <div class="enc-list" id="enc-list">
+      <div class="enc-empty">Sin calificaciones aún</div>
+    </div>
   </div>
 
   <!-- Banner pausa activa -->
@@ -1546,7 +1578,7 @@ let cats=[],prods=[],peds=[],cfg={},cfFiltro='all',extras=[],extraTab='extras';
 // ── INIT ──
 async function init(){
   await Promise.all([loadCats(),loadConfig()]);
-  await Promise.all([loadProds(),loadPeds(),loadExtras(),cargarTiposClientes(),cargarDomiciliarios()]);
+  await Promise.all([loadProds(),loadPeds(),loadExtras(),cargarTiposClientes(),cargarDomiciliarios(),cargarEncuestas()]);
   setupRealtime();
 }
 
@@ -1624,15 +1656,19 @@ function setupRealtime(){
       }
     });
 
-  // Canal configuracion — detecta cambios de pausa en tiempo real
-  db.channel('config-realtime')
+  // Canal encuestas — tiempo real
+  db.channel('encuestas-realtime')
     .on('postgres_changes',{
-      event:'UPDATE',
+      event:'INSERT',
       schema:'public',
-      table:'configuracion'
-    }, (payload)=>{
-      cfg={...cfg,...payload.new};
-      actualizarUIPausa();
+      table:'encuestas'
+    }, async (payload)=>{
+      await cargarEncuestas();
+      // Alerta si es calificación mala
+      if(payload.new.calificacion<=2){
+        ping();
+        toast(`⚠️ Calificación baja: ${payload.new.calificacion}⭐ — revisa el comentario`,'err');
+      }
     })
     .subscribe();
 }
@@ -3791,9 +3827,97 @@ async function asignarDomiciliario(pid,did){
   await loadPeds();
 }
 
+  // Canal configuracion — detecta cambios de pausa en tiempo real
+  db.channel('config-realtime')
+    .on('postgres_changes',{
+      event:'UPDATE',
+      schema:'public',
+      table:'configuracion'
+    }, (payload)=>{
+      cfg={...cfg,...payload.new};
+      actualizarUIPausa();
+    })
+    .subscribe();
+}
+
 // ═══════════════════════════════
-// STORAGE — SUBIDA DE IMÁGENES
+// ENCUESTAS — TIEMPO REAL
 // ═══════════════════════════════
+let encuestasData=[];
+
+async function cargarEncuestas(){
+  // Cargar últimas 10 encuestas con datos del pedido
+  const {data,error}=await db.from('encuestas')
+    .select(`
+      id, calificacion, comentario, created_at,
+      pedidos(cliente_nombre, cliente_telefono, numero_pedido)
+    `)
+    .order('created_at',{ascending:false})
+    .limit(10);
+
+  if(error){console.error('Error cargando encuestas:',error);return;}
+  encuestasData=data||[];
+  renderEncuestas();
+}
+
+function renderEncuestas(){
+  const el=document.getElementById('enc-list');
+  if(!el)return;
+
+  if(!encuestasData.length){
+    el.innerHTML='<div class="enc-empty">Sin calificaciones aún — aparecerán aquí en tiempo real ⭐</div>';
+    document.getElementById('enc-badge-malas').style.display='none';
+    return;
+  }
+
+  // Contar malas (≤2 estrellas)
+  const malas=encuestasData.filter(e=>e.calificacion<=2).length;
+  const badge=document.getElementById('enc-badge-malas');
+  if(malas>0){badge.style.display='inline';badge.textContent=`${malas} ⚠`;}
+  else badge.style.display='none';
+
+  const starIcons=(n)=>{
+    const llenas='⭐'.repeat(n);
+    const vacias='☆'.repeat(5-n);
+    return llenas+vacias;
+  };
+
+  const tiempoRelativo=(fecha)=>{
+    const diff=Math.floor((Date.now()-new Date(fecha))/1000);
+    if(diff<60) return 'ahora mismo';
+    if(diff<3600) return `hace ${Math.floor(diff/60)} min`;
+    if(diff<86400) return `hace ${Math.floor(diff/3600)}h`;
+    return new Date(fecha).toLocaleDateString('es-CO',{day:'numeric',month:'short'});
+  };
+
+  el.innerHTML=encuestasData.map(e=>{
+    const ped=e.pedidos||{};
+    const nombre=ped.cliente_nombre||'Cliente';
+    const tel=(ped.cliente_telefono||'').replace(/\D/g,'');
+    const waNum=tel.length===10?'57'+tel:tel;
+    const numPed=ped.numero_pedido?`#${ped.numero_pedido}`:'';
+    const esMala=e.calificacion<=2;
+    const label={1:'Muy malo',2:'Regular',3:'Bueno',4:'Muy bueno',5:'Excelente'}[e.calificacion]||'';
+    const waMsg=encodeURIComponent(`Hola ${nombre}, somos ${cfg.nombre_local||'el restaurante'}. Vimos tu calificación de ${e.calificacion}⭐ y queremos saber cómo podemos mejorar tu experiencia. ¡Gracias por tu opinión! ❤️`);
+
+    return `<div class="enc-item ${esMala?'mala':'buena'}">
+      <div>
+        <div class="enc-stars">${starIcons(e.calificacion)}</div>
+        ${esMala?'<div style="font-size:10px;color:var(--red);font-weight:700;margin-top:2px">⚠ BAJA</div>':''}
+      </div>
+      <div class="enc-body">
+        <div class="enc-cliente">${nombre} ${numPed?`<span style="color:var(--mut);font-weight:400;font-size:11px">${numPed}</span>`:''}</div>
+        <div class="enc-tel">📱 ${ped.cliente_telefono||'—'} · ${label}</div>
+        ${e.comentario?`<div class="enc-comentario">"${e.comentario}"</div>`:'<div class="enc-tiempo" style="font-style:italic;color:var(--mutl)">Sin comentario</div>'}
+        <div class="enc-tiempo">${tiempoRelativo(e.created_at)}</div>
+      </div>
+      ${tel?`<button class="enc-wa" onclick="window.open('https://wa.me/${waNum}?text=${waMsg}','_blank')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        WA
+      </button>`:''}
+    </div>`;
+  }).join('');
+}
 const BUCKET = 'imagenes';
 
 /**
