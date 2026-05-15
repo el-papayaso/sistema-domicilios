@@ -1664,11 +1664,22 @@ function setupRealtime(){
       table:'encuestas'
     }, async (payload)=>{
       await cargarEncuestas();
-      // Alerta si es calificación mala
       if(payload.new.calificacion<=2){
         ping();
         toast(`⚠️ Calificación baja: ${payload.new.calificacion}⭐ — revisa el comentario`,'err');
       }
+    })
+    .subscribe();
+
+  // Canal configuracion — detecta cambios de pausa en tiempo real
+  db.channel('config-realtime')
+    .on('postgres_changes',{
+      event:'UPDATE',
+      schema:'public',
+      table:'configuracion'
+    }, (payload)=>{
+      cfg={...cfg,...payload.new};
+      actualizarUIPausa();
     })
     .subscribe();
 }
@@ -3825,19 +3836,6 @@ async function asignarDomiciliario(pid,did){
   await db.from('pedidos').update({domiciliario_id:did||null}).eq('id',pid);
   toast('✅ Domiciliario asignado','ok');
   await loadPeds();
-}
-
-  // Canal configuracion — detecta cambios de pausa en tiempo real
-  db.channel('config-realtime')
-    .on('postgres_changes',{
-      event:'UPDATE',
-      schema:'public',
-      table:'configuracion'
-    }, (payload)=>{
-      cfg={...cfg,...payload.new};
-      actualizarUIPausa();
-    })
-    .subscribe();
 }
 
 // ═══════════════════════════════
