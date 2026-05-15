@@ -634,14 +634,8 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span style="font-size:13px;color:var(--mut)">Solo domicilios</span>
       <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar pedidos</button>
-      <button id="btn-encuestas" onclick="toggleEncuestasPanel()" style="
-        display:flex;align-items:center;gap:7px;
-        background:var(--sur);border:1.5px solid var(--bdr);
-        border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;
-        cursor:pointer;font-family:var(--fb);transition:all .2s;color:var(--mut)
-      " onmouseover="this.style.borderColor='var(--acc)';this.style.color='var(--acc)'"
-         onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--mut)'">
-        ⭐ <span id="enc-contador" style="background:var(--sur2);color:var(--mut);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
+      <button id="btn-encuestas" onclick="toggleEncuestasPanel()" class="pausa-btn inactiva">
+        ⭐ <span id="enc-contador" style="background:rgba(255,107,53,.15);color:var(--acc);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
         <span id="enc-alerta-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700"></span>
       </button>
     </div>
@@ -1482,28 +1476,28 @@ table.vtbl tr:hover td{background:var(--sur2)}
     </div>
     <div class="fg"><label>Notas del pedido</label><input type="text" id="ll-notas" placeholder="Instrucciones especiales..."></div>
 
-    <!-- Selección de productos -->
-    <div class="fg">
-      <label>Productos *
-        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Busca y agrega los productos del pedido</span>
-      </label>
-      <input type="text" id="ll-buscar" placeholder="🔍 Buscar producto..." oninput="filtrarProdsLlamada()"
-        style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none;margin-bottom:8px"
-        onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
-      <div id="ll-prods-lista" style="max-height:220px;overflow-y:auto;background:var(--sur2);border-radius:10px;border:1px solid var(--bdr)"></div>
-    </div>
-
-    <!-- Orden actual llamada -->
-    <div id="ll-orden-wrap" style="display:none">
-      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">Orden del pedido</div>
-      <div id="ll-orden-items" style="background:var(--sur2);border-radius:10px;padding:8px 12px;margin-bottom:8px"></div>
+    <!-- Orden actual llamada — ARRIBA del buscador -->
+    <div id="ll-orden-wrap" style="display:none;margin-bottom:12px">
+      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">🧾 Orden del pedido</div>
+      <div id="ll-orden-items" style="background:var(--sur2);border-radius:10px;padding:8px 12px;margin-bottom:8px;max-height:180px;overflow-y:auto"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sur2);border-radius:10px;border-top:2px solid var(--bdr)">
         <div>
           <div style="font-size:12px;color:var(--mut)">Subtotal: <span id="ll-subtotal">$0</span></div>
           <div style="font-size:12px;color:var(--mut)">Domicilio: <span id="ll-dom-display">$0</span></div>
         </div>
-        <div style="font-family:var(--fh);font-size:20px;font-weight:800;color:var(--acc2)">Total: <span id="ll-total">$0</span></div>
+        <div style="font-size:18px;font-weight:800;color:var(--acc2)">Total: <span id="ll-total">$0</span></div>
       </div>
+    </div>
+
+    <!-- Selección de productos — ABAJO del carrito -->
+    <div class="fg">
+      <label>Agregar productos
+        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Busca y agrega al pedido</span>
+      </label>
+      <input type="text" id="ll-buscar" placeholder="🔍 Buscar producto..." oninput="filtrarProdsLlamada()"
+        style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none;margin-bottom:8px"
+        onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+      <div id="ll-prods-lista" style="max-height:200px;overflow-y:auto;background:var(--sur2);border-radius:10px;border:1px solid var(--bdr)"></div>
     </div>
 
     <div class="mbtns" style="margin-top:16px">
