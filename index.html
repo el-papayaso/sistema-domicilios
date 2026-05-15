@@ -505,7 +505,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
       </div>
 
       <div id="cambio-wrap">
-        <label class="form-field-label">¿Con cuánto va a pagar? <span style="font-weight:400;text-transform:none;letter-spacing:0">(para el cambio)</span></label>
+        <label class="form-field-label">¿Con cuánto va a pagar? <span style="color:var(--acc)">*</span></label>
         <select class="form-sel" id="c-cambio">
           <option value="exacto">Pago exacto, no necesito cambio</option>
           <option value="20000">$20.000</option>
@@ -1419,6 +1419,24 @@ async function enviarPedido(){
   if(tel.length<10){alert('Ingresa un número de teléfono válido (10 dígitos)');return;}
   if(!carrito.length){alert('Agrega productos al carrito primero');return;}
 
+  // Validar cambio si pago es efectivo
+  if(mp==='efectivo'){
+    const cambioSel=document.getElementById('c-cambio').value;
+    if(!cambioSel||cambioSel===''){
+      alert('Por favor indica con cuánto vas a pagar 💵');
+      document.getElementById('c-cambio').focus();
+      return;
+    }
+    if(cambioSel==='otro'){
+      const otro=document.getElementById('c-cambio-otro').value;
+      if(!otro||parseInt(otro)<=0){
+        alert('Por favor ingresa el monto con el que vas a pagar 💵');
+        document.getElementById('c-cambio-otro').focus();
+        return;
+      }
+    }
+  }
+
   // Cambio para efectivo
   let cambioInfo='';
   if(mp==='efectivo'){
@@ -1457,7 +1475,10 @@ async function enviarPedido(){
 
   const pagoEmoji={efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'};
   const pagoLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'};
-  const dirCompleta=ref?`${dir} (${ref})`:dir;
+  // Dirección: guardar solo la dirección principal en BD (sin referencia)
+  // La referencia es solo visual para el domiciliario, no para Maps
+  const dirCompleta=dir; // solo dirección para Maps y BD
+  const dirConRef=ref?`${dir} · Ref: ${ref}`:dir; // con referencia para WA y panel
   const nombreNegocio=cfg.nombre_local||'el restaurante';
 
   // Fix 4: saludo al inicio
@@ -1468,7 +1489,7 @@ async function enviarPedido(){
   const propinaLinea=propinaActual>0?`\n💝 *Propina domiciliario:* ${$f(propinaActual)}`:'';
   const totalConPropina=subtotal+propinaActual;
 
-  const msg=`${saludo}\n\n🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${lineaPago}${propinaLinea}\n💰 *Total: ${$f(totalConPropina)}*`;
+  const msg=`${saludo}\n\n🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirConRef}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${lineaPago}${propinaLinea}\n💰 *Total: ${$f(totalConPropina)}*`;
   const waUrl=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
 
   // Abrir WhatsApp PRIMERO
@@ -1478,7 +1499,8 @@ async function enviarPedido(){
   try{
     const {data:ped,error}=await db.from('pedidos').insert({
       cliente_nombre:nom, cliente_telefono:telGuardar,
-      cliente_direccion:dirCompleta, cliente_notas:nota||null,
+      cliente_direccion:dirCompleta,
+      cliente_notas:[ref?`📌 Ref: ${ref}`:null, nota||null].filter(Boolean).join(' · ')||null,
       medio_pago:mp, subtotal, total:totalConPropina, propina:propinaActual, domicilio:0,
       estado:'pendiente', canal:'whatsapp'
     }).select().single();
