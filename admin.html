@@ -532,10 +532,11 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .enc-wa:hover{background:#1aad55}
 .enc-empty{text-align:center;padding:24px;color:var(--mutl);font-size:13px}
 /* ── PAUSA DE PEDIDOS ── */
-.pausa-btn.activa{background:#fef2f2;color:var(--red);border:2px solid #fecaca}
-.pausa-btn.activa:hover{background:#fee2e2}
-.pausa-btn.inactiva{background:#fff7ed;color:#c2410c;border:2px solid #fed7aa;box-shadow:0 2px 8px rgba(194,65,12,.15)}
-.pausa-btn.inactiva:hover{background:#ffedd5;border-color:#fb923c}
+.pausa-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .2s;white-space:nowrap;flex-shrink:0;color:#fff}
+.pausa-btn.activa{background:var(--red);box-shadow:0 4px 14px rgba(220,38,38,.3)}
+.pausa-btn.activa:hover{background:#b91c1c}
+.pausa-btn.inactiva{background:var(--acc);box-shadow:0 4px 14px rgba(255,107,53,.3)}
+.pausa-btn.inactiva:hover{background:#e55a26}
 .pausa-countdown{display:inline-flex;align-items:center;gap:5px;background:#fef2f2;color:var(--red);border:1px solid #fecaca;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:700}
 .pausa-modal-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
 .pausa-opt{padding:12px;border:1.5px solid var(--bdr);border-radius:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;background:var(--sur2)}
@@ -635,8 +636,8 @@ table.vtbl tr:hover td{background:var(--sur2)}
       <span style="font-size:13px;color:var(--mut)">Solo domicilios</span>
       <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar pedidos</button>
       <button id="btn-encuestas" onclick="toggleEncuestasPanel()" class="pausa-btn inactiva">
-        ⭐ <span id="enc-contador" style="background:rgba(255,107,53,.15);color:var(--acc);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
-        <span id="enc-alerta-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700"></span>
+        ⭐ <span id="enc-contador" style="background:rgba(255,255,255,.25);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
+        <span id="enc-alerta-badge" style="display:none;background:#fff;color:var(--red);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700"></span>
       </button>
     </div>
     <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3)" onclick="abrirLlamada()">
@@ -3424,17 +3425,18 @@ function abrirLlamada(){
   document.getElementById('ll-domicilio').value='0';
   document.getElementById('ll-notas').value='';
   document.getElementById('ll-buscar').value='';
-  // Solo productos de domicilio (excluir solo_local)
-  const prodsdom=prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local');
-  renderProdsLlamada(prodsdom);
+  // Limpiar lista — solo aparece al buscar
+  document.getElementById('ll-prods-lista').innerHTML='';
   renderOrdenLlamada();
   document.getElementById('ov-llamada').classList.add('open');
   setTimeout(()=>document.getElementById('ll-nombre').focus(),120);
 }
 
 function filtrarProdsLlamada(){
-  const q=document.getElementById('ll-buscar').value.toLowerCase();
-  // Filtrar solo productos de domicilio
+  const q=document.getElementById('ll-buscar').value.trim().toLowerCase();
+  const el=document.getElementById('ll-prods-lista');
+  // Si no hay búsqueda, vaciar lista
+  if(!q){el.innerHTML='';return;}
   const filtrados=prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local'&&p.nombre.toLowerCase().includes(q));
   renderProdsLlamada(filtrados);
 }
@@ -3896,12 +3898,11 @@ function renderEncuestas(){
   const malas=encuestasData.filter(e=>e.calificacion<=2).length;
   if(alerta){
     alerta.style.display=malas>0?'inline':'none';
-    if(malas>0) alerta.textContent=`⚠ ${malas} mala${malas!==1?'s':''}`;
+    if(malas>0) alerta.textContent=`⚠ ${malas}`;
   }
-  // Botón naranja si hay malas
   if(contador){
-    contador.style.background=malas>0?'#fef2f2':'var(--sur2)';
-    contador.style.color=malas>0?'var(--red)':'var(--mut)';
+    contador.style.background=malas>0?'rgba(255,255,255,.4)':'rgba(255,255,255,.25)';
+    contador.style.color='#fff';
   }
 
   const starIcons=(n)=>{
