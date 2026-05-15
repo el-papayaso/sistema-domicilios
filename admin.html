@@ -484,7 +484,34 @@ table.vtbl tr:hover td{background:var(--sur2)}
   .v-filtros{flex-direction:column;align-items:flex-start}
   .flujo-kpis{grid-template-columns:1fr}
 }
-/* ── PAUSA DE PEDIDOS ── */
+/* ── PROPINA / DOMICILIARIO / ENCUESTA / CLIENTES ── */
+.propina-row{font-size:12px;color:var(--mut);margin-top:2px}
+.propina-val{color:var(--grn);font-weight:600}
+.dom-sel-wrap{display:flex;align-items:center;gap:8px;margin-top:6px;padding:8px 12px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd}
+.dom-sel-wrap label{font-size:11px;color:var(--blu);font-weight:600}
+.dom-sel{background:#fff;border:1px solid #bae6fd;color:var(--txt);border-radius:6px;padding:5px 8px;font-size:12px;font-family:var(--fb);cursor:pointer}
+.btn-encuesta{display:inline-flex;align-items:center;gap:6px;background:#fef9c3;color:#854d0e;border:1px solid #fde047;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s}
+.btn-encuesta:hover{background:#fef08a}
+/* Badges cliente frecuente */
+.cbadge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;flex-shrink:0}
+.cb-nuevo{background:#f0fdf4;color:var(--grn);border:1px solid #bbf7d0}
+.cb-regular{background:#eff6ff;color:var(--blu);border:1px solid #bfdbfe}
+.cb-frecuente{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.cb-vip{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff}
+/* Tabla clientes */
+.cli-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh)}
+.cli-info{flex:1;min-width:0}
+.cli-info h4{font-size:14px;font-weight:600;margin-bottom:3px}
+.cli-info small{font-size:12px;color:var(--mut)}
+.cli-stats{text-align:right;flex-shrink:0}
+.cli-total{font-family:var(--fh);font-size:15px;font-weight:700;color:var(--acc2)}
+.cli-pedidos{font-size:11px;color:var(--mut);margin-top:2px}
+/* Domiciliarios */
+.dom-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh)}
+.dom-avatar{width:40px;height:40px;border-radius:99px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.dom-info{flex:1}
+.dom-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
+.dom-info small{font-size:12px;color:var(--mut)}
 .pausa-btn{display:flex;align-items:center;gap:8px;border:none;border-radius:9px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .2s;white-space:nowrap;flex-shrink:0}
 .pausa-btn.activa{background:#fef2f2;color:var(--red);border:2px solid #fecaca}
 .pausa-btn.activa:hover{background:#fee2e2}
@@ -535,6 +562,13 @@ table.vtbl tr:hover td{background:var(--sur2)}
     </div>
     <div class="sb-item" data-pg="caja" onclick="ir('caja')">
       <span class="sb-ico">💰</span> Caja
+    </div>
+    <div class="sb-sep"></div>
+    <div class="sb-item" data-pg="clientes" onclick="ir('clientes')">
+      <span class="sb-ico">👥</span> Clientes
+    </div>
+    <div class="sb-item" data-pg="domiciliarios" onclick="ir('domiciliarios')">
+      <span class="sb-ico">🛵</span> Domiciliarios
     </div>
     <div class="sb-sep"></div>
     <div class="sb-item" data-pg="config" onclick="ir('config')">
@@ -910,6 +944,37 @@ table.vtbl tr:hover td{background:var(--sur2)}
       </div>
     </div>
   </div>
+</div>
+
+<!-- ── CLIENTES ── -->
+<div class="page" id="pg-clientes">
+  <div class="abanner" style="margin-bottom:20px">
+    <div class="abanner-txt"><h2>👥 Clientes</h2><p>Historial y clasificación de clientes por teléfono</p></div>
+    <input type="text" id="cli-buscar" placeholder="🔍 Buscar por nombre o teléfono..."
+      style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:9px 14px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none;width:240px"
+      oninput="filtrarClientes()" onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+  </div>
+  <div id="clientes-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px"></div>
+  <div id="clientes-list"><div class="empty"><span>⏳</span><p>Cargando clientes...</p></div></div>
+</div>
+
+<!-- ── DOMICILIARIOS ── -->
+<div class="page" id="pg-domiciliarios">
+  <div class="abanner" style="margin-bottom:20px">
+    <div class="abanner-txt"><h2>🛵 Domiciliarios</h2><p>Gestiona tu equipo de entrega</p></div>
+    <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;box-shadow:0 4px 16px rgba(255,107,53,.3)" onclick="abrirDomiciliario()">
+      <span style="font-size:18px">＋</span> Nuevo
+    </button>
+  </div>
+  <!-- Reporte de propinas del día -->
+  <div style="background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      💝 Propinas de hoy
+      <span style="font-size:11px;color:var(--mut);font-weight:400" id="dom-fecha-hoy"></span>
+    </div>
+    <div id="dom-propinas-list"><div style="color:var(--mut);font-size:13px">Sin propinas registradas hoy</div></div>
+  </div>
+  <div id="domiciliarios-list"><div class="empty"><span>⏳</span><p>Cargando...</p></div></div>
 </div>
 
 <!-- ── CONFIGURACIÓN ── -->
@@ -1435,6 +1500,25 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 </div>
 
+<!-- ── MODAL DOMICILIARIO ── -->
+<div class="ov" id="ov-dom">
+  <div class="modal">
+    <div class="mtit" id="dom-tit">Nuevo Domiciliario</div>
+    <input type="hidden" id="dom-id">
+    <div class="fg"><label>Nombre *</label><input type="text" id="dom-nombre" placeholder="Nombre completo"></div>
+    <div class="fg"><label>Teléfono</label><input type="tel" id="dom-tel" placeholder="3001234567"></div>
+    <div class="fg">
+      <div class="checks">
+        <label class="chk"><input type="checkbox" id="dom-activo" checked> ✅ Activo</label>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="bpri" onclick="guardarDomiciliario()">💾 Guardar</button>
+      <button class="bsecm" onclick="cerrar('ov-dom')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -1461,7 +1545,7 @@ let cats=[],prods=[],peds=[],cfg={},cfFiltro='all',extras=[],extraTab='extras';
 // ── INIT ──
 async function init(){
   await Promise.all([loadCats(),loadConfig()]);
-  await Promise.all([loadProds(),loadPeds(),loadExtras()]);
+  await Promise.all([loadProds(),loadPeds(),loadExtras(),cargarTiposClientes(),cargarDomiciliarios()]);
   setupRealtime();
 }
 
@@ -1482,7 +1566,8 @@ function closeSidebar(){
 
 // ── NAVEGACIÓN ── PGNAMES declarado ANTES de ir() para evitar TDZ
 const PGNAMES={pedidos:'Pedidos',pos:'POS',productos:'Productos',
-  categorias:'Categorías',extras:'Extras',ventas:'Ventas',caja:'Caja',config:'Configuración'};
+  categorias:'Categorías',extras:'Extras',ventas:'Ventas',caja:'Caja',
+  clientes:'Clientes',domiciliarios:'Domiciliarios',config:'Configuración'};
 
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1493,13 +1578,15 @@ function ir(pg){
   const lbl=document.getElementById('page-lbl');
   if(lbl) lbl.textContent=PGNAMES[pg]||pg;
   closeSidebar();
-  if(pg==='categorias') renderCats();
-  if(pg==='productos') renderProds();
-  if(pg==='config') renderConfig();
-  if(pg==='extras') renderExtras();
-  if(pg==='ventas') initVentas();
-  if(pg==='caja')   initCaja();
-  if(pg==='pos')    initPOS();
+  if(pg==='categorias')    renderCats();
+  if(pg==='productos')     renderProds();
+  if(pg==='config')        renderConfig();
+  if(pg==='extras')        renderExtras();
+  if(pg==='ventas')        initVentas();
+  if(pg==='caja')          initCaja();
+  if(pg==='pos')           initPOS();
+  if(pg==='clientes')      initClientes();
+  if(pg==='domiciliarios') initDomiciliarios();
 }
 
 // ═══════════════════════════════
@@ -1584,19 +1671,55 @@ function renderPeds(){
     const prodResumen=its.map(i=>`${i.cantidad}x ${i.producto_nombre}`).join(' · ');
     const dom=+p.domicilio||0;
     const mapsUrl=`https://www.google.com/maps/search/${encodeURIComponent(p.cliente_direccion)}`;
-    // Timer: solo si no está entregado/cancelado
     const activo=!['entregado','cancelado'].includes(p.estado);
     const timerHtml=activo
       ?`<span class="ptimer" id="timer-${p.id}" data-inicio="${p.created_at}">⏱ —</span>`
       :'';
-    return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}">
+    const propina=+p.propina||0;
+    const total=+p.total||0;
+    const propinaHtml=propina>0?`<span style="color:var(--grn);font-size:11px;font-weight:600">+${$f(propina)} propina</span>`:'';
+
+    // Badge cliente frecuente
+    const tipo=clientesTipos[p.cliente_telefono]||'nuevo';
+    const tipoBadge={
+      nuevo:    '<span class="cbadge cb-nuevo">🆕 Nuevo</span>',
+      regular:  '<span class="cbadge cb-regular">🔄 Regular</span>',
+      frecuente:'<span class="cbadge cb-frecuente">⭐ Frecuente</span>',
+      vip:      '<span class="cbadge cb-vip">💎 VIP</span>'
+    }[tipo]||'';
+
+    // Domiciliario asignado
+    const domObj=domiciliariosData.find(d=>d.id===p.domiciliario_id);
+    const domBadge=domObj?`<span style="font-size:11px;background:#f0f9ff;color:var(--blu);border:1px solid #bae6fd;border-radius:99px;padding:2px 8px;font-weight:600">🛵 ${domObj.nombre}</span>`:'';
+
+    // Botón encuesta (si fue entregado hace menos de 1h y no se ha enviado)
+    let encuestaBtn='';
+    if(p.estado==='entregado'&&!p.encuesta_enviada&&p.entregado_at){
+      const diff=Date.now()-new Date(p.entregado_at).getTime();
+      if(diff<60*60*1000){
+        encuestaBtn=`<button class="btn-encuesta" onclick="enviarEncuestaWA('${p.id}','${p.cliente_telefono}','${p.cliente_nombre}',${p.numero_pedido||0})">⭐ Enviar encuesta</button>`;
+      }
+    }
+
+    // Selector domiciliario si hay más de uno activo y está en camino
+    const domActivos=domiciliariosData.filter(d=>d.activo);
+    const domSelector=(p.estado==='en_camino'&&domActivos.length>1)?`
+      <div class="dom-sel-wrap">
+        <label>🛵 Asignar:</label>
+        <select class="dom-sel" onchange="asignarDomiciliario('${p.id}',this.value)">
+          <option value="">Seleccionar...</option>
+          ${domActivos.map(d=>`<option value="${d.id}" ${p.domiciliario_id===d.id?'selected':''}>${d.nombre}</option>`).join('')}
+        </select>
+      </div>`:'';
+
+    return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}" data-pedido-id="${p.id}">
       <div class="prow1">
         <span class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span>
-        ${canalBadge}
+        ${canalBadge}${tipoBadge}
         <span class="pcli">${p.cliente_nombre}</span>
         <span class="ptel">· ${p.cliente_telefono}</span>
         ${timerHtml}
-        <span class="pmonto">${$f(p.total)}</span>
+        <span class="pmonto">${$f(total)}</span>
         <span class="phora">${f}</span>
         <span class="chip s-${p.estado}">${elbl(p.estado)}</span>
       </div>
@@ -1606,7 +1729,9 @@ function renderPeds(){
         ${dom>0?`<span style="color:#d1d5db">·</span><span class="pprod">🛵 +${$f(dom)}</span>`:''}
         ${p.cliente_notas?`<span style="color:#d1d5db">·</span><span class="pprod">📝 ${p.cliente_notas}</span>`:''}
         <span class="pdir">${{efectivo:'💵',tarjeta:'💳',nequi:'📱',daviplata:'🏦'}[mp]||''} ${mpLabel}</span>
+        ${propinaHtml}${domBadge}
       </div>
+      ${domSelector}
       <div class="pfoot">
         <select class="esel" id="${sid}" onchange="guardarEstado('${p.id}','${sid}')">
           ${['pendiente','aceptado','listo','en_camino','entregado','cancelado'].map(e=>`<option value="${e}" ${p.estado===e?'selected':''}>${elbl(e)}</option>`).join('')}
@@ -1616,18 +1741,77 @@ function renderPeds(){
           WA
         </button>
         <a class="bmaps" href="${mapsUrl}" target="_blank">Maps</a>
+        ${encuestaBtn}
       </div>
     </div>`;
   }).join('');
-  // Arrancar timers
   iniciarTimers();
 }
 
 async function guardarEstado(pid,sid){
   const est=document.getElementById(sid).value;
-  const {error}=await db.from('pedidos').update({estado:est}).eq('id',pid);
-  if(!error){toast('✅ '+elbl(est),'ok');await loadPeds();}
-  else toast('❌ Error al actualizar','err');
+  const upd={estado:est};
+
+  // Al marcar entregado → guardar hora de entrega
+  if(est==='entregado') upd.entregado_at=new Date().toISOString();
+
+  // Al marcar en camino → asignar domiciliario automáticamente si hay uno activo
+  if(est==='en_camino'){
+    const activos=domiciliariosData.filter(d=>d.activo);
+    if(activos.length===1) upd.domiciliario_id=activos[0].id;
+  }
+
+  const {error}=await db.from('pedidos').update(upd).eq('id',pid);
+  if(error){toast('❌ Error al actualizar','err');return;}
+
+  toast('✅ '+elbl(est),'ok');
+
+  // Al entregar → mostrar botón de encuesta en la tarjeta por 1 hora
+  if(est==='entregado'){
+    const ped=peds.find(p=>p.id===pid);
+    if(ped) mostrarBtnEncuesta(pid, ped.cliente_telefono, ped.cliente_nombre, ped.numero_pedido);
+  }
+
+  await loadPeds();
+}
+
+// Mapa de timers de encuesta activos {pedido_id: timeoutId}
+const _encuestaTimers={};
+
+function mostrarBtnEncuesta(pid, tel, nombre, numPedido){
+  // Guardar en localStorage por si recarga la página
+  const expira=Date.now()+60*60*1000; // 1 hora
+  try{
+    const key='encuesta_'+pid;
+    localStorage.setItem(key, JSON.stringify({pid,tel,nombre,numPedido,expira}));
+  }catch(e){}
+  // Renderizar botón en la tarjeta si está visible
+  renderBtnEncuestaEnTarjeta(pid,tel,nombre,numPedido);
+}
+
+function renderBtnEncuestaEnTarjeta(pid,tel,nombre,numPedido){
+  // Buscar el footer de la tarjeta del pedido
+  const tarjeta=document.querySelector(`[data-pedido-id="${pid}"]`);
+  if(!tarjeta) return;
+  const existente=tarjeta.querySelector('.btn-encuesta');
+  if(existente) return; // ya existe
+  const btn=document.createElement('button');
+  btn.className='btn-encuesta';
+  btn.innerHTML='⭐ Enviar encuesta';
+  btn.onclick=()=>enviarEncuestaWA(pid,tel,nombre,numPedido);
+  tarjeta.appendChild(btn);
+}
+
+function enviarEncuestaWA(pid,tel,nombre,numPedido){
+  const n=(tel||'').replace(/\D/g,'');
+  const w=n.length===10?'57'+n:n;
+  const link=`${window.location.origin}/encuesta.html?pedido=${pid}`;
+  const msg=`¡Hola, ${nombre}! 😊\n\nEsperamos que hayas disfrutado tu pedido #${numPedido||''} de ${cfg.nombre_local||'nuestro restaurante'}.\n\n¿Nos regalas un minuto para calificarnos? ⭐\n\n👉 ${link}\n\n¡Tu opinión nos ayuda a mejorar! ❤️`;
+  window.open(`https://wa.me/${w}?text=${encodeURIComponent(msg)}`,'_blank');
+  // Marcar como enviada en BD
+  db.from('pedidos').update({encuesta_enviada:true}).eq('id',pid);
+  // Limpiar localStorage
+  try{localStorage.removeItem('encuesta_'+pid);}catch(e){}
 }
 
 function notifWA(tel,nombre,sid,num){
@@ -3415,6 +3599,184 @@ function actualizarUIPausa(){
     btnPausa.className='pausa-btn inactiva';
     btnPausa.onclick=abrirModalPausa;
   }
+}
+
+// ═══════════════════════════════
+// CLIENTES FRECUENTES
+// ═══════════════════════════════
+let clientesData=[], clientesTipos={};
+
+async function initClientes(){
+  const {data}=await db.from('vista_clientes').select('*');
+  clientesData=data||[];
+  // Construir mapa tipo por teléfono para usar en renderPeds
+  clientesTipos={};
+  clientesData.forEach(c=>{clientesTipos[c.cliente_telefono]=c.tipo_cliente;});
+  renderClientes(clientesData);
+}
+
+async function cargarTiposClientes(){
+  // Cargar tipos al inicio para usar en el panel de pedidos
+  const {data}=await db.from('vista_clientes').select('cliente_telefono,tipo_cliente');
+  clientesTipos={};
+  (data||[]).forEach(c=>{clientesTipos[c.cliente_telefono]=c.tipo_cliente;});
+}
+
+function filtrarClientes(){
+  const q=document.getElementById('cli-buscar').value.toLowerCase();
+  const filtrados=clientesData.filter(c=>
+    (c.nombre||'').toLowerCase().includes(q)||
+    (c.cliente_telefono||'').includes(q)
+  );
+  renderClientes(filtrados);
+}
+
+function renderClientes(lista){
+  const el=document.getElementById('clientes-list');
+  const stats=document.getElementById('clientes-stats');
+
+  // KPIs
+  const total=lista.length;
+  const vips=lista.filter(c=>c.tipo_cliente==='vip').length;
+  const frecuentes=lista.filter(c=>c.tipo_cliente==='frecuente').length;
+  const totalGastado=lista.reduce((a,c)=>a+(+c.total_gastado||0),0);
+  stats.innerHTML=`
+    <div class="sc"><div class="ico">👥</div><div class="val">${total}</div><div class="lbl">Clientes</div></div>
+    <div class="sc"><div class="ico">💎</div><div class="val">${vips}</div><div class="lbl">VIP</div></div>
+    <div class="sc"><div class="ico">⭐</div><div class="val">${frecuentes}</div><div class="lbl">Frecuentes</div></div>
+    <div class="sc"><div class="ico">💰</div><div class="val">${$f(totalGastado)}</div><div class="lbl">Total generado</div></div>`;
+
+  if(!lista.length){el.innerHTML='<div class="empty"><span>👥</span><p>Sin clientes aún</p></div>';return;}
+
+  const badgeMap={
+    nuevo:    '<span class="cbadge cb-nuevo">🆕 Nuevo</span>',
+    regular:  '<span class="cbadge cb-regular">🔄 Regular</span>',
+    frecuente:'<span class="cbadge cb-frecuente">⭐ Frecuente</span>',
+    vip:      '<span class="cbadge cb-vip">💎 VIP</span>'
+  };
+
+  el.innerHTML=lista.map(c=>{
+    const fecha=c.ultimo_pedido?new Date(c.ultimo_pedido).toLocaleDateString('es-CO',{day:'numeric',month:'short',year:'numeric'}):'—';
+    return `<div class="cli-card">
+      <div style="font-size:28px;flex-shrink:0">${{nuevo:'🆕',regular:'🔄',frecuente:'⭐',vip:'💎'}[c.tipo_cliente]||'👤'}</div>
+      <div class="cli-info">
+        <h4>${c.nombre||'Sin nombre'} ${badgeMap[c.tipo_cliente]||''}</h4>
+        <small>📱 ${c.cliente_telefono} · ${c.total_pedidos} pedido${c.total_pedidos!==1?'s':''} · Último: ${fecha}</small>
+      </div>
+      <div class="cli-stats">
+        <div class="cli-total">${$f(+c.total_gastado||0)}</div>
+        <div class="cli-pedidos">Ticket prom. ${$f(+c.ticket_promedio||0)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════
+// DOMICILIARIOS
+// ═══════════════════════════════
+let domiciliariosData=[];
+
+async function initDomiciliarios(){
+  document.getElementById('dom-fecha-hoy').textContent=
+    new Date().toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'});
+  await cargarDomiciliarios();
+  await cargarPropinasDom();
+}
+
+async function cargarDomiciliarios(){
+  const {data}=await db.from('domiciliarios').select('*').order('activo',{ascending:false}).order('nombre');
+  domiciliariosData=data||[];
+  renderDomiciliarios();
+}
+
+function renderDomiciliarios(){
+  const el=document.getElementById('domiciliarios-list');
+  if(!domiciliariosData.length){el.innerHTML='<div class="empty"><span>🛵</span><p>Sin domiciliarios registrados</p></div>';return;}
+  el.innerHTML=domiciliariosData.map(d=>`
+    <div class="dom-card">
+      <div class="dom-avatar">${d.nombre.charAt(0).toUpperCase()}</div>
+      <div class="dom-info">
+        <h4>${d.nombre} ${d.activo?'<span style="font-size:10px;background:#dcfce7;color:var(--grn);border-radius:5px;padding:1px 7px;font-weight:700">Activo</span>':'<span style="font-size:10px;background:#f9fafb;color:var(--mut);border-radius:5px;padding:1px 7px;font-weight:700">Inactivo</span>'}</h4>
+        <small>📱 ${d.telefono||'Sin teléfono'}</small>
+      </div>
+      <div class="brow">
+        <button class="bsm bsms" onclick="editarDomiciliario('${d.id}')">✏️</button>
+        <button class="bsm bsmd" onclick="eliminarDomiciliario('${d.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+async function cargarPropinasDom(){
+  const hoyStart=new Date(); hoyStart.setHours(0,0,0,0);
+  const hoyEnd=new Date(); hoyEnd.setHours(23,59,59,999);
+  const {data}=await db.from('pedidos')
+    .select('domiciliario_id,propina,medio_pago,numero_pedido,estado')
+    .gte('created_at',hoyStart.toISOString())
+    .lte('created_at',hoyEnd.toISOString())
+    .neq('estado','cancelado')
+    .gt('propina',0);
+
+  const el=document.getElementById('dom-propinas-list');
+  if(!data||!data.length){el.innerHTML='<div style="color:var(--mut);font-size:13px">Sin propinas registradas hoy</div>';return;}
+
+  // Agrupar por domiciliario
+  const grupos={};
+  data.forEach(p=>{
+    const did=p.domiciliario_id||'sin_asignar';
+    if(!grupos[did]) grupos[did]={efectivo:0,digital:0,pedidos:[]};
+    if(p.medio_pago==='efectivo') grupos[did].efectivo+=(+p.propina||0);
+    else grupos[did].digital+=(+p.propina||0);
+    grupos[did].pedidos.push(p);
+  });
+
+  el.innerHTML=Object.entries(grupos).map(([did,g])=>{
+    const dom=domiciliariosData.find(d=>d.id===did);
+    const nombre=dom?.nombre||'Sin asignar';
+    return `<div style="background:var(--sur2);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:6px">🛵 ${nombre}</div>
+      <div style="display:flex;gap:16px;font-size:12px">
+        <span>💵 Efectivo (ya las tiene): <strong style="color:var(--grn)">${$f(g.efectivo)}</strong></span>
+        <span>📱 Digital (pendiente): <strong style="color:var(--acc)">${$f(g.digital)}</strong></span>
+        <span style="color:var(--mut)">Total: <strong>${$f(g.efectivo+g.digital)}</strong></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirDomiciliario(d=null){
+  document.getElementById('dom-tit').textContent=d?'Editar Domiciliario':'Nuevo Domiciliario';
+  document.getElementById('dom-id').value=d?.id||'';
+  document.getElementById('dom-nombre').value=d?.nombre||'';
+  document.getElementById('dom-tel').value=d?.telefono||'';
+  document.getElementById('dom-activo').checked=d?d.activo:true;
+  document.getElementById('ov-dom').classList.add('open');
+  setTimeout(()=>document.getElementById('dom-nombre').focus(),120);
+}
+
+function editarDomiciliario(id){abrirDomiciliario(domiciliariosData.find(d=>d.id===id));}
+
+async function guardarDomiciliario(){
+  const nombre=document.getElementById('dom-nombre').value.trim();
+  if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
+  const id=document.getElementById('dom-id').value;
+  const d={nombre,telefono:document.getElementById('dom-tel').value.trim()||null,
+    activo:document.getElementById('dom-activo').checked};
+  const {error}=id?await db.from('domiciliarios').update(d).eq('id',id):await db.from('domiciliarios').insert(d);
+  if(!error){toast(id?'✅ Actualizado':'✅ Domiciliario creado','ok');cerrar('ov-dom');await cargarDomiciliarios();}
+  else toast('❌ Error: '+error.message,'err');
+}
+
+async function eliminarDomiciliario(id){
+  if(!confirm('¿Eliminar este domiciliario?'))return;
+  await db.from('domiciliarios').delete().eq('id',id);
+  toast('✅ Eliminado','ok');
+  await cargarDomiciliarios();
+}
+
+async function asignarDomiciliario(pid,did){
+  await db.from('pedidos').update({domiciliario_id:did||null}).eq('id',pid);
+  toast('✅ Domiciliario asignado','ok');
+  await loadPeds();
 }
 
 // ═══════════════════════════════
