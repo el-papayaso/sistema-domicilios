@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Califica tu pedido</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--acc:#ff6b35;--grn:#16a34a;--bg:#f7f5f0;--sur:#fff;--txt:#111827;--mut:#6b7280;--bdr:#e5e7eb;--warm:#f2ede4;--f:'Inter',sans-serif}
+body{font-family:var(--f);background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--sur);border-radius:20px;padding:32px 28px;width:100%;max-width:420px;box-shadow:0 8px 40px rgba(0,0,0,.1);text-align:center}
+.logo-wrap{width:72px;height:72px;border-radius:18px;overflow:hidden;margin:0 auto 14px;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:36px;border:3px solid var(--bdr)}
+.logo-wrap img{width:100%;height:100%;object-fit:cover}
+.negocio-nombre{font-size:17px;font-weight:800;color:var(--txt);margin-bottom:3px}
+.pedido-num{font-size:12px;color:var(--mut);margin-bottom:22px}
+.titulo{font-size:20px;font-weight:800;color:var(--txt);margin-bottom:6px}
+.subtitulo{font-size:13px;color:var(--mut);margin-bottom:26px;line-height:1.6}
+/* Estrellas */
+.estrellas{display:flex;justify-content:center;gap:8px;margin-bottom:10px}
+.estrella{font-size:42px;cursor:pointer;transition:transform .15s;user-select:none;filter:grayscale(1);opacity:.35;line-height:1}
+.estrella.sel,.estrella:hover{filter:grayscale(0);opacity:1;transform:scale(1.18)}
+.estrella.hover-prev{filter:grayscale(0);opacity:.75}
+.rating-lbl{font-size:15px;font-weight:700;color:var(--acc);height:22px;margin-bottom:22px}
+/* Comentario */
+.comentario-wrap{margin-bottom:18px;text-align:left}
+.comentario-wrap label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:7px}
+.comentario-inp{width:100%;background:var(--warm);border:1.5px solid var(--bdr);border-radius:10px;padding:11px 14px;font-size:14px;font-family:var(--f);color:var(--txt);resize:none;transition:border-color .2s}
+.comentario-inp:focus{outline:none;border-color:var(--acc)}
+.comentario-inp::placeholder{color:#c4b8ae}
+/* Botón */
+.btn-enviar{width:100%;padding:15px;background:var(--acc);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--f);transition:all .2s;margin-bottom:10px}
+.btn-enviar:hover{background:#e55a26}
+.btn-enviar:disabled{background:var(--bdr);color:var(--mut);cursor:not-allowed}
+/* Estados */
+.estado{display:none;padding:20px 0}
+.estado.show{display:block}
+.estado-ico{font-size:64px;margin-bottom:14px}
+.estado-tit{font-size:20px;font-weight:800;margin-bottom:8px;color:var(--txt)}
+.estado-sub{font-size:14px;color:var(--mut);line-height:1.6}
+.spin{width:32px;height:32px;border:3px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:440px){.card{padding:24px 18px}.estrella{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div id="estado-loading" class="estado show">
+    <div class="spin"></div>
+    <div style="color:var(--mut);font-size:14px">Cargando...</div>
+  </div>
+
+  <div id="form-encuesta" style="display:none">
+    <div class="logo-wrap" id="logo-wrap"><span>🛵</span></div>
+    <div class="negocio-nombre" id="negocio-nombre">—</div>
+    <div class="pedido-num" id="pedido-num"></div>
+    <div class="titulo">¿Cómo estuvo tu experiencia? 😊</div>
+    <div class="subtitulo">Tu opinión nos ayuda a mejorar y a seguir dándote el mejor servicio</div>
+    <div class="estrellas" id="estrellas">
+      <span class="estrella" data-val="1">⭐</span>
+      <span class="estrella" data-val="2">⭐</span>
+      <span class="estrella" data-val="3">⭐</span>
+      <span class="estrella" data-val="4">⭐</span>
+      <span class="estrella" data-val="5">⭐</span>
+    </div>
+    <div class="rating-lbl" id="rating-lbl"></div>
+    <div class="comentario-wrap">
+      <label>Comentario <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+      <textarea class="comentario-inp" id="comentario" rows="3" placeholder="Cuéntanos cómo fue tu experiencia..."></textarea>
+    </div>
+    <button class="btn-enviar" id="btn-enviar" onclick="enviarEncuesta()" disabled>Enviar calificación ⭐</button>
+    <div style="font-size:11px;color:var(--mut)">¡Gracias por tomarte el tiempo! ❤️</div>
+  </div>
+
+  <div id="estado-ok" class="estado">
+    <div class="estado-ico">🎉</div>
+    <div class="estado-tit">¡Gracias por calificarnos!</div>
+    <div class="estado-sub" id="ok-sub">Tu opinión es muy valiosa para nosotros.<br>¡Esperamos verte pronto!</div>
+  </div>
+
+  <div id="estado-ya" class="estado">
+    <div class="estado-ico">✅</div>
+    <div class="estado-tit">Ya enviaste tu calificación</div>
+    <div class="estado-sub">Gracias por tu opinión. ¡Fue un placer servirte!</div>
+  </div>
+
+  <div id="estado-error" class="estado">
+    <div class="estado-ico">😕</div>
+    <div class="estado-tit">Link inválido</div>
+    <div class="estado-sub">Este enlace no es válido o ya expiró.<br>Escríbenos si crees que es un error.</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+const SURL='https://ramgdkqowllcmenxzwhn.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWdka3Fvd2xsY21lbnh6d2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzMxNTksImV4cCI6MjA5MzA0OTE1OX0.cQpAlUYheb1RMm-KwSeX0Q1W6lO6GtlCMT6PX5vkz-I';
+const {createClient}=supabase;
+const db=createClient(SURL,SKEY);
+
+let pedidoId=null, calificacion=0;
+const LABELS={1:'😞 Muy malo',2:'😐 Regular',3:'🙂 Bueno',4:'😊 Muy bueno',5:'🤩 ¡Excelente!'};
+const MSGS={
+  1:'Lamentamos que tu experiencia no haya sido la mejor. Tomaremos nota para mejorar.',
+  2:'Gracias por tu honestidad. Trabajaremos para darte una mejor experiencia.',
+  3:'¡Gracias! Seguiremos mejorando para ti.',
+  4:'¡Nos alegra mucho que hayas tenido una buena experiencia!',
+  5:'¡Wow! Tu calificación nos llena de alegría. ¡Gracias por confiar en nosotros!'
+};
+
+function showEstado(st){
+  ['loading','ok','ya','error'].forEach(s=>{
+    document.getElementById('estado-'+s).classList.toggle('show',s===st);
+  });
+  document.getElementById('form-encuesta').style.display=st==='form'?'block':'none';
+}
+
+async function init(){
+  const params=new URLSearchParams(window.location.search);
+  pedidoId=params.get('pedido');
+  if(!pedidoId){showEstado('error');return;}
+  try{
+    const {data:ped,error}=await db.from('pedidos')
+      .select('id,numero_pedido,cliente_nombre,encuesta_enviada')
+      .eq('id',pedidoId).single();
+    if(error||!ped){showEstado('error');return;}
+
+    // Verificar si ya calificó
+    const {data:enc}=await db.from('encuestas')
+      .select('id').eq('pedido_id',pedidoId).maybeSingle();
+    if(enc){showEstado('ya');return;}
+
+    // Cargar negocio
+    const {data:cfg}=await db.from('configuracion').select('nombre_local,logo_url').limit(1).single();
+    const nombre=cfg?.nombre_local||'Nuestro negocio';
+    document.title='Califica tu pedido — '+nombre;
+    document.getElementById('negocio-nombre').textContent=nombre;
+    document.getElementById('pedido-num').textContent=
+      'Pedido #'+(ped.numero_pedido||pedidoId.slice(0,6).toUpperCase())+' · '+ped.cliente_nombre;
+    if(cfg?.logo_url){
+      document.getElementById('logo-wrap').innerHTML=
+        '<img src="'+cfg.logo_url+'" alt="Logo">';
+    }
+    showEstado('form');
+    setupEstrellas();
+  }catch(e){showEstado('error');}
+}
+
+function setupEstrellas(){
+  const stars=[...document.querySelectorAll('.estrella')];
+  stars.forEach(s=>{
+    s.addEventListener('click',()=>{
+      calificacion=+s.dataset.val;
+      stars.forEach(x=>x.classList.toggle('sel',+x.dataset.val<=calificacion));
+      document.getElementById('rating-lbl').textContent=LABELS[calificacion]||'';
+      document.getElementById('btn-enviar').disabled=false;
+    });
+    s.addEventListener('mouseover',()=>{
+      const v=+s.dataset.val;
+      stars.forEach(x=>x.classList.toggle('hover-prev',+x.dataset.val<=v&&+x.dataset.val>calificacion));
+    });
+    s.addEventListener('mouseout',()=>{
+      stars.forEach(x=>x.classList.remove('hover-prev'));
+    });
+  });
+}
+
+async function enviarEncuesta(){
+  if(!calificacion||!pedidoId)return;
+  const btn=document.getElementById('btn-enviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+  const comentario=document.getElementById('comentario').value.trim()||null;
+  try{
+    const {error}=await db.from('encuestas').insert({pedido_id:pedidoId,calificacion,comentario});
+    if(error)throw error;
+    await db.from('pedidos').update({encuesta_enviada:true}).eq('id',pedidoId);
+    document.getElementById('ok-sub').innerHTML=MSGS[calificacion]+'<br><br>¡Esperamos verte pronto! 🙌';
+    showEstado('ok');
+  }catch(e){
+    btn.disabled=false;btn.textContent='Enviar calificación ⭐';
+    alert('Ocurrió un error. Por favor intenta de nuevo.');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
