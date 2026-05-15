@@ -1680,7 +1680,9 @@ function renderPeds(){
     const propinaHtml=propina>0?`<span style="color:var(--grn);font-size:11px;font-weight:600">+${$f(propina)} propina</span>`:'';
 
     // Badge cliente frecuente
-    const tipo=clientesTipos[p.cliente_telefono]||'nuevo';
+    // Normalizar teléfono a 10 dígitos para buscar el tipo de cliente
+    const telNorm=p.cliente_telefono.replace(/\D/g,'').slice(-10);
+    const tipo=clientesTipos[telNorm]||clientesTipos[p.cliente_telefono]||'nuevo';
     const tipoBadge={
       nuevo:    '<span class="cbadge cb-nuevo">🆕 Nuevo</span>',
       regular:  '<span class="cbadge cb-regular">🔄 Regular</span>',
@@ -3609,17 +3611,24 @@ let clientesData=[], clientesTipos={};
 async function initClientes(){
   const {data}=await db.from('vista_clientes').select('*');
   clientesData=data||[];
-  // Construir mapa tipo por teléfono para usar en renderPeds
+  // Construir mapa tipo por teléfono normalizado a 10 dígitos
   clientesTipos={};
-  clientesData.forEach(c=>{clientesTipos[c.cliente_telefono]=c.tipo_cliente;});
+  clientesData.forEach(c=>{
+    const tel=(c.cliente_telefono||'').replace(/\D/g,'').slice(-10);
+    if(tel) clientesTipos[tel]=c.tipo;
+  });
   renderClientes(clientesData);
 }
 
 async function cargarTiposClientes(){
   // Cargar tipos al inicio para usar en el panel de pedidos
-  const {data}=await db.from('vista_clientes').select('cliente_telefono,tipo_cliente');
+  const {data}=await db.from('vista_clientes').select('cliente_telefono,tipo');
   clientesTipos={};
-  (data||[]).forEach(c=>{clientesTipos[c.cliente_telefono]=c.tipo_cliente;});
+  (data||[]).forEach(c=>{
+    // Guardar con clave de 10 dígitos para normalizar
+    const tel=(c.cliente_telefono||'').replace(/\D/g,'').slice(-10);
+    if(tel) clientesTipos[tel]=c.tipo;
+  });
 }
 
 function filtrarClientes(){
