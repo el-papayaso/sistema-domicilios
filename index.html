@@ -1354,38 +1354,6 @@ function actualizarCarrito(){
 // ── FORMULARIO — HELPERS ──
 let recordarDatos=true;
 
-// ── PROPINA ──
-let propinaActual=0;
-function selPropina(val,el){
-  propinaActual=val;
-  document.querySelectorAll('.propina-btn').forEach(b=>{
-    b.style.borderColor='var(--bdr)';
-    b.style.background='var(--warm)';
-    b.style.color='var(--mut)';
-  });
-  if(val>0){
-    el.style.borderColor='var(--acc)';
-    el.style.background='#fff5f1';
-    el.style.color='var(--acc)';
-  }
-  const propinaRow=document.getElementById('propina-row');
-  const propinaDisplay=document.getElementById('propina-display');
-  if(propinaRow){
-    propinaRow.style.display=val>0?'flex':'none';
-    if(propinaDisplay) propinaDisplay.textContent=$f(val);
-  }
-  // Actualizar total en el drawer
-  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  document.getElementById('subtotal').textContent=$f(subtotal);
-  document.getElementById('total').textContent=$f(subtotal+propinaActual);
-  const fab=document.getElementById('cart-fab-btn');
-  const totalFab=document.getElementById('cart-total-fab');
-  if(carrito.length>0){
-    totalFab.style.display='inline';
-    totalFab.textContent='· '+$f(subtotal+propinaActual);
-  }
-}
-
 function onMpChange(){
   const mp=document.getElementById('c-mp').value;
   const cambioWrap=document.getElementById('cambio-wrap');
