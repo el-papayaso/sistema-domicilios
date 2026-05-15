@@ -621,20 +621,6 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="sc"><div class="ico">💰</div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div>
   </div>
 
-  <!-- Encuestas en tiempo real -->
-  <div class="enc-section" id="enc-section">
-    <div class="enc-head">
-      <div class="enc-head-tit">
-        ⭐ Calificaciones recientes
-        <span id="enc-badge-malas" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800"></span>
-      </div>
-      <span style="font-size:11px;color:var(--mut)">Últimas 10 · Tiempo real</span>
-    </div>
-    <div class="enc-list" id="enc-list">
-      <div class="enc-empty">Sin calificaciones aún</div>
-    </div>
-  </div>
-
   <!-- Banner pausa activa -->
   <div class="pausa-banner" id="pausa-banner" style="display:none">
     <div>
@@ -645,15 +631,38 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span style="font-size:13px;color:var(--mut)">Solo domicilios</span>
       <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar pedidos</button>
+      <button id="btn-encuestas" onclick="toggleEncuestasPanel()" style="
+        display:flex;align-items:center;gap:7px;
+        background:var(--sur);border:1.5px solid var(--bdr);
+        border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;
+        cursor:pointer;font-family:var(--fb);transition:all .2s;color:var(--mut)
+      " onmouseover="this.style.borderColor='var(--acc)';this.style.color='var(--acc)'"
+         onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--mut)'">
+        ⭐ <span id="enc-contador" style="background:var(--sur2);color:var(--mut);border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
+        <span id="enc-alerta-badge" style="display:none;background:var(--red);color:#fff;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700"></span>
+      </button>
     </div>
     <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3)" onclick="abrirLlamada()">
       📞 Pedido por llamada
     </button>
   </div>
   <div class="plist" id="plist"><div class="empty"><span>📭</span><p>Esperando pedidos en tiempo real...</p></div></div>
+</div>
+
+<!-- Panel lateral encuestas -->
+<div id="enc-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;backdrop-filter:blur(3px)" onclick="toggleEncuestasPanel()"></div>
+<div id="enc-panel" style="position:fixed;top:0;right:-420px;bottom:0;width:100%;max-width:400px;background:var(--sur);z-index:151;box-shadow:var(--sh2);display:flex;flex-direction:column;transition:right .3s cubic-bezier(.4,0,.2,1)">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0">
+    <div style="font-size:15px;font-weight:700">⭐ Calificaciones recientes</div>
+    <button onclick="toggleEncuestasPanel()" style="background:var(--sur2);border:none;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+  </div>
+  <div style="font-size:11px;color:var(--mut);padding:8px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0">Últimas 10 · En tiempo real</div>
+  <div class="enc-list" id="enc-list" style="flex:1;overflow-y:auto">
+    <div class="enc-empty">Sin calificaciones aún</div>
+  </div>
 </div>
 
 <!-- ── POS ── -->
@@ -3838,6 +3847,21 @@ async function asignarDomiciliario(pid,did){
   await loadPeds();
 }
 
+let encPanelAbierto=false;
+function toggleEncuestasPanel(){
+  encPanelAbierto=!encPanelAbierto;
+  const ov=document.getElementById('enc-ov');
+  const panel=document.getElementById('enc-panel');
+  if(encPanelAbierto){
+    ov.style.display='block';
+    panel.style.display='flex';
+    setTimeout(()=>panel.style.right='0',10);
+  } else {
+    panel.style.right='-420px';
+    setTimeout(()=>{ov.style.display='none';panel.style.display='none';},300);
+  }
+}
+
 // ═══════════════════════════════
 // ENCUESTAS — TIEMPO REAL
 // ═══════════════════════════════
@@ -3862,17 +3886,29 @@ function renderEncuestas(){
   const el=document.getElementById('enc-list');
   if(!el)return;
 
+  // Actualizar contador del botón
+  const contador=document.getElementById('enc-contador');
+  const alerta=document.getElementById('enc-alerta-badge');
+  if(contador) contador.textContent=encuestasData.length;
+
   if(!encuestasData.length){
     el.innerHTML='<div class="enc-empty">Sin calificaciones aún — aparecerán aquí en tiempo real ⭐</div>';
-    document.getElementById('enc-badge-malas').style.display='none';
+    if(alerta) alerta.style.display='none';
+    if(contador){contador.style.background='var(--sur2)';contador.style.color='var(--mut)';}
     return;
   }
 
-  // Contar malas (≤2 estrellas)
+  // Contar malas
   const malas=encuestasData.filter(e=>e.calificacion<=2).length;
-  const badge=document.getElementById('enc-badge-malas');
-  if(malas>0){badge.style.display='inline';badge.textContent=`${malas} ⚠`;}
-  else badge.style.display='none';
+  if(alerta){
+    alerta.style.display=malas>0?'inline':'none';
+    if(malas>0) alerta.textContent=`⚠ ${malas} mala${malas!==1?'s':''}`;
+  }
+  // Botón naranja si hay malas
+  if(contador){
+    contador.style.background=malas>0?'#fef2f2':'var(--sur2)';
+    contador.style.color=malas>0?'var(--red)':'var(--mut)';
+  }
 
   const starIcons=(n)=>{
     const llenas='⭐'.repeat(n);
