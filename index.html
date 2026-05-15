@@ -325,6 +325,19 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .recordar-check.on{background:var(--acc);border-color:var(--acc);color:#fff;font-size:13px}
 .recordar-txt h4{font-size:14px;font-weight:600;margin-bottom:2px}
 .recordar-txt p{font-size:12px;color:var(--mut);line-height:1.4}
+/* Propina */
+.propina-wrap{margin-bottom:16px}
+.propina-label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin-bottom:8px}
+.propina-opts{display:flex;gap:8px;flex-wrap:wrap}
+.propina-btn{
+  padding:9px 16px;border-radius:10px;border:1.5px solid var(--bdr);
+  background:#fff;color:var(--mut);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--fb);transition:all .2s;
+}
+.propina-btn:hover{border-color:var(--acc);color:var(--acc)}
+.propina-btn.sel{background:#fff5f1;border-color:var(--acc);color:var(--acc)}
+.propina-btn.no{color:var(--mut)}
+.propina-btn.no.sel{background:var(--warm);border-color:var(--bdr);color:var(--mut)}
 .skel{background:linear-gradient(90deg,var(--warm) 0%,var(--bdr) 50%,var(--warm) 100%);background-size:200%;animation:shim 1.5s infinite;border-radius:8px}
 @keyframes shim{0%{background-position:200%}100%{background-position:-200%}}
 
@@ -451,6 +464,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <div class="dtotals">
       <div class="trow"><span>Subtotal</span><span id="subtotal">$0</span></div>
       <div class="trow"><span>Domicilio</span><span>Por confirmar</span></div>
+      <div class="trow" id="propina-row" style="display:none"><span>💝 Propina domiciliario</span><span id="propina-display">$0</span></div>
       <div class="trow big"><span>Total</span><span id="total">$0</span></div>
     </div>
 
@@ -505,6 +519,29 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
       <div class="form-field">
         <label class="form-field-label">Notas del pedido <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
         <textarea class="form-inp" id="c-nota" placeholder="Ej: sin salsas, separar cubiertos..." rows="2" style="resize:none"></textarea>
+      </div>
+
+      <div class="form-field">
+        <label class="form-field-label">💝 Propina para el domiciliario <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+          <button type="button" class="propina-btn" data-val="0" onclick="selPropina(0,this)" style="padding:9px 4px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--warm);color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s">No</button>
+          <button type="button" class="propina-btn" data-val="1000" onclick="selPropina(1000,this)" style="padding:9px 4px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--warm);color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s">$1.000</button>
+          <button type="button" class="propina-btn" data-val="2000" onclick="selPropina(2000,this)" style="padding:9px 4px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--warm);color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s">$2.000</button>
+          <button type="button" class="propina-btn" data-val="3000" onclick="selPropina(3000,this)" style="padding:9px 4px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--warm);color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s">$3.000</button>
+          <button type="button" class="propina-btn" data-val="5000" onclick="selPropina(5000,this)" style="padding:9px 4px;border-radius:8px;border:1.5px solid var(--bdr);background:var(--warm);color:var(--mut);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:all .2s">$5.000</button>
+        </div>
+      </div>
+
+      <!-- Propina -->
+      <div class="propina-wrap">
+        <span class="propina-label">💝 Propina para el domiciliario</span>
+        <div class="propina-opts">
+          <button class="propina-btn" onclick="selPropina(1000,this)">$1.000</button>
+          <button class="propina-btn" onclick="selPropina(2000,this)">$2.000</button>
+          <button class="propina-btn" onclick="selPropina(3000,this)">$3.000</button>
+          <button class="propina-btn" onclick="selPropina(5000,this)">$5.000</button>
+          <button class="propina-btn no sel" id="propina-no" onclick="selPropina(0,this)">No, gracias</button>
+        </div>
       </div>
 
       <!-- Recordar datos -->
@@ -583,6 +620,7 @@ const {createClient}=supabase;
 const db=createClient(SURL,SKEY);
 
 let cats=[],prods=[],carrito=[],cfg={},catActiva='all',extrasDB=[],prodActual=null,extrasSeleccionados=[];
+let propinaActual=0;
 
 // ── INIT ──
 async function init(){
@@ -1262,18 +1300,19 @@ function cambiarQty(cid,d){
 }
 
 function actualizarCarrito(){
-  const total=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
   const count=carrito.reduce((a,i)=>a+i.qty,0);
+  const total=subtotal+propinaActual;
   document.getElementById('cart-n').textContent=count;
-  document.getElementById('subtotal').textContent=$f(total);
+  document.getElementById('subtotal').textContent=$f(subtotal);
   document.getElementById('total').textContent=$f(total);
-  // Carrito flotante: mostrar total y quitar clase vacio
+  // Carrito flotante: mostrar subtotal (sin propina) en el fab
   const fab=document.getElementById('cart-fab-btn');
   const totalFab=document.getElementById('cart-total-fab');
   if(count>0){
     fab.classList.remove('vacio');
     totalFab.style.display='inline';
-    totalFab.textContent='· '+$f(total);
+    totalFab.textContent='· '+$f(subtotal);
   } else {
     fab.classList.add('vacio');
     totalFab.style.display='none';
@@ -1315,6 +1354,38 @@ function actualizarCarrito(){
 // ── FORMULARIO — HELPERS ──
 let recordarDatos=true;
 
+// ── PROPINA ──
+let propinaActual=0;
+function selPropina(val,el){
+  propinaActual=val;
+  document.querySelectorAll('.propina-btn').forEach(b=>{
+    b.style.borderColor='var(--bdr)';
+    b.style.background='var(--warm)';
+    b.style.color='var(--mut)';
+  });
+  if(val>0){
+    el.style.borderColor='var(--acc)';
+    el.style.background='#fff5f1';
+    el.style.color='var(--acc)';
+  }
+  const propinaRow=document.getElementById('propina-row');
+  const propinaDisplay=document.getElementById('propina-display');
+  if(propinaRow){
+    propinaRow.style.display=val>0?'flex':'none';
+    if(propinaDisplay) propinaDisplay.textContent=$f(val);
+  }
+  // Actualizar total en el drawer
+  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  document.getElementById('subtotal').textContent=$f(subtotal);
+  document.getElementById('total').textContent=$f(subtotal+propinaActual);
+  const fab=document.getElementById('cart-fab-btn');
+  const totalFab=document.getElementById('cart-total-fab');
+  if(carrito.length>0){
+    totalFab.style.display='inline';
+    totalFab.textContent='· '+$f(subtotal+propinaActual);
+  }
+}
+
 function onMpChange(){
   const mp=document.getElementById('c-mp').value;
   const cambioWrap=document.getElementById('cambio-wrap');
@@ -1325,6 +1396,25 @@ document.getElementById('c-cambio')?.addEventListener('change',function(){
   const otro=document.getElementById('c-cambio-otro');
   otro.style.display=this.value==='otro'?'block':'none';
 });
+
+function selPropina(monto, el){
+  propinaActual=monto;
+  document.querySelectorAll('.propina-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  // Actualizar fila de propina en totales
+  const row=document.getElementById('propina-row');
+  const disp=document.getElementById('propina-display');
+  if(monto>0){
+    row.style.display='flex';
+    disp.textContent=$f(monto);
+    disp.style.color='var(--acc)';
+  } else {
+    row.style.display='none';
+  }
+  // Recalcular total
+  const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  document.getElementById('total').textContent=$f(subtotal+propinaActual);
+}
 
 function toggleRecordar(){
   recordarDatos=!recordarDatos;
@@ -1389,7 +1479,8 @@ async function enviarPedido(){
   const waRaw=(cfg.whatsapp||'573001234567').replace(/\D/g,'');
   const waNum=waRaw.startsWith('57')?waRaw:'57'+waRaw;
   const subtotal=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
-  const telCompleto='57'+tel;
+  // Guardar solo 10 dígitos (sin 57) para consistencia con pedidos por llamada
+  const telGuardar=tel.replace(/\D/g,'').slice(-10);
 
   // Construir líneas del pedido
   const lineas=carrito.map(i=>{
@@ -1417,8 +1508,10 @@ async function enviarPedido(){
 
   // Fix 2: cambio incluido en línea de pago
   const lineaPago=`${pagoEmoji[mp]} *Pago:* ${pagoLabel[mp]}${cambioInfo?' · '+cambioInfo:''}`;
+  const propinaLinea=propinaActual>0?`\n💝 *Propina domiciliario:* ${$f(propinaActual)}`:'';
+  const totalConPropina=subtotal+propinaActual;
 
-  const msg=`${saludo}\n\n🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${lineaPago}\n💰 *Total: ${$f(subtotal)}*`;
+  const msg=`${saludo}\n\n🛵 *NUEVO PEDIDO*\n\n👤 *Cliente:* ${nom}\n📱 *Tel:* +57${tel}\n📍 *Dirección:* ${dirCompleta}\n${nota?`📝 *Notas:* ${nota}\n`:''}\n🧾 *Productos:*\n${lineas}\n\n${lineaPago}${propinaLinea}\n💰 *Total: ${$f(totalConPropina)}*`;
   const waUrl=`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`;
 
   // Abrir WhatsApp PRIMERO
@@ -1427,9 +1520,9 @@ async function enviarPedido(){
   // Guardar en Supabase en segundo plano
   try{
     const {data:ped,error}=await db.from('pedidos').insert({
-      cliente_nombre:nom, cliente_telefono:telCompleto,
+      cliente_nombre:nom, cliente_telefono:telGuardar,
       cliente_direccion:dirCompleta, cliente_notas:nota||null,
-      medio_pago:mp, subtotal, total:subtotal, domicilio:0,
+      medio_pago:mp, subtotal, total:totalConPropina, propina:propinaActual, domicilio:0,
       estado:'pendiente', canal:'whatsapp'
     }).select().single();
     if(!error&&ped){
@@ -1447,10 +1540,15 @@ async function enviarPedido(){
     }
   }catch(err){console.error('Error guardando pedido:',err);}
 
-  carrito=[];actualizarCarrito();toggleDrawer();
+  carrito=[];propinaActual=0;actualizarCarrito();toggleDrawer();
   ['c-nom','c-tel','c-dir','c-ref','c-nota'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('c-mp').value='efectivo';
   onMpChange();
+  // Reset propina UI
+  document.querySelectorAll('.propina-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('propina-no').classList.add('sel');
+  document.getElementById('propina-row').style.display='none';
+  selPropina(0,document.querySelector('.propina-btn[data-val="0"]'));
 }
 
 
