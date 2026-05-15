@@ -506,14 +506,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
       <div id="cambio-wrap">
         <label class="form-field-label">¿Con cuánto va a pagar? <span style="color:var(--acc)">*</span></label>
-        <select class="form-sel" id="c-cambio">
-          <option value="exacto">Pago exacto, no necesito cambio</option>
-          <option value="20000">$20.000</option>
-          <option value="50000">$50.000</option>
-          <option value="100000">$100.000</option>
-          <option value="otro">Otro monto...</option>
-        </select>
-        <input class="form-inp" id="c-cambio-otro" placeholder="¿Con cuánto?" type="number" style="display:none;margin-top:8px" oninput="this.value=this.value.replace(/\D/g,'')">
+        <input class="form-inp" id="c-cambio" type="number" placeholder="Ej: 50000" min="0"
+          style="width:100%" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
       </div>
 
       <div class="form-field">
@@ -1349,11 +1343,6 @@ function onMpChange(){
   cambioWrap.style.display=mp==='efectivo'?'block':'none';
 }
 
-document.getElementById('c-cambio')?.addEventListener('change',function(){
-  const otro=document.getElementById('c-cambio-otro');
-  otro.style.display=this.value==='otro'?'block':'none';
-});
-
 function selPropina(monto, el){
   propinaActual=monto;
   document.querySelectorAll('.propina-btn').forEach(b=>b.classList.remove('sel'));
@@ -1421,31 +1410,21 @@ async function enviarPedido(){
 
   // Validar cambio si pago es efectivo
   if(mp==='efectivo'){
-    const cambioSel=document.getElementById('c-cambio').value;
-    if(!cambioSel||cambioSel===''){
+    const cambioVal=document.getElementById('c-cambio').value.trim();
+    if(!cambioVal||parseInt(cambioVal)<=0){
       alert('Por favor indica con cuánto vas a pagar 💵');
       document.getElementById('c-cambio').focus();
       return;
-    }
-    if(cambioSel==='otro'){
-      const otro=document.getElementById('c-cambio-otro').value;
-      if(!otro||parseInt(otro)<=0){
-        alert('Por favor ingresa el monto con el que vas a pagar 💵');
-        document.getElementById('c-cambio-otro').focus();
-        return;
-      }
     }
   }
 
   // Cambio para efectivo
   let cambioInfo='';
   if(mp==='efectivo'){
-    const cambioSel=document.getElementById('c-cambio').value;
-    if(cambioSel==='exacto') cambioInfo='Pago exacto';
-    else if(cambioSel==='otro'){
-      const otro=document.getElementById('c-cambio-otro').value;
-      cambioInfo=otro?`Con $${parseInt(otro).toLocaleString('es-CO')}`:'';
-    } else cambioInfo=`Con $${parseInt(cambioSel).toLocaleString('es-CO')}`;
+    const cambioVal=document.getElementById('c-cambio').value.trim();
+    if(cambioVal&&parseInt(cambioVal)>0){
+      cambioInfo=`Con $${parseInt(cambioVal).toLocaleString('es-CO')}`;
+    }
   }
 
   // Guardar datos si está activado
@@ -1520,7 +1499,10 @@ async function enviarPedido(){
   }catch(err){console.error('Error guardando pedido:',err);}
 
   carrito=[];propinaActual=0;actualizarCarrito();toggleDrawer();
-  ['c-nom','c-tel','c-dir','c-ref','c-nota'].forEach(id=>document.getElementById(id).value='');
+  ['c-nom','c-tel','c-dir','c-ref','c-nota','c-cambio'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
   document.getElementById('c-mp').value='efectivo';
   onMpChange();
   // Reset propina UI
