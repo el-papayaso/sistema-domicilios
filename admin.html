@@ -97,6 +97,10 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .pcard.estado-listo{border-left-color:var(--acc2)}
 .pcard.estado-en_camino{border-left-color:var(--pur)}
 .pcard.estado-entregado{border-left-color:var(--grn)}
+.pcard.estado-cancelado{border-left-color:var(--mutl)}
+.pcard.finalizado{opacity:.6;background:#fafafa}
+.pcard.finalizado .prow1,.pcard.finalizado .prow2{filter:grayscale(.3)}
+.pcard.finalizado:hover{opacity:.8}
 @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 /* Fila superior compacta */
 .prow1{display:flex;align-items:center;gap:10px;padding:10px 14px;flex-wrap:wrap}
@@ -1766,7 +1770,8 @@ function renderPeds(){
         </select>
       </div>`:'';
 
-    return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}" data-pedido-id="${p.id}">
+    const finalizado=p.estado==='entregado'||p.estado==='cancelado';
+    return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}${finalizado?' finalizado':''}" data-pedido-id="${p.id}">
       <div class="prow1">
         <span class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span>
         ${canalBadge}${tipoBadge}
@@ -1789,7 +1794,9 @@ function renderPeds(){
       </div>
       ${domSelector}
       <div class="pfoot">
-        <select class="esel" id="${sid}" onchange="guardarEstado('${p.id}','${sid}')">
+        <select class="esel" id="${sid}"
+          ${finalizado?'disabled style="opacity:.35;pointer-events:none;cursor:default"':''}
+          onchange="guardarEstado('${p.id}','${sid}')">
           ${['pendiente','aceptado','listo','en_camino','entregado','cancelado'].map(e=>`<option value="${e}" ${p.estado===e?'selected':''}>${elbl(e)}</option>`).join('')}
         </select>
         <button class="gbtn bwa" onclick="notifWA('${p.cliente_telefono}','${p.cliente_nombre}','${sid}',${p.numero_pedido||0})">
