@@ -1648,6 +1648,11 @@ function setupRealtime(){
         const el=document.querySelector('.pcard');
         if(el){el.classList.add('nuevo');setTimeout(()=>el.classList.remove('nuevo'),3000);}
       },200);
+      // Actualizar tipos de cliente con delay para que Supabase refresque la vista
+      setTimeout(async()=>{
+        await cargarTiposClientes();
+        renderPeds();
+      },2000);
     })
     .on('postgres_changes',{
       event:'UPDATE',
