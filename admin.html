@@ -1648,7 +1648,12 @@ function setupRealtime(){
         const el=document.querySelector('.pcard');
         if(el){el.classList.add('nuevo');setTimeout(()=>el.classList.remove('nuevo'),3000);}
       },200);
-      // Actualizar tipos de cliente con delay para que Supabase refresque la vista
+      // Auto-asignar domiciliario si hay exactamente 1 activo
+      const activos=domiciliariosData.filter(d=>d.activo);
+      if(activos.length===1&&payload.new.id){
+        await asignarDomiciliario(payload.new.id, activos[0].id);
+      }
+      // Actualizar tipos de cliente con delay
       setTimeout(async()=>{
         await cargarTiposClientes();
         renderPeds();
@@ -1764,9 +1769,12 @@ function renderPeds(){
       }
     }
 
-    // Selector domiciliario si hay más de uno activo y está en camino
+    // Selector domiciliario:
+    // - 1 activo y sin asignar → ya se asigna automáticamente al llegar (ver Realtime)
+    // - 2+ activos → mostrar selector en todos los pedidos no finalizados
     const domActivos=domiciliariosData.filter(d=>d.activo);
-    const domSelector=(p.estado==='en_camino'&&domActivos.length>1)?`
+    const finalizado=p.estado==='entregado'||p.estado==='cancelado';
+    const domSelector=(!finalizado&&domActivos.length>1)?`
       <div class="dom-sel-wrap">
         <label>🛵 Asignar:</label>
         <select class="dom-sel" onchange="asignarDomiciliario('${p.id}',this.value)">
@@ -1775,8 +1783,7 @@ function renderPeds(){
         </select>
       </div>`:'';
 
-    const finalizado=p.estado==='entregado'||p.estado==='cancelado';
-    return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}${finalizado?' finalizado':''}" data-pedido-id="${p.id}">
+        return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}${finalizado?' finalizado':''}" data-pedido-id="${p.id}">
       <div class="prow1">
         <span class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span>
         ${canalBadge}${tipoBadge}
@@ -2301,31 +2308,42 @@ document.addEventListener('touchstart',desbloquearAudio,{once:false});
 
 function ping(){
   try{
-    // Crear contexto si no existe
     if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    // Reanudar si fue suspendido por el navegador
     if(_audioCtx.state==='suspended') _audioCtx.resume();
     const a=_audioCtx;
-    const beeps=[
-      {f:880, t:0,   dur:.18},
-      {f:880, t:.25, dur:.18},
-      {f:1200,t:.5,  dur:.35}
-    ];
-    beeps.forEach(b=>{
-      const o=a.createOscillator();
-      const g=a.createGain();
-      const comp=a.createDynamicsCompressor();
-      o.type='sine';
-      o.frequency.value=b.f;
-      o.connect(g);g.connect(comp);comp.connect(a.destination);
-      g.gain.setValueAtTime(0, a.currentTime+b.t);
-      g.gain.linearRampToValueAtTime(0.7, a.currentTime+b.t+0.02);
-      g.gain.exponentialRampToValueAtTime(0.001, a.currentTime+b.t+b.dur);
-      o.start(a.currentTime+b.t);
-      o.stop(a.currentTime+b.t+b.dur+0.05);
-    });
-    // Vibración en móvil
-    if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+
+    // Secuencia de 3 pitidos — se repite 3 veces con 0.9s de intervalo
+    const tocarSecuencia=(offset)=>{
+      const beeps=[
+        {f:880,  t:0,    dur:.15},
+        {f:1100, t:.2,   dur:.15},
+        {f:1400, t:.4,   dur:.25},
+      ];
+      beeps.forEach(b=>{
+        const o=a.createOscillator();
+        const g=a.createGain();
+        const comp=a.createDynamicsCompressor();
+        comp.threshold.value=-6;
+        comp.ratio.value=4;
+        o.type='square'; // más penetrante que sine
+        o.frequency.value=b.f;
+        o.connect(g);g.connect(comp);comp.connect(a.destination);
+        const t0=a.currentTime+offset+b.t;
+        g.gain.setValueAtTime(0,t0);
+        g.gain.linearRampToValueAtTime(1.0,t0+0.01); // volumen máximo
+        g.gain.exponentialRampToValueAtTime(0.001,t0+b.dur);
+        o.start(t0);
+        o.stop(t0+b.dur+0.05);
+      });
+    };
+
+    // 3 repeticiones: 0s, 0.9s, 1.8s
+    tocarSecuencia(0);
+    tocarSecuencia(0.9);
+    tocarSecuencia(1.8);
+
+    // Vibración en móvil — patrón más largo
+    if(navigator.vibrate) navigator.vibrate([300,150,300,150,300]);
   }catch(e){ console.warn('Audio error:',e); }
 }
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
