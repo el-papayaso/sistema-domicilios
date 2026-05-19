@@ -938,7 +938,13 @@ async function abrirModalProd(p){
     db.from('producto_opciones')
       .select('*').eq('producto_id',p.id).eq('activo',true)
       .eq('disponible',true).order('orden').order('nombre'),
-    Promise.resolve(extrasDB.filter(e=>e.categoria_id===p.categoria_id&&e.activo!==false))
+    Promise.resolve(extrasDB.filter(e=>{
+      if(e.activo===false) return false;
+      // Usar categorias_ids si existe, si no caer a categoria_id
+      if(e.categorias_ids&&e.categorias_ids.length>0)
+        return e.categorias_ids.includes(p.categoria_id);
+      return e.categoria_id===p.categoria_id;
+    }))
   ]);
   const opcsEspecificas=opcsRes.data||[];
 
