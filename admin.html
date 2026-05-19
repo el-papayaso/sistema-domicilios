@@ -1186,9 +1186,9 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <input type="hidden" id="mex-tipo">
 
     <div class="fgrow">
-      <div class="fg">
-        <label>Categoría *</label>
-        <select id="mex-cat"><option value="">Selecciona categoría</option></select>
+      <div class="fg" style="grid-column:1/-1">
+        <label>Categorías * <span style="font-size:11px;color:var(--mut);font-weight:400">Selecciona una o más categorías</span></label>
+        <div id="mex-cats-checks" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;max-height:160px;overflow-y:auto"></div>
       </div>
       <div class="fg" id="mex-precio-wrap">
         <label>Precio (COP) *</label>
@@ -2480,9 +2480,25 @@ function abrirExtra(e=null){
   document.getElementById('mex-desc').value=e?.descripcion||'';
   document.getElementById('mex-precio').value=e?.precio||'';
   document.getElementById('mex-activo').checked=e?e.activo!==false:true;
-  document.getElementById('mex-cat').innerHTML=
-    '<option value="">Selecciona categoría</option>'+
-    cats.map(c=>`<option value="${c.id}" ${e?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
+
+  // Categorías seleccionadas
+  const catsSeleccionadas=e?.categorias_ids?.length
+    ? e.categorias_ids
+    : (e?.categoria_id ? [e.categoria_id] : []);
+
+  // Renderizar checkboxes
+  const checksEl=document.getElementById('mex-cats-checks');
+  checksEl.innerHTML=cats.map(c=>{
+    const sel=catsSeleccionadas.includes(c.id);
+    return `<label style="display:flex;align-items:center;gap:7px;cursor:pointer;
+      background:${sel?'#fff5f1':'var(--sur)'};
+      border:1.5px solid ${sel?'var(--acc)':'var(--bdr)'};
+      border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;transition:all .2s"
+      onclick="this.style.background=this.querySelector('input').checked?'var(--sur)':'#fff5f1';this.style.borderColor=this.querySelector('input').checked?'var(--bdr)':'var(--acc)'">
+      <input type="checkbox" value="${c.id}" ${sel?'checked':''} style="accent-color:var(--acc);cursor:pointer;width:15px;height:15px">
+      ${c.emoji} ${c.nombre}</label>`;
+  }).join('');
+
   document.getElementById('ov-extra').classList.add('open');
   setTimeout(()=>document.getElementById('mex-nombre').focus(),120);
 }
@@ -2492,15 +2508,22 @@ function editExtra(id){abrirExtra(extras.find(e=>e.id===id));}
 async function guardarExtra(){
   const id=document.getElementById('mex-id').value;
   const nombre=document.getElementById('mex-nombre').value.trim();
-  const catId=document.getElementById('mex-cat').value;
   const precio=parseFloat(document.getElementById('mex-precio').value)||0;
+
+  // Leer categorías seleccionadas
+  const catsSeleccionadas=[...document.querySelectorAll('#mex-cats-checks input[type=checkbox]:checked')]
+    .map(cb=>cb.value);
+
   if(!nombre){toast('❌ El nombre es obligatorio','err');return;}
-  if(!catId){toast('❌ Selecciona una categoría','err');return;}
+  if(!catsSeleccionadas.length){toast('❌ Selecciona al menos una categoría','err');return;}
   if(!precio){toast('❌ Ingresa un precio para el extra','err');return;}
+
   const d={
     nombre, tipo:'extra', grupo:null,
     descripcion:document.getElementById('mex-desc').value.trim()||null,
-    precio, categoria_id:catId,
+    precio,
+    categoria_id:catsSeleccionadas[0], // primaria para compatibilidad
+    categorias_ids:catsSeleccionadas,
     activo:document.getElementById('mex-activo').checked
   };
   const {error}=id
