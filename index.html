@@ -629,6 +629,21 @@ async function init(){
 
 // ── CONFIGURACIÓN → UI ──
 function aplicarConfig(){
+  // Apariencia — colores y tipografía personalizados
+  if(cfg.color_principal) document.documentElement.style.setProperty('--acc', cfg.color_principal);
+  if(cfg.color_fondo)     document.documentElement.style.setProperty('--bg',  cfg.color_fondo);
+  if(cfg.color_texto)     document.documentElement.style.setProperty('--txt', cfg.color_texto);
+  if(cfg.tipografia&&cfg.tipografia!=='Inter'){
+    const fontName=cfg.tipografia.replace(/ /g,'+');
+    if(!document.querySelector(`link[href*="${fontName}"]`)){
+      const link=document.createElement('link');
+      link.rel='stylesheet';
+      link.href=`https://fonts.googleapis.com/css2?family=${fontName}:wght@400;500;600;700;800;900&display=swap`;
+      document.head.appendChild(link);
+    }
+    document.documentElement.style.setProperty('--fh',`'${cfg.tipografia}',sans-serif`);
+    document.documentElement.style.setProperty('--fb',`'${cfg.tipografia}',sans-serif`);
+  }
   // Nombre
   document.getElementById('local-nombre').textContent=cfg.nombre_local||'Nuestro Menú';
   document.getElementById('topbar-brand').textContent='🛵 '+(cfg.nombre_local||'');
