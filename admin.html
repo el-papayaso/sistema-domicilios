@@ -1223,8 +1223,8 @@ table.vtbl tr:hover td{background:var(--sur2)}
 
     <div class="fgrow">
       <div class="fg" style="grid-column:1/-1">
-        <label>Categoría *</label>
-        <select id="mad-cat"><option value="">Selecciona categoría</option></select>
+        <label>Categorías * <span style="font-size:11px;color:var(--mut);font-weight:400">Selecciona una o más categorías</span></label>
+        <div id="mad-cats-checks" style="display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;max-height:160px;overflow-y:auto"></div>
       </div>
     </div>
 
@@ -2515,23 +2515,37 @@ let opcionesAdicion=[]; // array de {id:'', nombre:''}  — id vacío = nueva
 
 function abrirAdicion(adicionExistente=null){
   document.getElementById('mad-tit').textContent=adicionExistente?'Editar Adición':'Nueva Adición';
-  document.getElementById('mad-cat').innerHTML=
-    '<option value="">Selecciona categoría</option>'+
-    cats.map(c=>`<option value="${c.id}" ${adicionExistente?.categoria_id===c.id?'selected':''}>${c.emoji} ${c.nombre}</option>`).join('');
+
+  // Categorías seleccionadas del grupo existente
+  let catsSeleccionadas=[];
+  if(adicionExistente){
+    const primerItem=extras.find(e=>e.tipo==='adicion'&&e.grupo===adicionExistente.grupo);
+    catsSeleccionadas=primerItem?.categorias_ids||(primerItem?.categoria_id?[primerItem.categoria_id]:[]);
+  }
+
+  // Renderizar checkboxes de categorías
+  const checksEl=document.getElementById('mad-cats-checks');
+  checksEl.innerHTML=cats.map(c=>{
+    const sel=catsSeleccionadas.includes(c.id);
+    return `<label style="display:flex;align-items:center;gap:7px;cursor:pointer;
+      background:${sel?'#fff5f1':'var(--sur)'};
+      border:1.5px solid ${sel?'var(--acc)':'var(--bdr)'};
+      border-radius:8px;padding:7px 12px;font-size:13px;font-weight:500;transition:all .2s"
+      onclick="this.style.background=this.querySelector('input').checked?'var(--sur)':'#fff5f1';this.style.borderColor=this.querySelector('input').checked?'var(--bdr)':'var(--acc)'">
+      <input type="checkbox" value="${c.id}" ${sel?'checked':''} style="accent-color:var(--acc);cursor:pointer;width:15px;height:15px">
+      ${c.emoji} ${c.nombre}</label>`;
+  }).join('');
 
   if(adicionExistente){
     const grupo=adicionExistente.grupo||'';
-    const catId=adicionExistente.categoria_id;
+    const catIdPrimario=catsSeleccionadas[0]||adicionExistente.categoria_id;
     document.getElementById('mad-grupo').value=grupo;
-    const grupoItems=extras.filter(e=>e.tipo==='adicion'&&e.grupo===grupo&&e.categoria_id===catId);
-    // obligatorio: leer del primer ítem del grupo
+    const grupoItems=extras.filter(e=>e.tipo==='adicion'&&e.grupo===grupo&&
+      (e.categorias_ids?.includes(catIdPrimario)||e.categoria_id===catIdPrimario));
     document.getElementById('mad-obligatorio').checked=grupoItems[0]?.obligatorio===true;
     document.getElementById('mad-activo').checked=grupoItems[0]?.activo!==false;
     opcionesAdicion=grupoItems.map(e=>({
-      id:e.id,
-      nombre:e.nombre,
-      desc:e.descripcion||'',
-      disponible:e.disponible!==false  // true por defecto
+      id:e.id, nombre:e.nombre, desc:e.descripcion||'', disponible:e.disponible!==false
     }));
   } else {
     document.getElementById('mad-grupo').value='';
@@ -2592,35 +2606,60 @@ function eliminarOpcionAdicion(i){
 
 async function guardarAdicion(){
   const grupo=document.getElementById('mad-grupo').value.trim();
-  const catId=document.getElementById('mad-cat').value;
   const activo=document.getElementById('mad-activo').checked;
   const obligatorio=document.getElementById('mad-obligatorio').checked;
 
+  // Leer categorías seleccionadas
+  const catsSeleccionadas=[...document.querySelectorAll('#mad-cats-checks input[type=checkbox]:checked')]
+    .map(cb=>cb.value);
+
   if(!grupo){toast('❌ El nombre del grupo es obligatorio','err');return;}
-  if(!catId){toast('❌ Selecciona una categoría','err');return;}
+  if(!catsSeleccionadas.length){toast('❌ Selecciona al menos una categoría','err');return;}
 
   const nombresValidos=opcionesAdicion.filter(o=>o.nombre.trim());
   if(!nombresValidos.length){toast('❌ Agrega al menos una opción','err');return;}
 
+  const catIdPrimario=catsSeleccionadas[0]; // para compatibilidad con campo categoria_id
+
   try{
+    // Buscar existentes por grupo y categoría primaria
     const {data:existentes}=await db.from('extras')
-      .select('id').eq('tipo','adicion').eq('grupo',grupo).eq('categoria_id',catId);
+      .select('id').eq('tipo','adicion').eq('grupo',grupo).eq('categoria_id',catIdPrimario);
     const idsExistentes=new Set((existentes||[]).map(r=>r.id));
     const idsNuevos=new Set(opcionesAdicion.filter(o=>o.id).map(o=>o.id));
 
     const aBorrar=[...idsExistentes].filter(id=>!idsNuevos.has(id));
     if(aBorrar.length) await db.from('extras').delete().in('id',aBorrar);
 
-    const upserts=nombresValidos.map(op=>({
-      ...(op.id?{id:op.id}:{}),
+    // Separar nuevos (sin id) de existentes (con id)
+    const nuevos=nombresValidos.filter(op=>!op.id).map(op=>({
       nombre:op.nombre.trim(),
-      tipo:'adicion', grupo, categoria_id:catId, precio:0,
-      activo, obligatorio,
-      disponible: op.disponible!==false,   // ← nuevo
+      tipo:'adicion', grupo,
+      categoria_id:catIdPrimario,
+      categorias_ids:catsSeleccionadas,
+      precio:0, activo, obligatorio,
+      disponible:op.disponible!==false,
       descripcion:op.desc||null
     }));
-    const {error}=await db.from('extras').upsert(upserts,{onConflict:'id'});
-    if(error) throw error;
+    const existentesUpd=nombresValidos.filter(op=>op.id).map(op=>({
+      id:op.id,
+      nombre:op.nombre.trim(),
+      tipo:'adicion', grupo,
+      categoria_id:catIdPrimario,
+      categorias_ids:catsSeleccionadas,
+      precio:0, activo, obligatorio,
+      disponible:op.disponible!==false,
+      descripcion:op.desc||null
+    }));
+
+    if(nuevos.length){
+      const {error:errIns}=await db.from('extras').insert(nuevos);
+      if(errIns) throw errIns;
+    }
+    if(existentesUpd.length){
+      const {error:errUpd}=await db.from('extras').upsert(existentesUpd,{onConflict:'id'});
+      if(errUpd) throw errUpd;
+    }
 
     toast('✅ Adición guardada correctamente','ok');
     cerrar('ov-adicion');
