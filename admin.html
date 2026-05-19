@@ -1097,6 +1097,97 @@ table.vtbl tr:hover td{background:var(--sur2)}
       </div>
     </div>
 
+    <!-- ── APARIENCIA DEL MENÚ ── -->
+    <div class="cfg-card full">
+      <div class="cfg-card-tit">🎨 Apariencia del menú</div>
+      <div class="cfg-card-sub">Personaliza los colores y tipografía que verán tus clientes</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+
+        <!-- Color principal -->
+        <div class="fg">
+          <label>Color principal <span style="font-size:11px;color:var(--mut);font-weight:400">(botones, precios, acentos)</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="color" id="cfg-color-principal" value="#ff6b35"
+              oninput="document.getElementById('cfg-color-principal-hex').value=this.value;previewColor()"
+              style="width:44px;height:44px;border:2px solid var(--bdr);border-radius:10px;cursor:pointer;padding:2px;background:none">
+            <input type="text" id="cfg-color-principal-hex" value="#ff6b35" maxlength="7"
+              placeholder="#ff6b35"
+              oninput="sincronizarColor('cfg-color-principal',this.value);previewColor()"
+              style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none"
+              onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+          </div>
+        </div>
+
+        <!-- Color de fondo -->
+        <div class="fg">
+          <label>Color de fondo <span style="font-size:11px;color:var(--mut);font-weight:400">(fondo general del menú)</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="color" id="cfg-color-fondo" value="#f7f5f0"
+              oninput="document.getElementById('cfg-color-fondo-hex').value=this.value;previewColor()"
+              style="width:44px;height:44px;border:2px solid var(--bdr);border-radius:10px;cursor:pointer;padding:2px;background:none">
+            <input type="text" id="cfg-color-fondo-hex" value="#f7f5f0" maxlength="7"
+              placeholder="#f7f5f0"
+              oninput="sincronizarColor('cfg-color-fondo',this.value);previewColor()"
+              style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none"
+              onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+          </div>
+        </div>
+
+        <!-- Color del texto -->
+        <div class="fg">
+          <label>Color del texto <span style="font-size:11px;color:var(--mut);font-weight:400">(títulos y texto principal)</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="color" id="cfg-color-texto" value="#111827"
+              oninput="document.getElementById('cfg-color-texto-hex').value=this.value;previewColor()"
+              style="width:44px;height:44px;border:2px solid var(--bdr);border-radius:10px;cursor:pointer;padding:2px;background:none">
+            <input type="text" id="cfg-color-texto-hex" value="#111827" maxlength="7"
+              placeholder="#111827"
+              oninput="sincronizarColor('cfg-color-texto',this.value);previewColor()"
+              style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none"
+              onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+          </div>
+        </div>
+
+        <!-- Tipografía -->
+        <div class="fg">
+          <label>Tipografía</label>
+          <select id="cfg-tipografia" onchange="previewColor()"
+            style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none;cursor:pointer">
+            <option value="Inter">Inter — Moderna y limpia</option>
+            <option value="Poppins">Poppins — Amigable y redondeada</option>
+            <option value="Montserrat">Montserrat — Bold y deportiva</option>
+            <option value="Playfair Display">Playfair Display — Elegante y clásica</option>
+            <option value="DM Sans">DM Sans — Ultra minimalista</option>
+            <option value="Nunito">Nunito — Suave y juvenil</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Vista previa -->
+      <div style="margin-top:20px;border:1.5px solid var(--bdr);border-radius:12px;overflow:hidden">
+        <div style="font-size:11px;color:var(--mut);padding:8px 14px;background:var(--sur2);border-bottom:1px solid var(--bdr);font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+          👁 Vista previa
+        </div>
+        <div id="apariencia-preview" style="padding:20px;transition:all .3s">
+          <div id="prev-fondo" style="border-radius:10px;padding:16px;background:#f7f5f0">
+            <div id="prev-nombre" style="font-size:18px;font-weight:800;color:#111827;margin-bottom:4px;font-family:Inter,sans-serif">Nombre del negocio</div>
+            <div id="prev-desc" style="font-size:13px;color:#6b7280;margin-bottom:12px;font-family:Inter,sans-serif">Descripción del producto ejemplo</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div id="prev-precio" style="font-size:20px;font-weight:800;color:#ff6b35;font-family:Inter,sans-serif">$25.000</div>
+              <div id="prev-btn" style="background:#ff6b35;color:#fff;border-radius:99px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700">+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <button onclick="resetApariencia()" style="margin-top:12px;background:transparent;border:1px solid var(--bdr);border-radius:8px;padding:7px 16px;font-size:12px;color:var(--mut);cursor:pointer;font-family:var(--fb);transition:all .2s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--mut)'">
+        🔄 Restablecer valores por defecto
+      </button>
+    </div>
+
     <!-- Guardar -->
     <div class="cfg-card full" style="padding:20px 28px">
       <button class="bsave-cfg" onclick="guardarConfig()">💾 Guardar Configuración</button>
@@ -2212,7 +2303,6 @@ function renderConfig(){
   document.getElementById('cfg-slogan').value=cfg.slogan||'';
   document.getElementById('cfg-ciudad').value=cfg.ciudad||'';
   document.getElementById('cfg-dir').value=cfg.direccion||'';
-  // WhatsApp: guardar con 57, mostrar solo los 10 dígitos locales
   const waRaw=cfg.whatsapp||'';
   const waLocal=waRaw.startsWith('57')&&waRaw.length>10?waRaw.slice(2):waRaw.replace(/\D/g,'');
   document.getElementById('cfg-wa').value=waLocal;
@@ -2221,11 +2311,24 @@ function renderConfig(){
   document.getElementById('cfg-hLV').value=cfg.horario_lunes_viernes||'';
   document.getElementById('cfg-hSab').value=cfg.horario_sabado||'';
   document.getElementById('cfg-hDom').value=cfg.horario_domingo||'';
-  // Logos/portada — cargar URL existente en hidden + preview
   document.getElementById('cfg-logo').value=cfg.logo_url||'';
   document.getElementById('cfg-portada').value=cfg.portada_url||'';
   actualizarPrevLogo(cfg.logo_url);
   actualizarPrevPortada(cfg.portada_url);
+
+  // Apariencia
+  const cp=cfg.color_principal||'#ff6b35';
+  const cf=cfg.color_fondo    ||'#f7f5f0';
+  const ct=cfg.color_texto    ||'#111827';
+  const tf=cfg.tipografia     ||'Inter';
+  document.getElementById('cfg-color-principal').value=cp;
+  document.getElementById('cfg-color-principal-hex').value=cp;
+  document.getElementById('cfg-color-fondo').value=cf;
+  document.getElementById('cfg-color-fondo-hex').value=cf;
+  document.getElementById('cfg-color-texto').value=ct;
+  document.getElementById('cfg-color-texto-hex').value=ct;
+  document.getElementById('cfg-tipografia').value=tf;
+  previewColor();
 }
 function actualizarPrevLogo(url){
   const w=document.getElementById('logo-prev-wrap');
@@ -2249,6 +2352,10 @@ async function guardarConfig(){
     horario_domingo:document.getElementById('cfg-hDom').value.trim()||null,
     logo_url:document.getElementById('cfg-logo').value.trim()||null,
     portada_url:document.getElementById('cfg-portada').value.trim()||null,
+    color_principal:document.getElementById('cfg-color-principal').value||'#ff6b35',
+    color_fondo:document.getElementById('cfg-color-fondo').value||'#f7f5f0',
+    color_texto:document.getElementById('cfg-color-texto').value||'#111827',
+    tipografia:document.getElementById('cfg-tipografia').value||'Inter',
   };
   if(!d.nombre_local){toast('❌ El nombre del local es obligatorio','err');return;}
   const waDigits=document.getElementById('cfg-wa').value.replace(/\D/g,'');
@@ -2261,6 +2368,47 @@ async function guardarConfig(){
   }
   if(!error){toast('✅ Configuración guardada','ok');await loadConfig();}
   else toast('❌ Error: '+error.message,'err');
+}
+
+// ── APARIENCIA ──
+function sincronizarColor(inputId, hex){
+  // Sincroniza el color picker con el input de texto
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)){
+    document.getElementById(inputId).value=hex;
+  }
+}
+
+function previewColor(){
+  const cp=document.getElementById('cfg-color-principal').value||'#ff6b35';
+  const cf=document.getElementById('cfg-color-fondo').value||'#f7f5f0';
+  const ct=document.getElementById('cfg-color-texto').value||'#111827';
+  const tf=document.getElementById('cfg-tipografia').value||'Inter';
+  // Actualizar vista previa
+  const fondo=document.getElementById('prev-fondo');
+  const nombre=document.getElementById('prev-nombre');
+  const desc=document.getElementById('prev-desc');
+  const precio=document.getElementById('prev-precio');
+  const btn=document.getElementById('prev-btn');
+  if(fondo)  fondo.style.background=cf;
+  if(nombre){nombre.style.color=ct;nombre.style.fontFamily=`'${tf}',sans-serif`;}
+  if(desc)   desc.style.fontFamily=`'${tf}',sans-serif`;
+  if(precio){precio.style.color=cp;precio.style.fontFamily=`'${tf}',sans-serif`;}
+  if(btn)    btn.style.background=cp;
+}
+
+function resetApariencia(){
+  if(!confirm('¿Restablecer colores y tipografía por defecto?'))return;
+  const defaults={
+    'cfg-color-principal':'#ff6b35','cfg-color-principal-hex':'#ff6b35',
+    'cfg-color-fondo':'#f7f5f0','cfg-color-fondo-hex':'#f7f5f0',
+    'cfg-color-texto':'#111827','cfg-color-texto-hex':'#111827',
+  };
+  Object.entries(defaults).forEach(([id,val])=>{
+    const el=document.getElementById(id);
+    if(el) el.value=val;
+  });
+  document.getElementById('cfg-tipografia').value='Inter';
+  previewColor();
 }
 
 // ═══════════════════════════════
