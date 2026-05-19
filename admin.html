@@ -2077,7 +2077,6 @@ function eliminarItem(gi,ii){
 }
 
 async function guardarOpcionesProd(prodId){
-  if(!mpGrupos.length) return;
   // 1. Obtener IDs existentes del producto
   const {data:existentes}=await db.from('producto_opciones')
     .select('id').eq('producto_id',prodId);
