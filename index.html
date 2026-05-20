@@ -457,6 +457,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 </div>
 
 <!-- MENÚ -->
+<div id="dest-container"></div>
 <div class="menu-wrap" id="menu-wrap">
   <div style="padding:40px 0;text-align:center;color:var(--mut)">⏳ Cargando menú...</div>
 </div>
@@ -864,32 +865,28 @@ function filtrar(id,el){
 // ── MENÚ ──
 function renderDestacados(){
   const destacados=prods.filter(p=>p.destacado&&p.disponible);
-  const wrap=document.getElementById('menu-wrap');
-  // Quitar carrusel anterior si existe
-  const anterior=document.getElementById('dest-section');
-  if(anterior) anterior.remove();
-  if(!destacados.length) return;
+  const container=document.getElementById('dest-container');
+  if(!container) return;
+  if(!destacados.length){container.innerHTML='';return;}
 
-  const sec=document.createElement('div');
-  sec.className='dest-section';
-  sec.id='dest-section';
-  sec.innerHTML=`
-    <div class="dest-section-title">⭐ Destacados</div>
-    <div class="dest-scroll">
-      ${destacados.map(p=>`
-        <div class="dest-card" onclick="addToCart('${p.id}')">
-          <div class="dest-card-img">
-            ${p.imagen_url
-              ?`<img src="${p.imagen_url}" alt="${p.nombre}" onerror="this.parentNode.innerHTML='<span style=font-size:40px>${p.categorias?.emoji||'🍽️'}</span>'">`
-              :`<span style="font-size:40px">${p.categorias?.emoji||'🍽️'}</span>`}
-          </div>
-          <div class="dest-card-body">
-            <div class="dest-card-nombre">${p.nombre}</div>
-            <div class="dest-card-precio">${$f(p.precio)}</div>
-          </div>
-        </div>`).join('')}
+  container.innerHTML=`
+    <div class="dest-section" id="dest-section">
+      <div class="dest-section-title">⭐ Destacados</div>
+      <div class="dest-scroll">
+        ${destacados.map(p=>`
+          <div class="dest-card" onclick="addToCart('${p.id}')">
+            <div class="dest-card-img">
+              ${p.imagen_url
+                ?`<img src="${p.imagen_url}" alt="${p.nombre}" onerror="this.parentNode.innerHTML='<span style=font-size:40px>${p.categorias?.emoji||'🍽️'}</span>'">`
+                :`<span style="font-size:40px">${p.categorias?.emoji||'🍽️'}</span>`}
+            </div>
+            <div class="dest-card-body">
+              <div class="dest-card-nombre">${p.nombre}</div>
+              <div class="dest-card-precio">${$f(p.precio)}</div>
+            </div>
+          </div>`).join('')}
+      </div>
     </div>`;
-  wrap.insertBefore(sec, wrap.firstChild);
 }
 
 function renderMenu(){
