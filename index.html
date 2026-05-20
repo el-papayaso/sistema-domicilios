@@ -633,6 +633,7 @@ function aplicarConfig(){
   if(cfg.color_principal) document.documentElement.style.setProperty('--acc', cfg.color_principal);
   if(cfg.color_fondo)     document.documentElement.style.setProperty('--bg',  cfg.color_fondo);
   if(cfg.color_texto)     document.documentElement.style.setProperty('--txt', cfg.color_texto);
+  if(cfg.color_tarjetas)  document.documentElement.style.setProperty('--sur', cfg.color_tarjetas);
   if(cfg.tipografia&&cfg.tipografia!=='Inter'){
     const fontName=cfg.tipografia.replace(/ /g,'+');
     if(!document.querySelector(`link[href*="${fontName}"]`)){
