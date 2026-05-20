@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin · Domicilios</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <style>
 :root {
   --bg:#f4f5f7;--sur:#ffffff;--sur2:#f8f9fa;--bdr:#e2e5e9;
@@ -155,7 +156,12 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 /* ── PRODUCTOS GRID ── */
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.prc{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;box-shadow:var(--sh)}
+.prc{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;box-shadow:var(--sh);position:relative}
+.drag-handle{position:absolute;top:50%;left:8px;transform:translateY(-50%);color:var(--mutl);font-size:16px;cursor:grab;user-select:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;z-index:2}
+.drag-handle:hover{color:var(--acc)}
+.drag-handle:active{cursor:grabbing}
+.prc .primg,.prc .prbody,.prc .practs{margin-left:28px}
+.sortable-ghost{opacity:.35;background:var(--warm);border:2px dashed var(--acc)}
 .primg{height:140px;background:var(--sur2);display:flex;align-items:center;justify-content:center;
   font-size:56px;overflow:hidden;position:relative}
 .primg img{width:100%;height:100%;object-fit:cover}
@@ -2046,7 +2052,8 @@ function renderProds(){
   const g=document.getElementById('pgrid');
   if(!fil.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><span>🍽️</span><p>Sin productos aquí.</p></div>';return;}
   g.innerHTML=fil.map(p=>`
-    <div class="prc">
+    <div class="prc" data-id="${p.id}">
+      <div class="drag-handle" title="Arrastrar para reordenar">⠿</div>
       <div class="primg">
         ${p.imagen_url?`<img src="${p.imagen_url}" onerror="this.parentNode.innerHTML='<span style=font-size:60px>${p.categorias?.emoji||'🍽️'}</span>'" alt="${p.nombre}">`:`<span style="font-size:60px">${p.categorias?.emoji||'🍽️'}</span>`}
         <div class="prbgs">${p.destacado?'<span class="bgd">⭐ Destacado</span>':''}${!p.disponible?'<span class="bgo">No disponible</span>':''}</div>
@@ -2061,6 +2068,33 @@ function renderProds(){
         <button class="bdel" onclick="delProd('${p.id}')">🗑️</button>
       </div>
     </div>`).join('');
+
+  // Inicializar SortableJS
+  if(window.Sortable){
+    Sortable.create(g,{
+      handle:'.drag-handle',
+      animation:180,
+      ghostClass:'sortable-ghost',
+      onEnd: async (evt)=>{
+        // Obtener nuevo orden de los IDs
+        const cards=[...g.querySelectorAll('.prc[data-id]')];
+        const updates=cards.map((card,i)=>({
+          id:card.dataset.id,
+          orden:i+1
+        }));
+        // Guardar en Supabase
+        await Promise.all(updates.map(u=>
+          db.from('productos').update({orden:u.orden}).eq('id',u.id)
+        ));
+        // Actualizar array local para mantener consistencia
+        updates.forEach(u=>{
+          const p=prods.find(x=>x.id===u.id);
+          if(p) p.orden=u.orden;
+        });
+        toast('✅ Orden guardado','ok');
+      }
+    });
+  }
 }
 // Estado local de grupos de opciones del modal
 let mpGrupos=[]; // [{grupo:'',obligatorio:false,tipo:'adicion',items:[{nombre:'',precio:0}]}]
