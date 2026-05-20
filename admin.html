@@ -157,10 +157,11 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 /* ── PRODUCTOS GRID ── */
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .prc{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;box-shadow:var(--sh);position:relative}
-.drag-handle{position:absolute;top:50%;left:8px;transform:translateY(-50%);color:var(--mutl);font-size:16px;cursor:grab;user-select:none;width:22px;height:22px;display:flex;align-items:center;justify-content:center;z-index:2}
-.drag-handle:hover{color:var(--acc)}
-.drag-handle:active{cursor:grabbing}
-.prc .primg,.prc .prbody,.prc .practs{margin-left:28px}
+.orden-input-wrap{position:absolute;top:8px;left:8px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px}
+.orden-input{width:32px;height:32px;border:1.5px solid var(--bdr);border-radius:7px;background:var(--sur2);color:var(--txt);font-size:12px;font-weight:700;text-align:center;font-family:var(--fb);outline:none;cursor:pointer;transition:border-color .2s}
+.orden-input:focus{border-color:var(--acc);background:#fff}
+.orden-lbl{font-size:9px;color:var(--mutl);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.prc .primg,.prc .prbody,.prc .practs{margin-left:44px}
 .sortable-ghost{opacity:.35;background:var(--warm);border:2px dashed var(--acc)}
 .primg{height:140px;background:var(--sur2);display:flex;align-items:center;justify-content:center;
   font-size:56px;overflow:hidden;position:relative}
@@ -2051,9 +2052,29 @@ function renderProds(){
   cats.forEach(c=>{const d=document.createElement('div');d.className='cfp'+(cfFiltro===c.id?' active':'');d.textContent=`${c.emoji} ${c.nombre}`;d.onclick=()=>filtrar(c.id,d);row.appendChild(d);});
   const g=document.getElementById('pgrid');
   if(!fil.length){g.innerHTML='<div class="empty" style="grid-column:1/-1"><span>🍽️</span><p>Sin productos aquí.</p></div>';return;}
+
+  // Calcular el orden actual por categoría
+  const ordenPorCat={};
+  fil.forEach(p=>{
+    const cat=p.categoria_id||'sin-cat';
+    if(!ordenPorCat[cat]) ordenPorCat[cat]=[];
+    ordenPorCat[cat].push(p);
+  });
+  // Asignar número de posición dentro de cada categoría
+  const posicion={};
+  Object.values(ordenPorCat).forEach(grupo=>{
+    grupo.forEach((p,i)=>{ posicion[p.id]=i+1; });
+  });
+
   g.innerHTML=fil.map(p=>`
-    <div class="prc" data-id="${p.id}">
-      <div class="drag-handle" title="Arrastrar para reordenar">⠿</div>
+    <div class="prc" data-id="${p.id}" data-cat="${p.categoria_id||''}">
+      <div class="orden-input-wrap" title="Posición en su categoría">
+        <input class="orden-input" type="number" min="1" value="${posicion[p.id]||1}"
+          data-id="${p.id}" data-cat="${p.categoria_id||''}"
+          onkeydown="if(event.key==='Enter'){this.blur()}"
+          onblur="cambiarOrden(this)">
+        <span class="orden-lbl">#pos</span>
+      </div>
       <div class="primg">
         ${p.imagen_url?`<img src="${p.imagen_url}" onerror="this.parentNode.innerHTML='<span style=font-size:60px>${p.categorias?.emoji||'🍽️'}</span>'" alt="${p.nombre}">`:`<span style="font-size:60px">${p.categorias?.emoji||'🍽️'}</span>`}
         <div class="prbgs">${p.destacado?'<span class="bgd">⭐ Destacado</span>':''}${!p.disponible?'<span class="bgo">No disponible</span>':''}</div>
@@ -2068,33 +2089,43 @@ function renderProds(){
         <button class="bdel" onclick="delProd('${p.id}')">🗑️</button>
       </div>
     </div>`).join('');
+}
 
-  // Inicializar SortableJS
-  if(window.Sortable){
-    Sortable.create(g,{
-      handle:'.drag-handle',
-      animation:180,
-      ghostClass:'sortable-ghost',
-      onEnd: async (evt)=>{
-        // Obtener nuevo orden de los IDs
-        const cards=[...g.querySelectorAll('.prc[data-id]')];
-        const updates=cards.map((card,i)=>({
-          id:card.dataset.id,
-          orden:i+1
-        }));
-        // Guardar en Supabase
-        await Promise.all(updates.map(u=>
-          db.from('productos').update({orden:u.orden}).eq('id',u.id)
-        ));
-        // Actualizar array local para mantener consistencia
-        updates.forEach(u=>{
-          const p=prods.find(x=>x.id===u.id);
-          if(p) p.orden=u.orden;
-        });
-        toast('✅ Orden guardado','ok');
-      }
-    });
-  }
+async function cambiarOrden(input){
+  const pid=input.dataset.id;
+  const catId=input.dataset.cat||null;
+  const nuevaPos=parseInt(input.value)||1;
+
+  // Obtener todos los productos de la misma categoría ordenados actualmente
+  const grupo=prods.filter(p=>(p.categoria_id||'')===(catId||'')).slice();
+  if(grupo.length<=1) return;
+
+  // Encontrar el producto que se está moviendo
+  const idx=grupo.findIndex(p=>p.id===pid);
+  if(idx===-1) return;
+
+  // Remover de su posición actual e insertar en la nueva
+  const [movido]=grupo.splice(idx,1);
+  const destino=Math.min(Math.max(nuevaPos,1),grupo.length+1)-1;
+  grupo.splice(destino,0,movido);
+
+  // Asignar nuevos valores de orden y guardar en Supabase
+  const updates=grupo.map((p,i)=>({id:p.id,orden:i+1}));
+  await Promise.all(updates.map(u=>
+    db.from('productos').update({orden:u.orden}).eq('id',u.id)
+  ));
+
+  // Actualizar array local
+  updates.forEach(u=>{
+    const p=prods.find(x=>x.id===u.id);
+    if(p) p.orden=u.orden;
+  });
+
+  // Reordenar prods globalmente
+  prods.sort((a,b)=>(a.orden||0)-(b.orden||0));
+
+  toast('✅ Orden actualizado','ok');
+  renderProds();
 }
 // Estado local de grupos de opciones del modal
 let mpGrupos=[]; // [{grupo:'',obligatorio:false,tipo:'adicion',items:[{nombre:'',precio:0}]}]
