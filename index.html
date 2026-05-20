@@ -125,7 +125,18 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .cart-total-fab{font-size:13px;font-weight:700}
 
 /* ════ SECCIÓN PRODUCTOS ════ */
-.menu-wrap{padding:0 16px 120px}
+/* ── CARRUSEL DESTACADOS ── */
+.dest-section{padding:16px 0 8px}
+.dest-section-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);padding:0 16px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.dest-scroll{display:flex;gap:12px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.dest-scroll::-webkit-scrollbar{display:none}
+.dest-card{flex-shrink:0;width:160px;background:var(--sur);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08);cursor:pointer;transition:transform .15s;border:1px solid var(--bdr)}
+.dest-card:active{transform:scale(.97)}
+.dest-card-img{width:100%;height:110px;object-fit:cover;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:40px}
+.dest-card-img img{width:100%;height:100%;object-fit:cover}
+.dest-card-body{padding:10px 10px 12px}
+.dest-card-nombre{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dest-card-precio{font-size:14px;font-weight:900;color:var(--acc);font-family:var(--fh)}
 .sec-title{
   display:flex;align-items:center;justify-content:space-between;
   padding:22px 0 12px;
@@ -851,7 +862,38 @@ function filtrar(id,el){
 }
 
 // ── MENÚ ──
+function renderDestacados(){
+  const destacados=prods.filter(p=>p.destacado&&p.disponible);
+  const wrap=document.getElementById('menu-wrap');
+  // Quitar carrusel anterior si existe
+  const anterior=document.getElementById('dest-section');
+  if(anterior) anterior.remove();
+  if(!destacados.length) return;
+
+  const sec=document.createElement('div');
+  sec.className='dest-section';
+  sec.id='dest-section';
+  sec.innerHTML=`
+    <div class="dest-section-title">⭐ Destacados</div>
+    <div class="dest-scroll">
+      ${destacados.map(p=>`
+        <div class="dest-card" onclick="addToCart('${p.id}')">
+          <div class="dest-card-img">
+            ${p.imagen_url
+              ?`<img src="${p.imagen_url}" alt="${p.nombre}" onerror="this.parentNode.innerHTML='<span style=font-size:40px>${p.categorias?.emoji||'🍽️'}</span>'">`
+              :`<span style="font-size:40px">${p.categorias?.emoji||'🍽️'}</span>`}
+          </div>
+          <div class="dest-card-body">
+            <div class="dest-card-nombre">${p.nombre}</div>
+            <div class="dest-card-precio">${$f(p.precio)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  wrap.insertBefore(sec, wrap.firstChild);
+}
+
 function renderMenu(){
+  renderDestacados();
   const wrap=document.getElementById('menu-wrap');
   const filtrados=catActiva==='all'?prods:prods.filter(p=>p.categoria_id===catActiva);
   if(!filtrados.length){
@@ -901,7 +943,7 @@ function prodHTML(p){
       ${p.imagen_url?`<img src="${p.imagen_url}" onerror="this.parentNode.innerHTML='<span style=font-size:36px>${p.categorias?.emoji||'🍽️'}</span>'" alt="${p.nombre}">`:`<span style="font-size:36px">${p.categorias?.emoji||'🍽️'}</span>`}
     </div>
     <div class="prod-info">
-      ${p.destacado?'<span class="dest-badge">⭐ Destacado</span>':''}
+      ${p.destacado?'<span class="dest-badge">⭐</span>':''}
       <h3>${p.nombre}</h3>
       <p>${p.descripcion||''}</p>
       <div class="prod-bottom">
