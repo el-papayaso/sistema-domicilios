@@ -1149,6 +1149,21 @@ table.vtbl tr:hover td{background:var(--sur2)}
           </div>
         </div>
 
+        <!-- Color de tarjetas y header -->
+        <div class="fg">
+          <label>Color de tarjetas y header <span style="font-size:11px;color:var(--mut);font-weight:400">(fondo del perfil y productos)</span></label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="color" id="cfg-color-tarjetas" value="#ffffff"
+              oninput="document.getElementById('cfg-color-tarjetas-hex').value=this.value;previewColor()"
+              style="width:44px;height:44px;border:2px solid var(--bdr);border-radius:10px;cursor:pointer;padding:2px;background:none">
+            <input type="text" id="cfg-color-tarjetas-hex" value="#ffffff" maxlength="7"
+              placeholder="#ffffff"
+              oninput="sincronizarColor('cfg-color-tarjetas',this.value);previewColor()"
+              style="flex:1;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:10px 12px;font-size:14px;font-family:var(--fb);color:var(--txt);outline:none"
+              onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+          </div>
+        </div>
+
         <!-- Tipografía -->
         <div class="fg">
           <label>Tipografía</label>
@@ -2320,6 +2335,7 @@ function renderConfig(){
   const cp=cfg.color_principal||'#ff6b35';
   const cf=cfg.color_fondo    ||'#f7f5f0';
   const ct=cfg.color_texto    ||'#111827';
+  const cs=cfg.color_tarjetas ||'#ffffff';
   const tf=cfg.tipografia     ||'Inter';
   document.getElementById('cfg-color-principal').value=cp;
   document.getElementById('cfg-color-principal-hex').value=cp;
@@ -2327,6 +2343,8 @@ function renderConfig(){
   document.getElementById('cfg-color-fondo-hex').value=cf;
   document.getElementById('cfg-color-texto').value=ct;
   document.getElementById('cfg-color-texto-hex').value=ct;
+  document.getElementById('cfg-color-tarjetas').value=cs;
+  document.getElementById('cfg-color-tarjetas-hex').value=cs;
   document.getElementById('cfg-tipografia').value=tf;
   previewColor();
 }
@@ -2355,6 +2373,7 @@ async function guardarConfig(){
     color_principal:document.getElementById('cfg-color-principal').value||'#ff6b35',
     color_fondo:document.getElementById('cfg-color-fondo').value||'#f7f5f0',
     color_texto:document.getElementById('cfg-color-texto').value||'#111827',
+    color_tarjetas:document.getElementById('cfg-color-tarjetas').value||'#ffffff',
     tipografia:document.getElementById('cfg-tipografia').value||'Inter',
   };
   if(!d.nombre_local){toast('❌ El nombre del local es obligatorio','err');return;}
@@ -2382,18 +2401,20 @@ function previewColor(){
   const cp=document.getElementById('cfg-color-principal').value||'#ff6b35';
   const cf=document.getElementById('cfg-color-fondo').value||'#f7f5f0';
   const ct=document.getElementById('cfg-color-texto').value||'#111827';
+  const cs=document.getElementById('cfg-color-tarjetas').value||'#ffffff';
   const tf=document.getElementById('cfg-tipografia').value||'Inter';
-  // Actualizar vista previa
   const fondo=document.getElementById('prev-fondo');
   const nombre=document.getElementById('prev-nombre');
   const desc=document.getElementById('prev-desc');
   const precio=document.getElementById('prev-precio');
   const btn=document.getElementById('prev-btn');
-  if(fondo)  fondo.style.background=cf;
-  if(nombre){nombre.style.color=ct;nombre.style.fontFamily=`'${tf}',sans-serif`;}
-  if(desc)   desc.style.fontFamily=`'${tf}',sans-serif`;
-  if(precio){precio.style.color=cp;precio.style.fontFamily=`'${tf}',sans-serif`;}
-  if(btn)    btn.style.background=cp;
+  const preview=document.getElementById('apariencia-preview');
+  if(preview)  preview.style.background=cf;
+  if(fondo)    fondo.style.background=cs;
+  if(nombre){  nombre.style.color=ct;nombre.style.fontFamily=`'${tf}',sans-serif`;}
+  if(desc)     desc.style.fontFamily=`'${tf}',sans-serif`;
+  if(precio){  precio.style.color=cp;precio.style.fontFamily=`'${tf}',sans-serif`;}
+  if(btn)      btn.style.background=cp;
 }
 
 function resetApariencia(){
@@ -2402,6 +2423,7 @@ function resetApariencia(){
     'cfg-color-principal':'#ff6b35','cfg-color-principal-hex':'#ff6b35',
     'cfg-color-fondo':'#f7f5f0','cfg-color-fondo-hex':'#f7f5f0',
     'cfg-color-texto':'#111827','cfg-color-texto-hex':'#111827',
+    'cfg-color-tarjetas':'#ffffff','cfg-color-tarjetas-hex':'#ffffff',
   };
   Object.entries(defaults).forEach(([id,val])=>{
     const el=document.getElementById(id);
