@@ -1679,7 +1679,13 @@ table.vtbl tr:hover td{background:var(--sur2)}
 const SURL='https://ramgdkqowllcmenxzwhn.supabase.co';
 const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJhbWdka3Fvd2xsY21lbnh6d2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NzMxNTksImV4cCI6MjA5MzA0OTE1OX0.cQpAlUYheb1RMm-KwSeX0Q1W6lO6GtlCMT6PX5vkz-I';
 const {createClient}=supabase;
-const db=createClient(SURL,SKEY);
+const db=createClient(SURL,SKEY,{
+  auth:{
+    autoRefreshToken:true,
+    persistSession:true,
+    detectSessionInUrl:false
+  }
+});
 
 // ── GUARD DE SESIÓN ── (aquí ya cargó el SDK y el DOM está disponible)
 (function(){
@@ -1687,7 +1693,14 @@ const db=createClient(SURL,SKEY);
     var raw=localStorage.getItem('papayaso_admin_session');
     if(!raw){window.location.replace('login.html');return;}
     var s=JSON.parse(raw);
-    if(!s||!s.access_token||Date.now()>=(s.expires_at||0)){
+    if(!s||!s.access_token){
+      localStorage.removeItem('papayaso_admin_session');
+      window.location.replace('login.html');
+      return;
+    }
+    // Supabase puede devolver expires_at en segundos (10 dígitos) o ms (13 dígitos)
+    var expMs=s.expires_at>1e12?s.expires_at:s.expires_at*1000;
+    if(Date.now()>=expMs){
       localStorage.removeItem('papayaso_admin_session');
       window.location.replace('login.html');
     }
@@ -1695,6 +1708,34 @@ const db=createClient(SURL,SKEY);
 })();
 
 let cats=[],prods=[],peds=[],cfg={},cfFiltro='all',extras=[],extraTab='extras';
+
+// ── AUTH STATE LISTENER ──
+// Escucha renovaciones de token en segundo plano — nunca expulsa por TOKEN_REFRESHED
+db.auth.onAuthStateChange((event, session)=>{
+  if(event==='TOKEN_REFRESHED' && session){
+    // Supabase renovó el token silenciosamente — actualizar localStorage
+    try{
+      const actual=JSON.parse(localStorage.getItem('papayaso_admin_session')||'{}');
+      const actualizada={
+        ...actual,
+        access_token:  session.access_token,
+        refresh_token: session.refresh_token,
+        // expires_at de Supabase viene en segundos — guardar en ms para consistencia
+        expires_at: session.expires_at>1e12
+          ? session.expires_at
+          : session.expires_at*1000,
+        user: session.user||actual.user
+      };
+      localStorage.setItem('papayaso_admin_session', JSON.stringify(actualizada));
+    }catch(e){ console.warn('Error actualizando sesión:', e); }
+  }
+  if(event==='SIGNED_OUT'){
+    // Solo redirigir si NO fue un logout manual del botón "Salir"
+    if(!sessionStorage.getItem('papayaso_logout_flag')){
+      window.location.replace('login.html');
+    }
+  }
+});
 
 // ── INIT ──
 async function init(){
