@@ -523,10 +523,16 @@ async function doNewPass() {
     var raw = localStorage.getItem('papayaso_admin_session');
     if (raw) {
       var session = JSON.parse(raw);
-      if (session && session.access_token && Date.now() < (session.expires_at || 0)) {
-        // Sesión válida → ir directo al admin
-        window.location.replace('admin.html');
-        return;
+      if (session && session.access_token) {
+        // Normalizar expires_at — puede estar en segundos o milisegundos
+        var expMs = session.expires_at > 1e12
+          ? session.expires_at
+          : session.expires_at * 1000;
+        if (Date.now() < expMs) {
+          // Sesión válida → ir directo al admin
+          window.location.replace('admin.html');
+          return;
+        }
       }
       // Expirada → limpiar
       localStorage.removeItem('papayaso_admin_session');
