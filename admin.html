@@ -280,6 +280,13 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:all .2s}
 .v-btn-buscar:hover{background:#e55a26}
 .v-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.v-canal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.v-canal-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;box-shadow:var(--sh)}
+.v-canal-card.dom{border-left:4px solid var(--pur)}
+.v-canal-card.pos{border-left:4px solid var(--blu)}
+.v-canal-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:6px}
+.v-canal-monto{font-family:var(--fh);font-size:20px;font-weight:900;color:var(--txt);margin-bottom:2px}
+.v-canal-count{font-size:12px;color:var(--mut);font-weight:500}
 .vk{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:20px;position:relative;overflow:hidden}
 .vk::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc);border-radius:2px 2px 0 0}
 .vk.grn::before{background:var(--grn)}
@@ -811,6 +818,23 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="vk grn"><div class="kico">🧾</div><div class="kval" id="vk-pedidos">0</div><div class="klbl">Pedidos</div><div class="ksub" id="vk-prom-sub">Ticket prom. <span id="vk-prom">$0</span></div></div>
     <div class="vk blu"><div class="kico">📦</div><div class="kval" id="vk-entregados">0</div><div class="klbl">Entregados</div><div class="ksub" id="vk-entregados-pct">0% del total</div></div>
     <div class="vk pur"><div class="kico">❌</div><div class="kval" id="vk-cancelados">0</div><div class="klbl">Cancelados</div><div class="ksub" id="vk-cancelados-pct">0% del total</div></div>
+  </div>
+
+  <!-- DESGLOSE POR CANAL -->
+  <div style="font-family:var(--fh);font-size:15px;font-weight:800;margin-bottom:12px">📊 Ventas por canal</div>
+  <div class="v-canal-grid">
+    <div class="v-canal-card dom">
+      <div style="font-size:22px;margin-bottom:6px">🛵</div>
+      <div class="v-canal-label">Domicilios (menú + llamada)</div>
+      <div class="v-canal-monto" id="vc-dom-monto">$0</div>
+      <div class="v-canal-count" id="vc-dom-count">0 pedidos</div>
+    </div>
+    <div class="v-canal-card pos">
+      <div style="font-size:22px;margin-bottom:6px">🏪</div>
+      <div class="v-canal-label">POS (ventas en caja)</div>
+      <div class="v-canal-monto" id="vc-pos-monto">$0</div>
+      <div class="v-canal-count" id="vc-pos-count">0 pedidos</div>
+    </div>
   </div>
 
   <!-- MEDIOS DE PAGO -->
@@ -1796,15 +1820,18 @@ function setupRealtime(){
       table:'pedidos'
     }, async (payload)=>{
       await loadPeds();
-      ping();
-      toast(`🔔 Nuevo pedido #${payload.new.numero_pedido||''}`, 'info');
-      setTimeout(()=>{
-        const el=document.querySelector('.pcard');
-        if(el){el.classList.add('nuevo');setTimeout(()=>el.classList.remove('nuevo'),3000);}
-      },200);
+      // Solo notificar sonido para pedidos de domicilio (no POS)
+      if(payload.new.canal !== 'pos'){
+        ping();
+        toast(`🔔 Nuevo pedido #${payload.new.numero_pedido||''}`, 'info');
+        setTimeout(()=>{
+          const el=document.querySelector('.pcard');
+          if(el){el.classList.add('nuevo');setTimeout(()=>el.classList.remove('nuevo'),3000);}
+        },200);
+      }
       // Auto-asignar domiciliario si hay exactamente 1 activo
       const activos=domiciliariosData.filter(d=>d.activo);
-      if(activos.length===1&&payload.new.id){
+      if(activos.length===1&&payload.new.id&&payload.new.canal!=='pos'){
         await asignarDomiciliario(payload.new.id, activos[0].id);
       }
       // Actualizar tipos de cliente con delay
@@ -3112,6 +3139,16 @@ function renderVentas(pedidos, label){
   document.getElementById('vk-cancelados-pct').textContent=
     pedidos.length?Math.round(cancelados.length/pedidos.length*100)+'% del total':'—';
 
+  // ── DESGLOSE POR CANAL ──
+  const pedDom=activos.filter(p=>p.canal!=='pos');
+  const pedPos=activos.filter(p=>p.canal==='pos');
+  const totalDom=pedDom.reduce((a,p)=>a+(+p.total||0),0);
+  const totalPos=pedPos.reduce((a,p)=>a+(+p.total||0),0);
+  document.getElementById('vc-dom-monto').textContent=$f(totalDom);
+  document.getElementById('vc-dom-count').textContent=`${pedDom.length} pedido${pedDom.length!==1?'s':''}`;
+  document.getElementById('vc-pos-monto').textContent=$f(totalPos);
+  document.getElementById('vc-pos-count').textContent=`${pedPos.length} pedido${pedPos.length!==1?'s':''}`;
+
   // ── MEDIOS DE PAGO (solo activos) ──
   const medios={efectivo:0,tarjeta:0,nequi:0,daviplata:0};
   const mediosCnt={efectivo:0,tarjeta:0,nequi:0,daviplata:0};
@@ -3181,6 +3218,8 @@ function renderVentas(pedidos, label){
 
 function resetKpis(){
   ['vk-total','vk-pedidos','vk-entregados','vk-cancelados'].forEach(id=>document.getElementById(id).textContent='—');
+  ['vc-dom-monto','vc-pos-monto'].forEach(id=>document.getElementById(id).textContent='$0');
+  ['vc-dom-count','vc-pos-count'].forEach(id=>document.getElementById(id).textContent='0 pedidos');
   document.getElementById('vk-periodo').textContent='Cargando...';
   document.getElementById('vk-prom').textContent='$0';
   document.getElementById('vk-entregados-pct').textContent='—';
