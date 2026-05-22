@@ -3104,7 +3104,7 @@ async function cargarVentas(){
 
     // Consultar TODOS los pedidos del período (sin filtro de estado, lo filtramos en JS)
     const {data,error}=await db.from('pedidos')
-      .select('id,numero_pedido,cliente_nombre,cliente_telefono,medio_pago,total,estado,created_at')
+      .select('id,numero_pedido,cliente_nombre,cliente_telefono,medio_pago,total,estado,canal,created_at')
       .gte('created_at', desde.toISOString())
       .lte('created_at', hasta.toISOString())
       .order('created_at',{ascending:false});
@@ -3810,7 +3810,6 @@ async function cobrarPOS(){
       cantidad:i.qty, subtotal:i.subtotal
     })));
     toast(`✅ Cobrado ${$f(total)} — #${ped.numero_pedido||'POS'}`, 'ok');
-    ping();
     limpiarPOS();
   }catch(err){
     toast('❌ Error al registrar: '+err.message,'err');
