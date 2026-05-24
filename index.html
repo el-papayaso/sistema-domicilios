@@ -362,6 +362,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   animation:sheetUp .3s cubic-bezier(.4,0,.2,1);
 }
 @keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .mext-head{padding:18px 20px 12px;border-bottom:1px solid var(--bdr);flex-shrink:0}
 .mext-handle{width:36px;height:4px;background:var(--bdr);border-radius:2px;margin:0 auto 14px}
 .mext-head h3{font-family:var(--fh);font-size:19px;font-weight:900;margin-bottom:2px}
@@ -632,11 +634,15 @@ async function init(){
   aplicarConfig();
   renderNav();
   renderMenu();
+  renderDestacados();
   scrollSpy();
   cargarDatosGuardados();
   document.getElementById('recordar-check').className='recordar-check on';
   recordarDatos=true;
-  setupConfigRealtime(); // escuchar cambios de pausa en tiempo real
+  setupConfigRealtime();
+  // Bloquear botones DESPUÉS de renderMenu si está cerrado o pausado
+  if(!calcularSiEstaAbierto()) _bloquearBotonesCerrado();
+  else if(verificarPausa()) aplicarModoPausa();
 }
 
 // ── CONFIGURACIÓN → UI ──
@@ -802,42 +808,101 @@ function calcularSiEstaAbierto(){
 }
 
 function aplicarModoFueraDeSevicio(){
-  // Banners de cerrado en el menú y carrito
-  const wrap=document.getElementById('menu-wrap');
-  const horarioHoy=()=>{
-    const d=new Date().getDay();
-    if(d===0) return cfg.horario_domingo;
-    if(d===6) return cfg.horario_sabado;
-    return cfg.horario_lunes_viernes;
-  };
-  const h=horarioHoy()||'';
-  const abrimos=h.split(/[-–]/)[0]?.trim()||'';
+  // Obtener horario del día para mostrarlo en el modal
+  const d=new Date().getDay();
+  const h=(d===0?cfg.horario_domingo:d===6?cfg.horario_sabado:cfg.horario_lunes_viernes)||'';
 
-  // Banner encima del menú
-  const banner=document.createElement('div');
-  banner.id='closed-banner';
-  banner.innerHTML=`
-    <div style="background:#1a0a00;border:1.5px solid #3d1a00;border-radius:16px;padding:20px 24px;margin:20px 0;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">🔒</div>
-      <div style="font-family:var(--fh);font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">Estamos cerrados</div>
-      ${abrimos?`<div style="font-size:13px;color:rgba(255,255,255,.6)">Horario de hoy: <strong style="color:#ffbe0b">${h}</strong></div>`:''}
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px">Vuelve pronto · Los pedidos estarán disponibles en horario de atención</div>
+  // Quitar modal anterior si existe
+  document.getElementById('closed-modal')?.remove();
+
+  // Crear overlay modal
+  const modal=document.createElement('div');
+  modal.id='closed-modal';
+  modal.style.cssText=`
+    position:fixed;inset:0;z-index:200;
+    background:rgba(0,0,0,.7);
+    backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;
+    padding:24px;animation:fadeIn .3s ease;
+  `;
+  modal.innerHTML=`
+    <div style="
+      background:var(--sur);border-radius:24px;
+      padding:36px 28px;max-width:340px;width:100%;
+      text-align:center;position:relative;
+      box-shadow:0 24px 64px rgba(0,0,0,.4);
+      animation:slideUp .35s cubic-bezier(.4,0,.2,1);
+    ">
+      <!-- Botón cerrar -->
+      <button onclick="cerrarModalCerrado()" style="
+        position:absolute;top:14px;right:14px;
+        background:var(--warm);border:none;border-radius:99px;
+        width:32px;height:32px;font-size:16px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;
+        color:var(--mut);transition:all .2s;
+      " onmouseover="this.style.background='var(--bdr)'"
+         onmouseout="this.style.background='var(--warm)'">✕</button>
+
+      <!-- Ícono -->
+      <div style="font-size:56px;margin-bottom:16px">🔒</div>
+
+      <!-- Título -->
+      <div style="font-family:var(--fh);font-size:22px;font-weight:900;color:var(--txt);margin-bottom:8px">
+        Estamos cerrados
+      </div>
+
+      <!-- Horario -->
+      ${h?`<div style="
+        background:var(--warm);border-radius:10px;
+        padding:10px 16px;margin:12px 0;
+        font-size:13px;color:var(--mut);
+      ">
+        🕐 Horario de hoy: <strong style="color:var(--txt)">${h}</strong>
+      </div>`:''}
+
+      <!-- Mensaje -->
+      <div style="font-size:14px;color:var(--mut);line-height:1.6;margin-bottom:24px">
+        En este momento no estamos recibiendo pedidos.<br>
+        ¡Pero puedes seguir viendo nuestro menú!
+      </div>
+
+      <!-- Botón seguir navegando -->
+      <button onclick="cerrarModalCerrado()" style="
+        width:100%;padding:14px;
+        background:var(--acc);color:#fff;border:none;
+        border-radius:12px;font-size:15px;font-weight:700;
+        cursor:pointer;font-family:var(--fb);
+        transition:all .2s;
+      " onmouseover="this.style.background='#e55a26'"
+         onmouseout="this.style.background='var(--acc)'">
+        Ver el menú →
+      </button>
     </div>`;
-  wrap.insertBefore(banner, wrap.firstChild);
 
-  // Deshabilitar botón de carrito y botón de enviar
+  document.body.appendChild(modal);
+
+  // Deshabilitar botones — se llama después de renderMenu
+  _bloquearBotonesCerrado();
+}
+
+function cerrarModalCerrado(){
+  const modal=document.getElementById('closed-modal');
+  if(modal){
+    modal.style.opacity='0';
+    modal.style.transition='opacity .25s';
+    setTimeout(()=>modal.remove(),250);
+  }
+}
+
+function _bloquearBotonesCerrado(){
   const cartFab=document.getElementById('cart-fab-btn');
-  if(cartFab){ cartFab.disabled=true; cartFab.style.opacity='.4'; cartFab.style.pointerEvents='none'; }
-
-  // Deshabilitar todos los botones "+" de productos
-  document.querySelectorAll('.prod-add').forEach(b=>{ b.disabled=true; b.style.opacity='.4'; b.style.pointerEvents='none'; });
-
-  // Reemplazar botón de enviar pedido
+  if(cartFab){cartFab.disabled=true;cartFab.style.opacity='.4';cartFab.style.pointerEvents='none';}
+  document.querySelectorAll('.prod-add').forEach(b=>{
+    b.disabled=true;b.style.opacity='.4';b.style.pointerEvents='none';
+  });
   const bwa=document.querySelector('.bwa');
   if(bwa){
-    bwa.disabled=true;
-    bwa.style.opacity='.4';
-    bwa.style.pointerEvents='none';
+    bwa.disabled=true;bwa.style.opacity='.4';bwa.style.pointerEvents='none';
     bwa.innerHTML='🔒 Cerrado — no se aceptan pedidos';
     bwa.style.background='#555';
   }
