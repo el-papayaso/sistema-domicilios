@@ -1244,10 +1244,10 @@ table.vtbl tr:hover td{background:var(--sur2)}
             <div style="font-size:14px;font-weight:700;color:var(--txt)">Activar programa de recompensas</div>
             <div style="font-size:12px;color:var(--mut);margin-top:2px">Los clientes verán su progreso al escribir su teléfono</div>
           </div>
-          <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
-            <input type="checkbox" id="cfg-recompensa-activa" style="opacity:0;width:0;height:0">
-            <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:99px;transition:.3s" id="cfg-recompensa-toggle"></span>
-          </label>
+          <div onclick="toggleRecompensa()" id="cfg-recompensa-toggle-wrap" style="width:48px;height:26px;border-radius:99px;background:#ccc;cursor:pointer;position:relative;transition:background .25s;flex-shrink:0">
+            <div id="cfg-recompensa-knob" style="position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)"></div>
+          </div>
+          <input type="checkbox" id="cfg-recompensa-activa" style="display:none">
         </div>
         <div class="fg">
           <label>Meta de pedidos *</label>
@@ -2529,15 +2529,7 @@ function renderConfig(){
   previewColor();
 
   // Recompensas
-  const ra=cfg.recompensa_activa===true;
-  const chk=document.getElementById('cfg-recompensa-activa');
-  const tog=document.getElementById('cfg-recompensa-toggle');
-  chk.checked=ra;
-  tog.style.background=ra?'var(--acc)':'#ccc';
-  tog.style.transform='';
-  chk.onchange=()=>{
-    tog.style.background=chk.checked?'var(--acc)':'#ccc';
-  };
+  actualizarToggleRecompensa(cfg.recompensa_activa===true);
   document.getElementById('cfg-recompensa-meta').value=cfg.recompensa_meta||10;
   document.getElementById('cfg-recompensa-premio').value=cfg.recompensa_premio||'';
   document.getElementById('cfg-recompensa-msg').value=cfg.recompensa_msg||'';
@@ -4348,7 +4340,24 @@ async function asignarDomiciliario(pid,did){
 }
 
 let encPanelAbierto=false;
-function toggleEncuestasPanel(){
+function toggleRecompensa(){
+  const chk=document.getElementById('cfg-recompensa-activa');
+  const wrap=document.getElementById('cfg-recompensa-toggle-wrap');
+  const knob=document.getElementById('cfg-recompensa-knob');
+  chk.checked=!chk.checked;
+  wrap.style.background=chk.checked?'var(--acc)':'#ccc';
+  knob.style.transform=chk.checked?'translateX(22px)':'translateX(0)';
+}
+
+function actualizarToggleRecompensa(activo){
+  const wrap=document.getElementById('cfg-recompensa-toggle-wrap');
+  const knob=document.getElementById('cfg-recompensa-knob');
+  const chk=document.getElementById('cfg-recompensa-activa');
+  if(!wrap||!knob||!chk) return;
+  chk.checked=activo;
+  wrap.style.background=activo?'var(--acc)':'#ccc';
+  knob.style.transform=activo?'translateX(22px)':'translateX(0)';
+}
   encPanelAbierto=!encPanelAbierto;
   const ov=document.getElementById('enc-ov');
   const panel=document.getElementById('enc-panel');
