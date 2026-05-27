@@ -1234,6 +1234,36 @@ table.vtbl tr:hover td{background:var(--sur2)}
       </button>
     </div>
 
+    <!-- ── PROGRAMA DE FIDELIZACIÓN ── -->
+    <div class="cfg-card full">
+      <div class="cfg-card-tit">🎁 Programa de fidelización</div>
+      <div class="cfg-card-sub">Los clientes acumulan pedidos y ganan premios automáticamente</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="fg" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;background:var(--sur2);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--txt)">Activar programa de recompensas</div>
+            <div style="font-size:12px;color:var(--mut);margin-top:2px">Los clientes verán su progreso al escribir su teléfono</div>
+          </div>
+          <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
+            <input type="checkbox" id="cfg-recompensa-activa" style="opacity:0;width:0;height:0">
+            <span onclick="this.previousElementSibling.click()" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:99px;transition:.3s" id="cfg-recompensa-toggle"></span>
+          </label>
+        </div>
+        <div class="fg">
+          <label>Meta de pedidos *</label>
+          <input type="number" id="cfg-recompensa-meta" value="10" min="1" max="100" placeholder="10">
+        </div>
+        <div class="fg">
+          <label>Premio <span style="font-size:11px;color:var(--mut);font-weight:400">(qué gana el cliente)</span></label>
+          <input type="text" id="cfg-recompensa-premio" placeholder="Ej: Una bebida gratis 🥤">
+        </div>
+        <div class="fg" style="grid-column:1/-1">
+          <label>Mensaje motivacional <span style="font-size:11px;color:var(--mut);font-weight:400">(aparece en el menú)</span></label>
+          <input type="text" id="cfg-recompensa-msg" placeholder="Ej: ¡Acumula 10 pedidos y gana una bebida gratis! 🎁">
+        </div>
+      </div>
+    </div>
+
     <!-- Guardar -->
     <div class="cfg-card full" style="padding:20px 28px">
       <button class="bsave-cfg" onclick="guardarConfig()">💾 Guardar Configuración</button>
@@ -1764,7 +1794,7 @@ db.auth.onAuthStateChange((event, session)=>{
 // ── INIT ──
 async function init(){
   await Promise.all([loadCats(),loadConfig()]);
-  await Promise.all([loadProds(),loadPeds(),loadExtras(),cargarTiposClientes(),cargarDomiciliarios(),cargarEncuestas()]);
+  await Promise.all([loadProds(),loadPeds(),loadExtras(),cargarTiposClientes(),cargarDomiciliarios(),cargarEncuestas(),cargarRecompensas()]);
   setupRealtime();
 }
 
@@ -1950,6 +1980,22 @@ function renderPeds(){
       }
     }
 
+    // Badge y botón de recompensa
+    let recompensaBadge='';
+    let recompensaBtn='';
+    if(cfg.recompensa_activa&&p.cliente_telefono&&p.cliente_telefono!=='—'){
+      const tel=(p.cliente_telefono||'').replace(/\D/g,'').slice(-10);
+      const totalPeds=peds.filter(x=>(x.cliente_telefono||'').replace(/\D/g,'').slice(-10)===tel&&x.estado!=='cancelado').length;
+      const meta=cfg.recompensa_meta||10;
+      const premiosGanados=Math.floor(totalPeds/meta);
+      const premiosCanjeados=(recompensasData||[]).filter(r=>(r.telefono||'').replace(/\D/g,'').slice(-10)===tel).length;
+      const premiosPendientes=premiosGanados-premiosCanjeados;
+      if(premiosPendientes>0){
+        recompensaBadge=`<span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🎁 Premio x${premiosPendientes}</span>`;
+        recompensaBtn=`<button class="btn-encuesta" style="background:#fef3c7;color:#92400e;border-color:#fcd34d" onclick="canjearRecompensa('${tel}','${p.cliente_nombre}',${totalPeds})">🎁 Canjear premio</button>`;
+      }
+    }
+
     // Selector domiciliario:
     // - 1 activo y sin asignar → ya se asigna automáticamente al llegar (ver Realtime)
     // - 2+ activos → mostrar selector en todos los pedidos no finalizados
@@ -1967,7 +2013,7 @@ function renderPeds(){
         return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}${finalizado?' finalizado':''}" data-pedido-id="${p.id}">
       <div class="prow1">
         <span class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span>
-        ${canalBadge}${tipoBadge}
+        ${canalBadge}${tipoBadge}${recompensaBadge}
         <span class="pcli">${p.cliente_nombre}</span>
         <span class="ptel">· ${p.cliente_telefono}</span>
         ${timerHtml}
@@ -1998,6 +2044,7 @@ function renderPeds(){
         </button>
         <a class="bmaps" href="${mapsUrl}" target="_blank">Maps</a>
         ${encuestaBtn}
+        ${recompensaBtn}
       </div>
     </div>`;
   }).join('');
@@ -2480,6 +2527,20 @@ function renderConfig(){
   document.getElementById('cfg-color-tarjetas-hex').value=cs;
   document.getElementById('cfg-tipografia').value=tf;
   previewColor();
+
+  // Recompensas
+  const ra=cfg.recompensa_activa===true;
+  const chk=document.getElementById('cfg-recompensa-activa');
+  const tog=document.getElementById('cfg-recompensa-toggle');
+  chk.checked=ra;
+  tog.style.background=ra?'var(--acc)':'#ccc';
+  tog.style.transform='';
+  chk.onchange=()=>{
+    tog.style.background=chk.checked?'var(--acc)':'#ccc';
+  };
+  document.getElementById('cfg-recompensa-meta').value=cfg.recompensa_meta||10;
+  document.getElementById('cfg-recompensa-premio').value=cfg.recompensa_premio||'';
+  document.getElementById('cfg-recompensa-msg').value=cfg.recompensa_msg||'';
 }
 function actualizarPrevLogo(url){
   const w=document.getElementById('logo-prev-wrap');
@@ -2508,6 +2569,10 @@ async function guardarConfig(){
     color_texto:document.getElementById('cfg-color-texto').value||'#111827',
     color_tarjetas:document.getElementById('cfg-color-tarjetas').value||'#ffffff',
     tipografia:document.getElementById('cfg-tipografia').value||'Inter',
+    recompensa_activa:document.getElementById('cfg-recompensa-activa').checked,
+    recompensa_meta:parseInt(document.getElementById('cfg-recompensa-meta').value)||10,
+    recompensa_premio:document.getElementById('cfg-recompensa-premio').value.trim()||null,
+    recompensa_msg:document.getElementById('cfg-recompensa-msg').value.trim()||null,
   };
   if(!d.nombre_local){toast('❌ El nombre del local es obligatorio','err');return;}
   const waDigits=document.getElementById('cfg-wa').value.replace(/\D/g,'');
@@ -3964,6 +4029,40 @@ function actualizarTimers(){
       el.classList.toggle('warn', minutos>=30);
     }
   });
+}
+
+// ═══════════════════════════════
+// RECOMPENSAS
+// ═══════════════════════════════
+let recompensasData=[];
+
+async function cargarRecompensas(){
+  const {data}=await db.from('recompensas').select('*').eq('canjeada',false);
+  recompensasData=data||[];
+}
+
+async function canjearRecompensa(tel,nombre,totalPeds){
+  if(!confirm(`¿Canjear premio de ${nombre}?\nEsto registrará el canje y el badge desaparecerá.`))return;
+  const {error}=await db.from('recompensas').insert({
+    telefono:tel,
+    nombre:nombre,
+    pedidos_al_ganar:totalPeds,
+    canjeada:false // se marca false para que quede en el historial como pendiente de entrega
+  });
+  if(error){toast('❌ Error: '+error.message,'err');return;}
+  // Marcar como canjeada inmediatamente
+  const {data:rec}=await db.from('recompensas')
+    .select('id').eq('telefono',tel).eq('canjeada',false)
+    .order('created_at',{ascending:false}).limit(1).single();
+  if(rec){
+    await db.from('recompensas').update({
+      canjeada:true,
+      canjeada_at:new Date().toISOString()
+    }).eq('id',rec.id);
+  }
+  toast(`🎁 Premio canjeado para ${nombre}`,'ok');
+  await cargarRecompensas();
+  renderPeds();
 }
 
 // ═══════════════════════════════
