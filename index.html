@@ -494,7 +494,8 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
         <label class="form-field-label">Teléfono</label>
         <div class="tel-wrap">
           <div class="tel-prefix">🇨🇴 CO +57</div>
-          <input class="tel-inp" id="c-tel" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+          <input class="tel-inp" id="c-tel" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" onblur="verificarRecompensaCliente(this.value)">
+          <div id="recompensa-progress" style="display:none;margin-top:10px"></div>
         </div>
       </div>
 
@@ -1463,6 +1464,71 @@ function actualizarCarrito(){
 // ── FORMULARIO — HELPERS ──
 let recordarDatos=true;
 
+async function verificarRecompensaCliente(tel){
+  const el=document.getElementById('recompensa-progress');
+  if(!el) return;
+
+  // Solo mostrar si el programa está activo y el tel tiene 10 dígitos
+  if(!cfg.recompensa_activa||!tel||tel.length<10){
+    el.style.display='none';
+    return;
+  }
+
+  const meta=cfg.recompensa_meta||10;
+  const premio=cfg.recompensa_premio||'un premio';
+  const msg=cfg.recompensa_msg||`¡Acumula ${meta} pedidos y gana ${premio}!`;
+
+  try{
+    // Contar pedidos del cliente
+    const {data:pedidos}=await db.from('pedidos')
+      .select('id')
+      .or(`cliente_telefono.eq.${tel},cliente_telefono.eq.57${tel}`)
+      .neq('estado','cancelado');
+    const total=(pedidos||[]).length;
+
+    // Contar recompensas canjeadas
+    const {data:canjeadas}=await db.from('recompensas')
+      .select('id')
+      .or(`telefono.eq.${tel},telefono.eq.57${tel}`)
+      .eq('canjeada',true);
+    const canjeadas_count=(canjeadas||[]).length;
+
+    const premiosGanados=Math.floor(total/meta);
+    const premiosPendientes=premiosGanados-canjeadas_count;
+
+    // Progreso en ciclo actual
+    const enCiclo=total%meta;
+
+    el.style.display='block';
+
+    if(premiosPendientes>0){
+      // Tiene premio pendiente
+      el.innerHTML=`
+        <div style="background:#fef3c7;border:1.5px solid #fcd34d;border-radius:12px;padding:14px 16px;text-align:center">
+          <div style="font-size:24px;margin-bottom:6px">🎉</div>
+          <div style="font-size:14px;font-weight:800;color:#92400e;margin-bottom:4px">¡Tienes un premio esperándote!</div>
+          <div style="font-size:12px;color:#92400e;margin-bottom:4px">Premio: <strong>${premio}</strong></div>
+          <div style="font-size:11px;color:#b45309">Muéstrale este mensaje al domiciliario al recibir tu pedido</div>
+        </div>`;
+    } else {
+      // Mostrar progreso
+      const sellos=Array.from({length:meta},(_, i)=>
+        `<span style="font-size:16px">${i<enCiclo?'🟠':'⬜'}</span>`
+      ).join('');
+      const faltan=meta-enCiclo;
+      el.innerHTML=`
+        <div style="background:var(--warm);border:1px solid var(--bdr);border-radius:12px;padding:12px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🎁 Tu progreso</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">${sellos}</div>
+          <div style="font-size:12px;color:var(--txt);font-weight:600">${enCiclo} de ${meta} pedidos</div>
+          <div style="font-size:11px;color:var(--mut);margin-top:2px">${faltan===1?'¡Te falta 1 pedido para tu premio!':faltan===0?'¡Premio listo!':'Te faltan '+faltan+' pedidos · '+msg}</div>
+        </div>`;
+    }
+  }catch(e){
+    el.style.display='none';
+  }
+}
+
 function onMpChange(){
   const mp=document.getElementById('c-mp').value;
   const cambioWrap=document.getElementById('cambio-wrap');
@@ -1629,6 +1695,9 @@ async function enviarPedido(){
     const el=document.getElementById(id);
     if(el) el.value='';
   });
+  // Reset progreso recompensa
+  const rp=document.getElementById('recompensa-progress');
+  if(rp){rp.style.display='none';rp.innerHTML='';}
   document.getElementById('c-mp').value='efectivo';
   onMpChange();
   // Reset propina UI
