@@ -1479,11 +1479,12 @@ async function verificarRecompensaCliente(tel){
   const msg=cfg.recompensa_msg||`¡Acumula ${meta} pedidos y gana ${premio}!`;
 
   try{
-    // Contar pedidos del cliente
+    // Contar pedidos del cliente (excluir cancelados y POS)
     const {data:pedidos}=await db.from('pedidos')
       .select('id')
       .or(`cliente_telefono.eq.${tel},cliente_telefono.eq.57${tel}`)
-      .neq('estado','cancelado');
+      .neq('estado','cancelado')
+      .neq('canal','pos');
     const total=(pedidos||[]).length;
 
     // Contar recompensas canjeadas
