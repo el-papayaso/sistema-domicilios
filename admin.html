@@ -4358,6 +4358,8 @@ function actualizarToggleRecompensa(activo){
   wrap.style.background=activo?'var(--acc)':'#ccc';
   knob.style.transform=activo?'translateX(22px)':'translateX(0)';
 }
+
+function toggleEncuestasPanel(){
   encPanelAbierto=!encPanelAbierto;
   const ov=document.getElementById('enc-ov');
   const panel=document.getElementById('enc-panel');
