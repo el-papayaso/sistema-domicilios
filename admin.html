@@ -4035,7 +4035,8 @@ function actualizarTimers(){
 let recompensasData=[];
 
 async function cargarRecompensas(){
-  const {data}=await db.from('recompensas').select('*').eq('canjeada',false);
+  // Cargar todas las recompensas canjeadas para el conteo correcto
+  const {data}=await db.from('recompensas').select('*').eq('canjeada',true);
   recompensasData=data||[];
 }
 
@@ -4045,19 +4046,10 @@ async function canjearRecompensa(tel,nombre,totalPeds){
     telefono:tel,
     nombre:nombre,
     pedidos_al_ganar:totalPeds,
-    canjeada:false // se marca false para que quede en el historial como pendiente de entrega
+    canjeada:true,
+    canjeada_at:new Date().toISOString()
   });
   if(error){toast('❌ Error: '+error.message,'err');return;}
-  // Marcar como canjeada inmediatamente
-  const {data:rec}=await db.from('recompensas')
-    .select('id').eq('telefono',tel).eq('canjeada',false)
-    .order('created_at',{ascending:false}).limit(1).single();
-  if(rec){
-    await db.from('recompensas').update({
-      canjeada:true,
-      canjeada_at:new Date().toISOString()
-    }).eq('id',rec.id);
-  }
   toast(`🎁 Premio canjeado para ${nombre}`,'ok');
   await cargarRecompensas();
   renderPeds();
