@@ -1931,11 +1931,11 @@ async function loadPeds(){
   stats();
 }
 
-function renderPeds(){
+async function renderPeds(){
   document.getElementById('badge').textContent=peds.filter(p=>p.estado==='pendiente').length;
   const el=document.getElementById('plist');
   if(!peds.length){el.innerHTML='<div class="empty"><span>📭</span><p>Sin pedidos de domicilio hoy</p></div>';return;}
-  el.innerHTML=peds.map((p,i)=>{
+  const cards=await Promise.all(peds.map(async(p,i)=>{
     const its=p.pedido_items||[];
     const f=new Date(p.created_at).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
     const sid=`sel${p.id.replace(/-/g,'')}`;
@@ -1983,16 +1983,21 @@ function renderPeds(){
     // Badge y botón de recompensa
     let recompensaBadge='';
     let recompensaBtn='';
-    if(cfg.recompensa_activa&&p.cliente_telefono&&p.cliente_telefono!=='—'){
+    if(cfg.recompensa_activa===true&&p.cliente_telefono&&p.cliente_telefono!=='—'){
       const tel=(p.cliente_telefono||'').replace(/\D/g,'').slice(-10);
-      const totalPeds=peds.filter(x=>(x.cliente_telefono||'').replace(/\D/g,'').slice(-10)===tel&&x.estado!=='cancelado').length;
       const meta=cfg.recompensa_meta||10;
-      const premiosGanados=Math.floor(totalPeds/meta);
+      // Contar histórico completo — no solo los de hoy
+      const {count:totalPeds}=await db.from('pedidos')
+        .select('id',{count:'exact',head:true})
+        .or(`cliente_telefono.eq.${tel},cliente_telefono.eq.57${tel}`)
+        .neq('estado','cancelado')
+        .neq('canal','pos');
+      const premiosGanados=Math.floor((totalPeds||0)/meta);
       const premiosCanjeados=(recompensasData||[]).filter(r=>(r.telefono||'').replace(/\D/g,'').slice(-10)===tel).length;
       const premiosPendientes=premiosGanados-premiosCanjeados;
       if(premiosPendientes>0){
         recompensaBadge=`<span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🎁 Premio x${premiosPendientes}</span>`;
-        recompensaBtn=`<button class="btn-encuesta" style="background:#fef3c7;color:#92400e;border-color:#fcd34d" onclick="canjearRecompensa('${tel}','${p.cliente_nombre}',${totalPeds})">🎁 Canjear premio</button>`;
+        recompensaBtn=`<button class="btn-encuesta" style="background:#fef3c7;color:#92400e;border-color:#fcd34d" onclick="canjearRecompensa('${tel}','${p.cliente_nombre}',${totalPeds||0})">🎁 Canjear premio</button>`;
       }
     }
 
@@ -2047,7 +2052,8 @@ function renderPeds(){
         ${recompensaBtn}
       </div>
     </div>`;
-  }).join('');
+  }));
+  el.innerHTML=cards.join('');
   iniciarTimers();
 }
 
