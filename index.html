@@ -1103,9 +1103,10 @@ async function abrirModalProd(p){
         ${esObl?`<div id="oblig-err-${key}" style="display:none;font-size:12px;color:#ef4444;font-weight:600;padding:6px 4px">⚠ Debes elegir una opción de "${gNombre}"</div>`:''}
       </div>`;
     });
-    // Registrar grupos obligatorios de opciones específicas
+    // Registrar grupos obligatorios de opciones específicas — solo con items disponibles
     const oblEsp=Object.entries(grupos)
-      .filter(([,g])=>g.obligatorio).map(([name])=>name);
+      .filter(([,g])=>g.obligatorio&&g.items.some(i=>i.disponible!==false))
+      .map(([name])=>name);
     prodActual._gruposObligatoriosEsp=oblEsp.map(g=>'prod_'+g.replace(/\s+/g,'_'));
   }
 
@@ -1176,10 +1177,16 @@ function renderExtrasEnModal(p,extCat){
         </div>`).join('')}
     </div>`;
   }
-  // Guardar grupos obligatorios
-  prodActual._gruposObligatorios=Object.entries(
-    adics.reduce((acc,e)=>{if(e.grupo&&e.obligatorio){acc[e.grupo]=true;}return acc;},{})
+  // Guardar grupos obligatorios — solo los que tienen opciones disponibles
+  const gruposConOpciones=Object.entries(
+    adics.reduce((acc,e)=>{
+      if(e.grupo&&e.obligatorio&&e.disponible!==false){
+        acc[e.grupo]=true;
+      }
+      return acc;
+    },{})
   ).map(([g])=>g.replace(/\s+/g,'_'));
+  prodActual._gruposObligatorios=gruposConOpciones;
   return html;
 }
 
