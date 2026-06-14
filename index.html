@@ -1058,7 +1058,7 @@ async function abrirModalProd(p){
   const [opcsRes, extCat] = await Promise.all([
     db.from('producto_opciones')
       .select('*').eq('producto_id',p.id).eq('activo',true)
-      .eq('disponible',true).order('orden').order('nombre'),
+      .order('orden').order('nombre'),
     Promise.resolve(extrasDB.filter(e=>{
       if(e.activo===false) return false;
       // Usar categorias_ids si existe, si no caer a categoria_id
