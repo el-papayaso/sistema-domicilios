@@ -113,16 +113,23 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 /* CARRITO FLOTANTE — siempre visible en la parte superior derecha */
 .cart-fab{
-  position:fixed;top:14px;right:16px;z-index:60;
-  display:flex;align-items:center;gap:8px;
+  position:fixed;
+  bottom:40px;
+  left:16px;
+  right:16px;
+  margin:0 auto;
+  width:200px;
+  z-index:60;
+  display:flex;align-items:center;justify-content:center;gap:8px;
   background:var(--acc);color:#fff;border:none;border-radius:99px;
-  padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;
+  padding:14px 24px;font-size:14px;font-weight:700;cursor:pointer;
   font-family:var(--fh);
-  box-shadow:0 4px 20px rgba(232,93,47,.45);
+  box-shadow:0 6px 24px rgba(232,93,47,.45);
   transition:all .25s;
   pointer-events:all;
+  white-space:nowrap;
 }
-.cart-fab:hover{background:#d04a1c;transform:scale(1.04)}
+.cart-fab:hover{background:#d04a1c}
 .cart-fab.vacio{background:#9ca3af;box-shadow:none}
 .cart-n{background:#fff;color:var(--acc);border-radius:99px;padding:1px 7px;font-size:12px;font-weight:800;min-width:20px;text-align:center}
 .cart-fab.vacio .cart-n{color:#9ca3af}
