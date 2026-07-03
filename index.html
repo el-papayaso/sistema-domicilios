@@ -113,19 +113,17 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 /* CARRITO FLOTANTE — siempre visible en la parte superior derecha */
 .cart-fab{
-  position:fixed;bottom:24px;left:0;right:0;margin:0 auto;z-index:60;
-  width:fit-content;
+  position:fixed;top:14px;right:16px;z-index:60;
   display:flex;align-items:center;gap:8px;
   background:var(--acc);color:#fff;border:none;border-radius:99px;
-  padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;
+  padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;
   font-family:var(--fh);
-  box-shadow:0 6px 24px rgba(232,93,47,.5);
-  transition:background .25s,box-shadow .25s,opacity .25s;
+  box-shadow:0 4px 20px rgba(232,93,47,.45);
+  transition:all .25s;
   pointer-events:all;
-  white-space:nowrap;
 }
-.cart-fab:hover{background:#d04a1c}
-.cart-fab.vacio{background:#9ca3af;box-shadow:none;opacity:.85}
+.cart-fab:hover{background:#d04a1c;transform:scale(1.04)}
+.cart-fab.vacio{background:#9ca3af;box-shadow:none}
 .cart-n{background:#fff;color:var(--acc);border-radius:99px;padding:1px 7px;font-size:12px;font-weight:800;min-width:20px;text-align:center}
 .cart-fab.vacio .cart-n{color:#9ca3af}
 /* Total en el carrito flotante */
@@ -421,11 +419,13 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 <!-- TOPBAR FLOTANTE -->
 <div class="topbar" id="topbar">
   <span class="topbar-brand" id="topbar-brand">🛵</span>
-  <button class="cart-fab vacio" id="cart-fab-btn" onclick="toggleDrawer()">
-    🛒 <span class="cart-n" id="cart-n">0</span>
-    <span class="cart-total-fab" id="cart-total-fab" style="display:none">· $0</span>
-  </button>
 </div>
+
+<!-- CARRITO FLOTANTE INDEPENDIENTE -->
+<button class="cart-fab vacio" id="cart-fab-btn" onclick="toggleDrawer()">
+  🛒 <span class="cart-n" id="cart-n">0</span>
+  <span class="cart-total-fab" id="cart-total-fab" style="display:none">· $0</span>
+</button>
 
 <!-- HERO / PORTADA -->
 <div class="hero" id="hero">
