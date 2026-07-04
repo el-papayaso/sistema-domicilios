@@ -940,6 +940,9 @@ function filtrar(id,el){
   document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   renderMenu();
+  // Scroll al inicio del listado de productos
+  const menuWrap=document.getElementById('menu-wrap');
+  if(menuWrap) menuWrap.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 // ── MENÚ ──
