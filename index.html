@@ -489,166 +489,182 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
     <div class="cempty"><span>🛒</span><p>Tu carrito está vacío</p></div>
   </div>
   <div class="dfoot" id="dfoot" style="display:none">
-    <div class="dtotals">
-      <div class="trow"><span>Subtotal</span><span id="subtotal">$0</span></div>
-      <div class="trow" id="domicilio-row"><span>Domicilio</span><span>Por confirmar</span></div>
-      <div class="trow" id="propina-row" style="display:none"><span>💝 Propina domiciliario</span><span id="propina-display">$0</span></div>
-      <div class="trow big"><span>Total</span><span id="total">$0</span></div>
-    </div>
 
-    <!-- SELECCIÓN TIPO DE ENTREGA -->
-    <div id="tipo-entrega-sel" style="padding:16px 0 8px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:12px;text-align:center">¿Cómo quieres tu pedido?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <button onclick="selTipoEntrega('domicilio',this)" id="btn-te-domicilio"
-          style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s">
-          <span style="font-size:28px">🛵</span>
-          <span style="font-size:11px;font-weight:700;color:var(--mut)">Domicilio</span>
+    <!-- PANTALLA 1: SELECCIÓN DE TIPO DE ENTREGA -->
+    <div id="vista-tipo-entrega" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;min-height:300px">
+      <div style="font-size:22px;font-weight:900;color:var(--txt);margin-bottom:6px;text-align:center">¿Cómo quieres tu pedido?</div>
+      <div style="font-size:13px;color:var(--mut);margin-bottom:28px;text-align:center">Selecciona una opción para continuar</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;width:100%">
+        <button onclick="selTipoEntrega('domicilio')"
+          style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 10px;border-radius:16px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s"
+          onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <span style="font-size:36px">🛵</span>
+          <span style="font-size:12px;font-weight:700;color:var(--txt)">Domicilio</span>
         </button>
-        <button onclick="selTipoEntrega('local',this)" id="btn-te-local"
-          style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s">
-          <span style="font-size:28px">🍽️</span>
-          <span style="font-size:11px;font-weight:700;color:var(--mut)">Comer aquí</span>
+        <button onclick="selTipoEntrega('local')"
+          style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 10px;border-radius:16px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s"
+          onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <span style="font-size:36px">🍽️</span>
+          <span style="font-size:12px;font-weight:700;color:var(--txt)">Mesa</span>
         </button>
-        <button onclick="selTipoEntrega('llevar',this)" id="btn-te-llevar"
-          style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s">
-          <span style="font-size:28px">🏃</span>
-          <span style="font-size:11px;font-weight:700;color:var(--mut)">Llevar</span>
+        <button onclick="selTipoEntrega('llevar')"
+          style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 10px;border-radius:16px;border:2px solid var(--bdr);background:var(--warm);cursor:pointer;font-family:var(--fb);transition:all .2s"
+          onmouseover="this.style.borderColor='var(--acc)'" onmouseout="this.style.borderColor='var(--bdr)'">
+          <span style="font-size:36px">🏃</span>
+          <span style="font-size:12px;font-weight:700;color:var(--txt)">Llevar / Recoger</span>
         </button>
       </div>
     </div>
 
-    <!-- FORMULARIO DOMICILIO -->
-    <div class="form-section" id="form-domicilio" style="display:none">
-      <div class="form-field">
-        <label class="form-field-label">Nombre</label>
-        <input class="form-inp" id="c-nom" placeholder="Tu nombre completo" type="text" autocomplete="name">
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Teléfono</label>
-        <div class="tel-wrap">
-          <div class="tel-prefix">🇨🇴 CO +57</div>
-          <input class="tel-inp" id="c-tel" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" onblur="verificarRecompensaCliente(this.value)">
-        </div>
-        <div id="recompensa-progress" style="display:none;margin-top:10px"></div>
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Dirección de entrega</label>
-        <input class="form-inp" id="c-dir" placeholder="Calle, número, barrio..." type="text" autocomplete="street-address">
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Referencia <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <input class="form-inp" id="c-ref" placeholder="Ej: frente al parque, piso 3..." type="text">
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Método de pago</label>
-        <select class="form-sel" id="c-mp" onchange="onMpChange()">
-          <option value="efectivo">💵 Efectivo</option>
-          <option value="tarjeta">💳 Tarjeta</option>
-          <option value="nequi">📱 Nequi</option>
-          <option value="daviplata">🏦 Daviplata</option>
-        </select>
-      </div>
-      <div id="cambio-wrap">
-        <label class="form-field-label">¿Con cuánto va a pagar? <span style="color:var(--acc)">*</span></label>
-        <input class="form-inp" id="c-cambio" type="number" placeholder="Ej: 50000" min="0" style="width:100%" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea class="form-inp" id="c-nota" placeholder="Ej: sin salsas, separar cubiertos..." rows="2" style="resize:none"></textarea>
-      </div>
-      <div class="propina-wrap">
-        <span class="propina-label">💝 Propina para el domiciliario</span>
-        <div class="propina-opts">
-          <button class="propina-btn" onclick="selPropina(1000,this)">$1.000</button>
-          <button class="propina-btn" onclick="selPropina(2000,this)">$2.000</button>
-          <button class="propina-btn" onclick="selPropina(3000,this)">$3.000</button>
-          <button class="propina-btn" onclick="selPropina(5000,this)">$5.000</button>
-          <button class="propina-btn no sel" id="propina-no" onclick="selPropina(0,this)">No, gracias</button>
-        </div>
-      </div>
-      <div class="recordar-wrap" id="recordar-wrap" onclick="toggleRecordar()">
-        <div class="recordar-check" id="recordar-check">✓</div>
-        <div class="recordar-txt">
-          <h4>Guardar mis datos para la próxima vez</h4>
-          <p>Nombre, teléfono y dirección se guardan en este dispositivo</p>
-        </div>
-      </div>
-      <button class="bwa" onclick="enviarPedido()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Enviar pedido por WhatsApp
-      </button>
-      <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
-    </div>
+    <!-- PANTALLA 2: RESUMEN + FORMULARIO -->
+    <div id="vista-formulario" style="display:none">
 
-    <!-- FORMULARIO COMER AQUÍ -->
-    <div class="form-section" id="form-local" style="display:none">
-      <div class="form-field">
-        <label class="form-field-label">Nombre</label>
-        <input class="form-inp" id="c-nom-local" placeholder="Tu nombre completo" type="text">
+      <!-- Botón volver -->
+      <div style="padding:12px 16px 0">
+        <button onclick="volverTipoEntrega()" style="background:var(--warm);border:1px solid var(--bdr);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);color:var(--mut);transition:all .2s">
+          ← Cambiar tipo de entrega
+        </button>
       </div>
-      <div class="form-field">
-        <label class="form-field-label">Teléfono</label>
-        <div class="tel-wrap">
-          <div class="tel-prefix">🇨🇴 CO +57</div>
-          <input class="tel-inp" id="c-tel-local" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
-        </div>
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Método de pago</label>
-        <select class="form-sel" id="c-mp-local">
-          <option value="efectivo">💵 Efectivo</option>
-          <option value="tarjeta">💳 Tarjeta</option>
-          <option value="nequi">📱 Nequi</option>
-          <option value="daviplata">🏦 Daviplata</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea class="form-inp" id="c-nota-local" placeholder="Ej: sin salsas, sin cebolla..." rows="2" style="resize:none"></textarea>
-      </div>
-      <button class="bwa" onclick="enviarPedido()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Enviar pedido por WhatsApp
-      </button>
-      <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
-    </div>
 
-    <!-- FORMULARIO LLEVAR -->
-    <div class="form-section" id="form-llevar" style="display:none">
-      <div class="form-field">
-        <label class="form-field-label">Nombre</label>
-        <input class="form-inp" id="c-nom-llevar" placeholder="Tu nombre completo" type="text">
+      <!-- Totales -->
+      <div class="dtotals" style="margin-top:8px">
+        <div class="trow"><span>Subtotal</span><span id="subtotal">$0</span></div>
+        <div class="trow" id="domicilio-row"><span>Domicilio</span><span>Por confirmar</span></div>
+        <div class="trow" id="propina-row" style="display:none"><span>💝 Propina domiciliario</span><span id="propina-display">$0</span></div>
+        <div class="trow big"><span>Total</span><span id="total">$0</span></div>
       </div>
-      <div class="form-field">
-        <label class="form-field-label">Teléfono</label>
-        <div class="tel-wrap">
-          <div class="tel-prefix">🇨🇴 CO +57</div>
-          <input class="tel-inp" id="c-tel-llevar" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
-        </div>
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Método de pago</label>
-        <select class="form-sel" id="c-mp-llevar">
-          <option value="efectivo">💵 Efectivo</option>
-          <option value="tarjeta">💳 Tarjeta</option>
-          <option value="nequi">📱 Nequi</option>
-          <option value="daviplata">🏦 Daviplata</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea class="form-inp" id="c-nota-llevar" placeholder="Ej: sin salsas, sin cebolla..." rows="2" style="resize:none"></textarea>
-      </div>
-      <button class="bwa" onclick="enviarPedido()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Enviar pedido por WhatsApp
-      </button>
-      <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
-    </div>
 
+      <!-- FORMULARIO DOMICILIO -->
+      <div class="form-section" id="form-domicilio" style="display:none">
+        <div class="form-field">
+          <label class="form-field-label">Nombre</label>
+          <input class="form-inp" id="c-nom" placeholder="Tu nombre completo" type="text" autocomplete="name">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Teléfono</label>
+          <div class="tel-wrap">
+            <div class="tel-prefix">🇨🇴 CO +57</div>
+            <input class="tel-inp" id="c-tel" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" onblur="verificarRecompensaCliente(this.value)">
+          </div>
+          <div id="recompensa-progress" style="display:none;margin-top:10px"></div>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Dirección de entrega</label>
+          <input class="form-inp" id="c-dir" placeholder="Calle, número, barrio..." type="text" autocomplete="street-address">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Referencia <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+          <input class="form-inp" id="c-ref" placeholder="Ej: frente al parque, piso 3..." type="text">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Método de pago</label>
+          <select class="form-sel" id="c-mp" onchange="onMpChange()">
+            <option value="efectivo">💵 Efectivo</option>
+            <option value="tarjeta">💳 Tarjeta</option>
+            <option value="nequi">📱 Nequi</option>
+            <option value="daviplata">🏦 Daviplata</option>
+          </select>
+        </div>
+        <div id="cambio-wrap">
+          <label class="form-field-label">¿Con cuánto va a pagar? <span style="color:var(--acc)">*</span></label>
+          <input class="form-inp" id="c-cambio" type="number" placeholder="Ej: 50000" min="0" style="width:100%" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+          <textarea class="form-inp" id="c-nota" placeholder="Ej: sin salsas, separar cubiertos..." rows="2" style="resize:none"></textarea>
+        </div>
+        <div class="propina-wrap">
+          <span class="propina-label">💝 Propina para el domiciliario</span>
+          <div class="propina-opts">
+            <button class="propina-btn" onclick="selPropina(1000,this)">$1.000</button>
+            <button class="propina-btn" onclick="selPropina(2000,this)">$2.000</button>
+            <button class="propina-btn" onclick="selPropina(3000,this)">$3.000</button>
+            <button class="propina-btn" onclick="selPropina(5000,this)">$5.000</button>
+            <button class="propina-btn no sel" id="propina-no" onclick="selPropina(0,this)">No, gracias</button>
+          </div>
+        </div>
+        <div class="recordar-wrap" id="recordar-wrap" onclick="toggleRecordar()">
+          <div class="recordar-check" id="recordar-check">✓</div>
+          <div class="recordar-txt">
+            <h4>Guardar mis datos para la próxima vez</h4>
+            <p>Nombre, teléfono y dirección se guardan en este dispositivo</p>
+          </div>
+        </div>
+        <button class="bwa" onclick="enviarPedido()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Enviar pedido por WhatsApp
+        </button>
+        <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
+      </div>
+
+      <!-- FORMULARIO MESA -->
+      <div class="form-section" id="form-local" style="display:none">
+        <div class="form-field">
+          <label class="form-field-label">Nombre</label>
+          <input class="form-inp" id="c-nom-local" placeholder="Tu nombre completo" type="text">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Teléfono</label>
+          <div class="tel-wrap">
+            <div class="tel-prefix">🇨🇴 CO +57</div>
+            <input class="tel-inp" id="c-tel-local" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Método de pago</label>
+          <select class="form-sel" id="c-mp-local">
+            <option value="efectivo">💵 Efectivo</option>
+            <option value="tarjeta">💳 Tarjeta</option>
+            <option value="nequi">📱 Nequi</option>
+            <option value="daviplata">🏦 Daviplata</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+          <textarea class="form-inp" id="c-nota-local" placeholder="Ej: sin salsas, sin cebolla..." rows="2" style="resize:none"></textarea>
+        </div>
+        <button class="bwa" onclick="enviarPedido()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Enviar pedido por WhatsApp
+        </button>
+        <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
+      </div>
+
+      <!-- FORMULARIO LLEVAR/RECOGER -->
+      <div class="form-section" id="form-llevar" style="display:none">
+        <div class="form-field">
+          <label class="form-field-label">Nombre</label>
+          <input class="form-inp" id="c-nom-llevar" placeholder="Tu nombre completo" type="text">
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Teléfono</label>
+          <div class="tel-wrap">
+            <div class="tel-prefix">🇨🇴 CO +57</div>
+            <input class="tel-inp" id="c-tel-llevar" placeholder="300..." type="tel" maxlength="10" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Método de pago</label>
+          <select class="form-sel" id="c-mp-llevar">
+            <option value="efectivo">💵 Efectivo</option>
+            <option value="tarjeta">💳 Tarjeta</option>
+            <option value="nequi">📱 Nequi</option>
+            <option value="daviplata">🏦 Daviplata</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-field-label">Notas <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+          <textarea class="form-inp" id="c-nota-llevar" placeholder="Ej: sin salsas, sin cebolla..." rows="2" style="resize:none"></textarea>
+        </div>
+        <button class="bwa" onclick="enviarPedido()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Enviar pedido por WhatsApp
+        </button>
+        <p class="dnote">Tu pedido llegará a nuestro WhatsApp y te confirmaremos enseguida</p>
+      </div>
+
+    </div><!-- fin vista-formulario -->
   </div>
-</div>
 
 <!-- MODAL DETALLE PRODUCTO -->
 <div class="mprod-ov" id="mprod-ov" onclick="cerrarModalProd(event)">
@@ -1629,35 +1645,33 @@ async function verificarRecompensaCliente(tel){
   }
 }
 
-let tipoEntrega=''; // 'domicilio' | 'local' | 'llevar'
-
-function selTipoEntrega(tipo, el){
+function selTipoEntrega(tipo){
   tipoEntrega=tipo;
-  // Resaltar botón seleccionado
-  ['btn-te-domicilio','btn-te-local','btn-te-llevar'].forEach(id=>{
-    const b=document.getElementById(id);
-    if(!b) return;
-    b.style.borderColor='var(--bdr)';
-    b.style.background='var(--warm)';
-    b.querySelector('span:last-child').style.color='var(--mut)';
-  });
-  el.style.borderColor='var(--acc)';
-  el.style.background='#fff5f1';
-  el.querySelector('span:last-child').style.color='var(--acc)';
 
-  // Mostrar/ocultar formularios
+  // Pantalla 1 desaparece, pantalla 2 aparece
+  document.getElementById('vista-tipo-entrega').style.display='none';
+  document.getElementById('vista-formulario').style.display='block';
+
+  // Mostrar formulario correcto
   ['form-domicilio','form-local','form-llevar'].forEach(id=>{
     document.getElementById(id).style.display='none';
   });
   document.getElementById('form-'+tipo).style.display='block';
 
-  // Mostrar/ocultar fila de domicilio en totales
+  // Mostrar/ocultar fila domicilio y propina
   const domRow=document.getElementById('domicilio-row');
-  if(domRow) domRow.style.display=tipo==='domicilio'?'':'none';
-
-  // Mostrar/ocultar propina
   const propinaRow=document.getElementById('propina-row');
-  if(propinaRow) propinaRow.style.display=tipo==='domicilio'&&propinaActual>0?'':'none';
+  if(domRow) domRow.style.display=tipo==='domicilio'?'':'none';
+  if(propinaRow) propinaRow.style.display='none';
+}
+
+function volverTipoEntrega(){
+  tipoEntrega='';
+  document.getElementById('vista-formulario').style.display='none';
+  document.getElementById('vista-tipo-entrega').style.display='flex';
+  ['form-domicilio','form-local','form-llevar'].forEach(id=>{
+    document.getElementById(id).style.display='none';
+  });
 }
 
 function onMpChange(){
@@ -1831,18 +1845,15 @@ async function enviarPedido(){
     const el=document.getElementById(id);
     if(el) el.value='';
   });
-  // Reset tipo entrega
+  // Reset tipo entrega — volver a pantalla 1
   tipoEntrega='';
+  const vte=document.getElementById('vista-tipo-entrega');
+  const vf=document.getElementById('vista-formulario');
+  if(vte) vte.style.display='flex';
+  if(vf) vf.style.display='none';
   ['form-domicilio','form-local','form-llevar'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display='none';
-  });
-  ['btn-te-domicilio','btn-te-local','btn-te-llevar'].forEach(id=>{
-    const b=document.getElementById(id);
-    if(!b) return;
-    b.style.borderColor='var(--bdr)';
-    b.style.background='var(--warm)';
-    if(b.querySelector('span:last-child')) b.querySelector('span:last-child').style.color='var(--mut)';
   });
   document.getElementById('c-mp').value='efectivo';
   onMpChange();
