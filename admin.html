@@ -531,7 +531,28 @@ table.vtbl tr:hover td{background:var(--sur2)}
 .dom-info{flex:1}
 .dom-info h4{font-size:14px;font-weight:600;margin-bottom:2px}
 .dom-info small{font-size:12px;color:var(--mut)}
-/* ── ENCUESTAS REALTIME ── */
+.ll-cat-item{padding:11px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--mut);border-left:3px solid transparent;transition:all .15s;user-select:none}
+.ll-cat-item:hover{color:var(--txt);background:var(--sur2)}
+.ll-cat-item.active{color:var(--acc);background:#fff5f1;border-left-color:var(--acc);font-weight:700}
+.ll-prod-card{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .15s;user-select:none}
+.ll-prod-card:hover{border-color:var(--acc);box-shadow:0 2px 12px rgba(255,107,53,.15);transform:translateY(-1px)}
+.ll-prod-card:active{transform:scale(.97)}
+.ll-prod-card-img{width:100%;height:90px;object-fit:cover;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:32px}
+.ll-prod-card-img img{width:100%;height:100%;object-fit:cover}
+.ll-prod-card-body{padding:8px 10px}
+.ll-prod-card-nombre{font-size:12px;font-weight:700;color:var(--txt);margin-bottom:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ll-prod-card-precio{font-size:13px;font-weight:900;color:var(--acc);font-family:var(--fh)}
+.ll-item-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bdr)}
+.ll-item-row:last-child{border:none}
+.ll-item-info{flex:1;min-width:0}
+.ll-item-nombre{font-size:12px;font-weight:600;color:var(--txt)}
+.ll-item-precio{font-size:11px;color:var(--mut)}
+.ll-item-controls{display:flex;align-items:center;gap:6px}
+.ll-qty-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--bdr);background:var(--sur2);color:var(--txt);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.ll-qty-btn:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.ll-qty{font-size:13px;font-weight:700;color:var(--txt);min-width:16px;text-align:center}
+.ll-del-btn{width:24px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--red);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ll-del-btn:hover{background:#fee2e2}
 .enc-section{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;margin-bottom:18px;overflow:hidden;box-shadow:var(--sh)}
 .enc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bdr);background:var(--sur2)}
 .enc-head-tit{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
@@ -1620,61 +1641,84 @@ table.vtbl tr:hover td{background:var(--sur2)}
 </div>
 
 <!-- ── MODAL PEDIDO POR LLAMADA ── -->
-<div class="ov" id="ov-llamada">
-  <div class="modal" style="max-width:580px">
-    <div class="mtit">📞 Pedido por Llamada</div>
-    <div class="msub">El cliente está en línea — registra su pedido manualmente</div>
+<!-- ── PEDIDO POR LLAMADA — PANTALLA COMPLETA ── -->
+<div id="ov-llamada" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);flex-direction:column">
 
-    <!-- Datos del cliente -->
-    <div class="fg-row">
-      <div class="fg"><label>Nombre del cliente *</label><input type="text" id="ll-nombre" placeholder="Nombre completo"></div>
-      <div class="fg"><label>Teléfono *</label><input type="tel" id="ll-tel" placeholder="3001234567"></div>
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="cerrarLlamada()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);color:var(--txt)">← Volver</button>
+      <div style="font-size:16px;font-weight:800;color:var(--txt)">📞 Pedido por llamada</div>
     </div>
-    <div class="fg"><label>Dirección de entrega *</label><input type="text" id="ll-dir" placeholder="Calle, barrio, referencias..."></div>
-    <div class="fg-row">
-      <div class="fg">
-        <label>Medio de pago</label>
-        <select id="ll-mp">
-          <option value="efectivo">💵 Efectivo</option>
-          <option value="tarjeta">💳 Tarjeta</option>
-          <option value="nequi">📱 Nequi</option>
-          <option value="daviplata">🏦 Daviplata</option>
-        </select>
-      </div>
-      <div class="fg">
-        <label>Costo domicilio (COP)</label>
-        <input type="number" id="ll-domicilio" placeholder="0" min="0" value="0" oninput="recalcLlamada()">
+    <button class="bpri" style="background:var(--blu);padding:9px 22px;font-size:13px" onclick="guardarLlamada()">✓ Registrar pedido</button>
+  </div>
+
+  <!-- Body: 3 columnas -->
+  <div style="display:flex;flex:1;overflow:hidden">
+
+    <!-- COL 1: Categorías -->
+    <div id="ll-cats-col" style="width:160px;flex-shrink:0;background:var(--sur);border-right:1px solid var(--bdr);overflow-y:auto;padding:8px 0">
+      <div class="ll-cat-item active" data-cat="all" onclick="selCatLlamada('all',this)" style="padding:11px 16px;cursor:pointer;font-size:13px;font-weight:600;color:var(--acc);background:#fff5f1;border-left:3px solid var(--acc)">
+        🍽️ Todo
       </div>
     </div>
-    <div class="fg"><label>Notas del pedido</label><input type="text" id="ll-notas" placeholder="Instrucciones especiales..."></div>
 
-    <!-- Orden actual llamada — ARRIBA del buscador -->
-    <div id="ll-orden-wrap" style="display:none;margin-bottom:12px">
-      <div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:8px">🧾 Orden del pedido</div>
-      <div id="ll-orden-items" style="background:var(--sur2);border-radius:10px;padding:8px 12px;margin-bottom:8px;max-height:180px;overflow-y:auto"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sur2);border-radius:10px;border-top:2px solid var(--bdr)">
-        <div>
-          <div style="font-size:12px;color:var(--mut)">Subtotal: <span id="ll-subtotal">$0</span></div>
-          <div style="font-size:12px;color:var(--mut)">Domicilio: <span id="ll-dom-display">$0</span></div>
+    <!-- COL 2: Productos -->
+    <div style="flex:1;overflow-y:auto;padding:14px;background:var(--bg)">
+      <div id="ll-prods-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px"></div>
+    </div>
+
+    <!-- COL 3: Pedido -->
+    <div style="width:320px;flex-shrink:0;background:var(--sur);border-left:1px solid var(--bdr);display:flex;flex-direction:column">
+
+      <!-- Datos cliente -->
+      <div style="padding:14px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);margin-bottom:10px">Cliente</div>
+        <input type="text" id="ll-nombre" placeholder="Nombre *"
+          style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none;margin-bottom:8px"
+          onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+        <input type="tel" id="ll-tel" placeholder="Teléfono *" maxlength="10"
+          style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none;margin-bottom:8px"
+          onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+        <input type="text" id="ll-dir" placeholder="Dirección *"
+          style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--fb);color:var(--txt);outline:none;margin-bottom:8px"
+          onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <select id="ll-mp" style="background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 10px;font-size:12px;font-family:var(--fb);color:var(--txt);outline:none">
+            <option value="efectivo">💵 Efectivo</option>
+            <option value="tarjeta">💳 Tarjeta</option>
+            <option value="nequi">📱 Nequi</option>
+            <option value="daviplata">🏦 Daviplata</option>
+          </select>
+          <input type="number" id="ll-domicilio" placeholder="Domicilio $" min="0" value="0" oninput="recalcLlamada()"
+            style="background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 10px;font-size:12px;font-family:var(--fb);color:var(--txt);outline:none">
         </div>
-        <div style="font-size:18px;font-weight:800;color:var(--acc2)">Total: <span id="ll-total">$0</span></div>
+        <input type="text" id="ll-notas" placeholder="Notas del pedido (opcional)"
+          style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:9px 12px;font-size:12px;font-family:var(--fb);color:var(--txt);outline:none;margin-top:8px"
+          onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
       </div>
-    </div>
 
-    <!-- Selección de productos — ABAJO del carrito -->
-    <div class="fg">
-      <label>Agregar productos
-        <span style="font-size:11px;color:var(--mut);font-weight:400;margin-left:6px">Busca y agrega al pedido</span>
-      </label>
-      <input type="text" id="ll-buscar" placeholder="🔍 Buscar producto..." oninput="filtrarProdsLlamada()"
-        style="width:100%;background:var(--sur2);border:1.5px solid var(--bdr);color:var(--txt);border-radius:10px;padding:10px 13px;font-size:13px;font-family:var(--fb);outline:none;margin-bottom:8px"
-        onfocus="this.style.borderColor='var(--acc)'" onblur="this.style.borderColor='var(--bdr)'">
-      <div id="ll-prods-lista" style="max-height:200px;overflow-y:auto;background:var(--sur2);border-radius:10px;border:1px solid var(--bdr)"></div>
-    </div>
+      <!-- Items del carrito -->
+      <div id="ll-orden-items" style="flex:1;overflow-y:auto;padding:10px 16px">
+        <div style="text-align:center;padding:30px 0;color:var(--mutl);font-size:13px">
+          🛒 Agrega productos
+        </div>
+      </div>
 
-    <div class="mbtns" style="margin-top:16px">
-      <button class="bpri" style="background:var(--blu)" onclick="guardarLlamada()">📞 Registrar pedido</button>
-      <button class="bsecm" onclick="cerrar('ov-llamada')">Cancelar</button>
+      <!-- Totales -->
+      <div style="padding:14px 16px;border-top:1px solid var(--bdr);flex-shrink:0;background:var(--sur2)">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:4px">
+          <span>Subtotal</span><span id="ll-subtotal">$0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:8px">
+          <span>Domicilio</span><span id="ll-dom-display">$0</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:var(--txt)">
+          <span>Total</span><span id="ll-total" style="color:var(--acc2)">$0</span>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -1942,7 +1986,14 @@ async function renderPeds(){
     const canal=p.canal||'whatsapp';
     const canalBadge=canal==='llamada'
       ?'<span class="canal-badge canal-llamada">📞 Llamada</span>'
+      :canal==='pos'
+      ?'<span class="canal-badge canal-pos">🖥️ POS</span>'
       :'<span class="canal-badge canal-wa">📱 WA</span>';
+    const entregaBadge=p.tipo_entrega==='local'
+      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Comer aquí</span>'
+      :p.tipo_entrega==='llevar'
+      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar</span>'
+      :'<span style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🛵 Domicilio</span>';
     const mp=p.medio_pago||'efectivo';
     const mpLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'}[mp]||mp;
     const prodResumen=its.map(i=>`${i.cantidad}x ${i.producto_nombre}`).join(' · ');
@@ -2018,7 +2069,7 @@ async function renderPeds(){
         return `<div class="pcard estado-${p.estado}${i===0?' nuevo':''}${finalizado?' finalizado':''}" data-pedido-id="${p.id}">
       <div class="prow1">
         <span class="pnum">#${p.numero_pedido||p.id.slice(0,6).toUpperCase()}</span>
-        ${canalBadge}${tipoBadge}${recompensaBadge}
+        ${canalBadge}${entregaBadge}${tipoBadge}${recompensaBadge}
         <span class="pcli">${p.cliente_nombre}</span>
         <span class="ptel">· ${p.cliente_telefono}</span>
         ${timerHtml}
@@ -3892,79 +3943,97 @@ function abrirLlamada(){
   document.getElementById('ll-mp').value='efectivo';
   document.getElementById('ll-domicilio').value='0';
   document.getElementById('ll-notas').value='';
-  document.getElementById('ll-buscar').value='';
-  // Limpiar lista — solo aparece al buscar
-  document.getElementById('ll-prods-lista').innerHTML='';
+  const ov=document.getElementById('ov-llamada');
+  ov.style.display='flex';
+  const catsCol=document.getElementById('ll-cats-col');
+  catsCol.innerHTML=`<div class="ll-cat-item active" data-cat="all" onclick="selCatLlamada('all',this)">🍽️ Todo</div>`+
+    cats.map(c=>`<div class="ll-cat-item" data-cat="${c.id}" onclick="selCatLlamada('${c.id}',this)">${c.emoji} ${c.nombre}</div>`).join('');
+  selCatLlamada('all',catsCol.querySelector('[data-cat="all"]'));
   renderOrdenLlamada();
-  document.getElementById('ov-llamada').classList.add('open');
-  setTimeout(()=>document.getElementById('ll-nombre').focus(),120);
+  setTimeout(()=>document.getElementById('ll-nombre').focus(),150);
 }
 
-function filtrarProdsLlamada(){
-  const q=document.getElementById('ll-buscar').value.trim().toLowerCase();
-  const el=document.getElementById('ll-prods-lista');
-  // Si no hay búsqueda, vaciar lista
-  if(!q){el.innerHTML='';return;}
-  const filtrados=prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local'&&p.nombre.toLowerCase().includes(q));
+function cerrarLlamada(){
+  document.getElementById('ov-llamada').style.display='none';
+  llamadaOrden=[];
+}
+
+function selCatLlamada(catId,el){
+  document.querySelectorAll('.ll-cat-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  const filtrados=catId==='all'
+    ?prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local')
+    :prods.filter(p=>p.disponible&&p.canal_venta!=='solo_local'&&p.categoria_id===catId);
   renderProdsLlamada(filtrados);
 }
 
 function renderProdsLlamada(lista){
-  const el=document.getElementById('ll-prods-lista');
-  if(!lista.length){el.innerHTML='<div style="padding:12px 14px;color:var(--mut);font-size:13px">Sin resultados</div>';return;}
-  el.innerHTML=lista.map(p=>`
-    <div onclick="agregarLlamada('${p.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:background .2s" onmouseover="this.style.background='var(--sur)'" onmouseout="this.style.background=''">
-      <div>
-        <div style="font-size:13px;font-weight:600">${p.categorias?.emoji||'🍽️'} ${p.nombre}</div>
-        ${p.descripcion?`<div style="font-size:11px;color:var(--mut)">${p.descripcion.slice(0,50)}...</div>`:''}
+  const g=document.getElementById('ll-prods-grid');
+  if(!lista.length){
+    g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--mutl)">Sin productos</div>';
+    return;
+  }
+  g.innerHTML=lista.map(p=>`
+    <div class="ll-prod-card" onclick="agregarProdLlamada('${p.id}')">
+      <div class="ll-prod-card-img">
+        ${p.imagen_url
+          ?`<img src="${p.imagen_url}" alt="${p.nombre}" onerror="this.parentNode.innerHTML='<span style=font-size:32px>${p.categorias?.emoji||'🍽️'}</span>'">`
+          :`<span style="font-size:32px">${p.categorias?.emoji||'🍽️'}</span>`}
       </div>
-      <div style="font-family:var(--fh);font-size:14px;font-weight:800;color:var(--acc2);flex-shrink:0;margin-left:12px">${$f(p.precio)}</div>
+      <div class="ll-prod-card-body">
+        <div class="ll-prod-card-nombre">${p.nombre}</div>
+        <div class="ll-prod-card-precio">${$f(p.precio)}</div>
+      </div>
     </div>`).join('');
 }
 
-function agregarLlamada(id){
-  const p=prods.find(x=>x.id===id);
+function agregarProdLlamada(pid){
+  const p=prods.find(x=>x.id===pid);
   if(!p)return;
-  const ex=llamadaOrden.find(i=>i.id===id);
-  if(ex){ex.qty++;ex.subtotal=ex.precio*ex.qty;}
-  else llamadaOrden.push({id,nombre:p.nombre,precio:p.precio,qty:1,subtotal:p.precio});
+  const existing=llamadaOrden.find(i=>i.id===pid);
+  if(existing){existing.qty++;existing.subtotal=existing.precio*existing.qty;}
+  else llamadaOrden.push({id:p.id,nombre:p.nombre,precio:p.precio,qty:1,subtotal:p.precio});
   renderOrdenLlamada();
-  recalcLlamada();
-  // Limpiar búsqueda
-  document.getElementById('ll-buscar').value='';
-  renderProdsLlamada(prods.filter(p=>p.disponible));
-}
-
-function qtyLlamada(id,delta){
-  const item=llamadaOrden.find(i=>i.id===id);
-  if(!item)return;
-  item.qty+=delta;
-  if(item.qty<=0) llamadaOrden=llamadaOrden.filter(i=>i.id!==id);
-  else item.subtotal=item.precio*item.qty;
-  renderOrdenLlamada();
-  recalcLlamada();
 }
 
 function renderOrdenLlamada(){
-  const wrap=document.getElementById('ll-orden-wrap');
   const el=document.getElementById('ll-orden-items');
-  if(!llamadaOrden.length){wrap.style.display='none';return;}
-  wrap.style.display='block';
-  el.innerHTML=llamadaOrden.map(i=>`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bdr)">
-      <div style="font-size:13px;font-weight:500;flex:1">${i.nombre}</div>
-      <div style="display:flex;align-items:center;gap:6px;margin:0 10px">
-        <button class="qb" onclick="qtyLlamada('${i.id}',-1)" style="width:24px;height:24px;font-size:14px">−</button>
-        <span style="font-weight:700;font-size:13px">${i.qty}</span>
-        <button class="qb" onclick="qtyLlamada('${i.id}',1)" style="width:24px;height:24px;font-size:14px">+</button>
+  if(!llamadaOrden.length){
+    el.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--mutl);font-size:13px">🛒 Agrega productos</div>';
+    recalcLlamada();
+    return;
+  }
+  el.innerHTML=llamadaOrden.map((item,i)=>`
+    <div class="ll-item-row">
+      <div class="ll-item-info">
+        <div class="ll-item-nombre">${item.nombre}</div>
+        <div class="ll-item-precio">${$f(item.precio)} c/u</div>
       </div>
-      <span style="font-family:var(--fh);font-size:13px;font-weight:800;color:var(--acc2)">${$f(i.subtotal)}</span>
+      <div class="ll-item-controls">
+        <button class="ll-qty-btn" onclick="cambiarQtyLlamada(${i},-1)">−</button>
+        <span class="ll-qty">${item.qty}</span>
+        <button class="ll-qty-btn" onclick="cambiarQtyLlamada(${i},1)">+</button>
+        <button class="ll-del-btn" onclick="eliminarItemLlamada(${i})">✕</button>
+      </div>
     </div>`).join('');
+  recalcLlamada();
+}
+
+function cambiarQtyLlamada(i,delta){
+  llamadaOrden[i].qty+=delta;
+  if(llamadaOrden[i].qty<=0) llamadaOrden.splice(i,1);
+  else llamadaOrden[i].subtotal=llamadaOrden[i].precio*llamadaOrden[i].qty;
+  renderOrdenLlamada();
+}
+
+function eliminarItemLlamada(i){
+  llamadaOrden.splice(i,1);
+  renderOrdenLlamada();
 }
 
 function recalcLlamada(){
-  const sub=llamadaOrden.reduce((a,i)=>a+i.subtotal,0);
-  const dom=parseFloat(document.getElementById('ll-domicilio').value)||0;
+  const sub=llamadaOrden.reduce((a,i)=>a+i.precio*i.qty,0);
+  const dom=parseInt(document.getElementById('ll-domicilio').value)||0;
   document.getElementById('ll-subtotal').textContent=$f(sub);
   document.getElementById('ll-dom-display').textContent=$f(dom);
   document.getElementById('ll-total').textContent=$f(sub+dom);
