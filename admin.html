@@ -420,6 +420,66 @@ table.vtbl tr:hover td{background:var(--sur2)}
   .pos-wrap{grid-template-columns:1fr;height:auto}
   .pos-orden{border-top:2px solid var(--bdr);height:auto}
 }
+
+/* ── LLAMADA MÓVIL ── */
+@media(max-width:700px){
+  #ov-llamada>[style*="display:flex;flex:1"]{
+    flex-direction:column;
+  }
+  #ll-cats-col{
+    width:100%!important;
+    height:auto!important;
+    border-right:none!important;
+    border-bottom:1px solid var(--bdr);
+    display:flex!important;
+    flex-direction:row!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding:8px!important;
+    gap:6px;
+    flex-shrink:0;
+  }
+  #ll-cats-col .ll-cat-item{
+    white-space:nowrap;
+    border-left:none!important;
+    border-radius:99px;
+    border:1.5px solid var(--bdr)!important;
+    background:var(--sur)!important;
+    padding:7px 14px!important;
+    font-size:12px;
+  }
+  #ll-cats-col .ll-cat-item.active{
+    background:#fff5f1!important;
+    border-color:var(--acc)!important;
+    color:var(--acc)!important;
+  }
+  /* Col productos ocupa todo el ancho */
+  #ov-llamada>[style*="display:flex;flex:1"]>div:nth-child(2){
+    flex:1;
+  }
+  /* Col formulario → bottom sheet fijo */
+  #ll-form-col{
+    position:fixed!important;
+    bottom:0;left:0;right:0;
+    width:100%!important;
+    max-height:60vh;
+    border-left:none!important;
+    border-top:2px solid var(--bdr);
+    border-radius:20px 20px 0 0;
+    box-shadow:0 -8px 32px rgba(0,0,0,.15);
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.4,0,.2,1);
+    z-index:110;
+    overflow-y:auto;
+  }
+  #ll-form-col.open{
+    transform:translateY(0);
+  }
+  /* Botón flotante carrito en móvil */
+  #ll-cart-fab{
+    display:flex!important;
+  }
+}
 .caja-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--sur2);border-radius:12px;padding:4px}
 .ctab{flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);transition:all .2s;user-select:none;border:none;background:transparent;font-family:var(--fb)}
 .ctab.active{background:var(--acc);color:#fff}
@@ -1669,7 +1729,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
     </div>
 
     <!-- COL 3: Pedido -->
-    <div style="width:320px;flex-shrink:0;background:var(--sur);border-left:1px solid var(--bdr);display:flex;flex-direction:column">
+    <div id="ll-form-col" style="width:320px;flex-shrink:0;background:var(--sur);border-left:1px solid var(--bdr);display:flex;flex-direction:column">
 
       <!-- Datos cliente -->
       <div style="padding:14px 16px;border-bottom:1px solid var(--bdr);flex-shrink:0">
@@ -1721,6 +1781,16 @@ table.vtbl tr:hover td{background:var(--sur2)}
 
     </div>
   </div>
+
+  <!-- FAB carrito móvil — solo visible en móvil -->
+  <button id="ll-cart-fab" onclick="toggleLlamadaForm()"
+    style="display:none;position:fixed;bottom:20px;left:0;right:0;margin:0 auto;width:220px;
+    z-index:115;background:var(--acc);color:#fff;border:none;border-radius:99px;
+    padding:13px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--fb);
+    box-shadow:0 6px 20px rgba(255,107,53,.45);white-space:nowrap;align-items:center;justify-content:center;gap:8px">
+    🛒 <span id="ll-fab-count">0 items</span> · <span id="ll-fab-total">$0</span>
+  </button>
+
 </div>
 
 <!-- ── MODAL PAUSA PEDIDOS ── -->
@@ -3953,8 +4023,14 @@ function abrirLlamada(){
   setTimeout(()=>document.getElementById('ll-nombre').focus(),150);
 }
 
+function toggleLlamadaForm(){
+  const col=document.getElementById('ll-form-col');
+  col.classList.toggle('open');
+}
+
 function cerrarLlamada(){
   document.getElementById('ov-llamada').style.display='none';
+  document.getElementById('ll-form-col').classList.remove('open');
   llamadaOrden=[];
 }
 
@@ -4037,6 +4113,15 @@ function recalcLlamada(){
   document.getElementById('ll-subtotal').textContent=$f(sub);
   document.getElementById('ll-dom-display').textContent=$f(dom);
   document.getElementById('ll-total').textContent=$f(sub+dom);
+  // Actualizar FAB móvil
+  const totalItems=llamadaOrden.reduce((a,i)=>a+i.qty,0);
+  const fabCount=document.getElementById('ll-fab-count');
+  const fabTotal=document.getElementById('ll-fab-total');
+  const fab=document.getElementById('ll-cart-fab');
+  if(fabCount) fabCount.textContent=`${totalItems} item${totalItems!==1?'s':''}`;
+  if(fabTotal) fabTotal.textContent=$f(sub+dom);
+  // Mostrar FAB solo si hay items (en móvil)
+  if(fab) fab.style.display=totalItems>0?'inline-flex':'none';
 }
 
 async function guardarLlamada(){
