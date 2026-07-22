@@ -24,6 +24,24 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
   display:flex;align-items:center;padding:0 16px;height:52px;
   box-shadow:0 1px 3px rgba(0,0,0,.06);gap:12px;
 }
+/* Barra de navegación rápida — sticky debajo del topnav */
+.quick-nav{
+  position:sticky;top:52px;z-index:59;
+  display:flex;border-bottom:1.5px solid var(--bdr);
+  background:var(--sur);
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+.quick-nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 6px;border:none;border-right:1px solid var(--bdr);
+  background:var(--sur);cursor:pointer;font-family:var(--fb);
+  transition:background .15s;
+}
+.quick-nav-btn:last-child{border-right:none}
+.quick-nav-btn.active{background:#e8f0fe}
+.quick-nav-btn .qn-ico{font-size:16px}
+.quick-nav-btn .qn-lbl{font-size:10px;font-weight:700;color:var(--mut)}
+.quick-nav-btn.active .qn-lbl{color:#1d4ed8}
 /* Botón hamburguesa */
 .hbtn{display:flex;flex-direction:column;justify-content:center;gap:5px;
   width:36px;height:36px;cursor:pointer;border:none;background:transparent;
@@ -715,6 +733,22 @@ table.vtbl tr:hover td{background:var(--sur2)}
   <div class="live"><span class="dot"></span><span id="page-lbl">Pedidos</span></div>
 </nav>
 
+<!-- ── BARRA DE NAVEGACIÓN RÁPIDA GLOBAL ── -->
+<div class="quick-nav" id="quick-nav">
+  <button class="quick-nav-btn active" id="qnav-pedidos" onclick="irA('pedidos')">
+    <span class="qn-ico">📋</span>
+    <span class="qn-lbl">Pedidos</span>
+  </button>
+  <button class="quick-nav-btn" id="qnav-llamada" onclick="irA('llamada')">
+    <span class="qn-ico">📞</span>
+    <span class="qn-lbl">Llamada</span>
+  </button>
+  <button class="quick-nav-btn" id="qnav-pos" onclick="irA('pos')">
+    <span class="qn-ico">🖥️</span>
+    <span class="qn-lbl">Mostrador</span>
+  </button>
+</div>
+
 <!-- ── PEDIDOS ── -->
 <div class="page active" id="pg-pedidos">
 
@@ -723,25 +757,6 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <div class="sc"><div class="ico">📥</div><div><div class="val" id="s-hoy">0</div><div class="lbl">Hoy</div></div></div>
     <div class="sc"><div class="ico">⏳</div><div><div class="val" id="s-pend">0</div><div class="lbl">Pendientes</div></div></div>
     <div class="sc"><div class="ico">💰</div><div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas</div></div></div>
-  </div>
-
-  <!-- Barra de navegación rápida — debajo de los stats -->
-  <div style="display:flex;border:1.5px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--sur)">
-    <button onclick="irA('pedidos')" id="nav-pedidos"
-      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;border-right:1.5px solid var(--bdr);background:#e8f0fe;cursor:pointer;font-family:var(--fb);transition:all .15s">
-      <span style="font-size:18px">📋</span>
-      <span style="font-size:11px;font-weight:700;color:#1d4ed8">Pedidos</span>
-    </button>
-    <button onclick="irA('llamada')" id="nav-llamada"
-      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;border-right:1.5px solid var(--bdr);background:var(--sur);cursor:pointer;font-family:var(--fb);transition:all .15s">
-      <span style="font-size:18px">📞</span>
-      <span style="font-size:11px;font-weight:700;color:var(--mut)">Llamada</span>
-    </button>
-    <button onclick="irA('pos')" id="nav-pos"
-      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;background:var(--sur);cursor:pointer;font-family:var(--fb);transition:all .15s">
-      <span style="font-size:18px">🖥️</span>
-      <span style="font-size:11px;font-weight:700;color:var(--mut)">Mostrador</span>
-    </button>
   </div>
 
   <!-- Banner pausa activa -->
@@ -4031,25 +4046,19 @@ function irA(destino){
     abrirLlamada();
     return;
   }
-  // Navegar a página
   const pgMap={pedidos:'pg-pedidos',pos:'pg-pos',caja:'pg-caja'};
   const pgId=pgMap[destino];
   if(!pgId) return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(pgId)?.classList.add('active');
-  // Actualizar topbar label
+  // Actualizar label topnav
   const labels={pedidos:'Pedidos',pos:'Mostrador',caja:'Caja'};
-  const lbl=document.querySelector('.topnav-lbl');
+  const lbl=document.getElementById('page-lbl');
   if(lbl) lbl.textContent=labels[destino]||'';
-  // Actualizar nav bar highlight
-  ['nav-pedidos','nav-pos'].forEach(id=>{
-    const btn=document.getElementById(id);
-    if(!btn) return;
-    const isActive=(id==='nav-pedidos'&&destino==='pedidos')||(id==='nav-pos'&&destino==='pos');
-    btn.style.background=isActive?'#e8f0fe':'var(--sur)';
-    const lbl=btn.querySelector('span:last-child');
-    if(lbl) lbl.style.color=isActive?'#1d4ed8':'var(--mut)';
-  });
+  // Actualizar quick-nav activo
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  const activeBtn=document.getElementById('qnav-'+destino);
+  if(activeBtn) activeBtn.classList.add('active');
 }
 
 function abrirLlamada(){
