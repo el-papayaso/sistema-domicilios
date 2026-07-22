@@ -77,8 +77,11 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .page.active{display:block}
 
 /* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:16px;box-shadow:var(--sh)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.sc{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.sc .ico{font-size:18px;flex-shrink:0}
+.sc .val{font-size:18px;font-weight:800;color:var(--txt);font-family:var(--fh);line-height:1}
+.sc .lbl{font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
 .sc .ico{font-size:22px;margin-bottom:8px}
 .sc .val{font-size:22px;font-weight:700}
 .sc .lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
@@ -714,11 +717,31 @@ table.vtbl tr:hover td{background:var(--sur2)}
 
 <!-- ── PEDIDOS ── -->
 <div class="page active" id="pg-pedidos">
+
+  <!-- Barra de navegación rápida -->
+  <div style="display:flex;border:1.5px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:14px;background:var(--sur)">
+    <button onclick="irA('pedidos')" id="nav-pedidos"
+      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;border-right:1.5px solid var(--bdr);background:#e8f0fe;cursor:pointer;font-family:var(--fb);transition:all .15s">
+      <span style="font-size:18px">📋</span>
+      <span style="font-size:11px;font-weight:700;color:#1d4ed8">Pedidos</span>
+    </button>
+    <button onclick="irA('llamada')" id="nav-llamada"
+      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;border-right:1.5px solid var(--bdr);background:var(--sur);cursor:pointer;font-family:var(--fb);transition:all .15s">
+      <span style="font-size:18px">📞</span>
+      <span style="font-size:11px;font-weight:700;color:var(--mut)">Llamada</span>
+    </button>
+    <button onclick="irA('pos')" id="nav-pos"
+      style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px;border:none;background:var(--sur);cursor:pointer;font-family:var(--fb);transition:all .15s">
+      <span style="font-size:18px">🖥️</span>
+      <span style="font-size:11px;font-weight:700;color:var(--mut)">Mostrador</span>
+    </button>
+  </div>
+
+  <!-- Stats compactos: 3 cards -->
   <div class="stats">
-    <div class="sc"><div class="ico">📥</div><div class="val" id="s-hoy">0</div><div class="lbl">Hoy</div></div>
-    <div class="sc"><div class="ico">⏳</div><div class="val" id="s-pend">0</div><div class="lbl">Pendientes</div></div>
-    <div class="sc"><div class="ico">🛵</div><div class="val" id="s-cam">0</div><div class="lbl">En camino</div></div>
-    <div class="sc"><div class="ico">💰</div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div>
+    <div class="sc"><div class="ico">📥</div><div><div class="val" id="s-hoy">0</div><div class="lbl">Hoy</div></div></div>
+    <div class="sc"><div class="ico">⏳</div><div><div class="val" id="s-pend">0</div><div class="lbl">Pendientes</div></div></div>
+    <div class="sc"><div class="ico">💰</div><div><div class="val" id="s-ven">$0</div><div class="lbl">Ventas hoy</div></div></div>
   </div>
 
   <!-- Banner pausa activa -->
@@ -730,19 +753,20 @@ table.vtbl tr:hover td{background:var(--sur2)}
     <button class="pausa-btn activa" onclick="reanudarPedidos()" style="padding:6px 14px;font-size:12px">▶ Reanudar ahora</button>
   </div>
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+  <!-- Fila de acciones -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--mut)">Solo domicilios</span>
-      <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar pedidos</button>
+      <button class="pausa-btn inactiva" id="btn-pausa" onclick="abrirModalPausa()">⏸ Pausar</button>
       <button id="btn-encuestas" onclick="toggleEncuestasPanel()" class="pausa-btn inactiva">
         ⭐ <span id="enc-contador" style="background:rgba(255,255,255,.25);color:#fff;border-radius:99px;padding:1px 7px;font-size:11px;font-weight:700">0</span>
         <span id="enc-alerta-badge" style="display:none;background:#fff;color:var(--red);border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700"></span>
       </button>
+      <button class="pausa-btn inactiva" onclick="abrirGastoVariable()" style="background:#6d28d9;box-shadow:0 4px 14px rgba(109,40,217,.3)">
+        ➕ Gasto
+      </button>
     </div>
-    <button class="bcreate" style="padding:11px 22px;font-size:14px;animation:none;background:var(--blu);box-shadow:0 4px 16px rgba(59,130,246,.3)" onclick="abrirLlamada()">
-      📞 Pedido por llamada
-    </button>
   </div>
+
   <div class="plist" id="plist"><div class="empty"><span>📭</span><p>Esperando pedidos en tiempo real...</p></div></div>
 </div>
 
@@ -2264,7 +2288,6 @@ function stats(){
   const dh=peds.filter(p=>new Date(p.created_at).toDateString()===hoy);
   document.getElementById('s-hoy').textContent=dh.length;
   document.getElementById('s-pend').textContent=peds.filter(p=>p.estado==='pendiente').length;
-  document.getElementById('s-cam').textContent=peds.filter(p=>p.estado==='en_camino').length;
   document.getElementById('s-ven').textContent=$f(dh.filter(p=>p.estado!=='cancelado').reduce((a,p)=>a+ +p.total,0));
 }
 
@@ -4005,7 +4028,31 @@ async function cobrarPOS(){
 // ═══════════════════════════════
 let llamadaOrden=[];
 
-function abrirLlamada(){
+function irA(destino){
+  if(destino==='llamada'){
+    abrirLlamada();
+    return;
+  }
+  // Navegar a página
+  const pgMap={pedidos:'pg-pedidos',pos:'pg-pos',caja:'pg-caja'};
+  const pgId=pgMap[destino];
+  if(!pgId) return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(pgId)?.classList.add('active');
+  // Actualizar topbar label
+  const labels={pedidos:'Pedidos',pos:'Mostrador',caja:'Caja'};
+  const lbl=document.querySelector('.topnav-lbl');
+  if(lbl) lbl.textContent=labels[destino]||'';
+  // Actualizar nav bar highlight
+  ['nav-pedidos','nav-pos'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(!btn) return;
+    const isActive=(id==='nav-pedidos'&&destino==='pedidos')||(id==='nav-pos'&&destino==='pos');
+    btn.style.background=isActive?'#e8f0fe':'var(--sur)';
+    const lbl=btn.querySelector('span:last-child');
+    if(lbl) lbl.style.color=isActive?'#1d4ed8':'var(--mut)';
+  });
+}
   llamadaOrden=[];
   document.getElementById('ll-nombre').value='';
   document.getElementById('ll-tel').value='';
