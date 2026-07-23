@@ -683,9 +683,6 @@ table.vtbl tr:hover td{background:var(--sur2)}
       <span class="sb-ico">📋</span> Pedidos
       <span class="sbadge" id="badge">0</span>
     </div>
-    <div class="sb-item" data-pg="pos" onclick="ir('pos')">
-      <span class="sb-ico">🏪</span> POS
-    </div>
     <div class="sb-sep"></div>
     <div class="sb-item" data-pg="productos" onclick="ir('productos')">
       <span class="sb-ico">🍔</span> Productos
@@ -4051,6 +4048,8 @@ function irA(destino){
   if(!pgId) return;
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(pgId)?.classList.add('active');
+  // Inicializar POS si es la primera vez
+  if(destino==='pos') initPOS();
   // Actualizar label topnav
   const labels={pedidos:'Pedidos',pos:'Mostrador',caja:'Caja'};
   const lbl=document.getElementById('page-lbl');
