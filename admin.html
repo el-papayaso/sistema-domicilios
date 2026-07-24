@@ -26,7 +26,7 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 }
 /* Barra de navegación rápida — sticky debajo del topnav */
 .quick-nav{
-  position:sticky;top:52px;z-index:105;
+  position:sticky;top:52px;z-index:59;
   display:flex;border-bottom:1.5px solid var(--bdr);
   background:var(--sur);
   box-shadow:0 2px 6px rgba(0,0,0,.06);
@@ -1736,7 +1736,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
 
 <!-- ── MODAL PEDIDO POR LLAMADA ── -->
 <!-- ── PEDIDO POR LLAMADA — PANTALLA COMPLETA ── -->
-<div id="ov-llamada" style="display:none;position:fixed;top:90px;left:0;right:0;bottom:0;z-index:100;background:var(--bg);flex-direction:column">
+<div id="ov-llamada" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);flex-direction:column">
 
   <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0">
@@ -4069,9 +4069,6 @@ function abrirLlamada(){
   document.getElementById('ll-notas').value='';
   const ov=document.getElementById('ov-llamada');
   ov.style.display='flex';
-  // Marcar llamada activa en quick-nav
-  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('qnav-llamada')?.classList.add('active');
   const catsCol=document.getElementById('ll-cats-col');
   catsCol.innerHTML=`<div class="ll-cat-item active" data-cat="all" onclick="selCatLlamada('all',this)">🍽️ Todo</div>`+
     cats.map(c=>`<div class="ll-cat-item" data-cat="${c.id}" onclick="selCatLlamada('${c.id}',this)">${c.emoji} ${c.nombre}</div>`).join('');
@@ -4089,9 +4086,6 @@ function cerrarLlamada(){
   document.getElementById('ov-llamada').style.display='none';
   document.getElementById('ll-form-col').classList.remove('open');
   llamadaOrden=[];
-  // Restaurar pedidos como activo en quick-nav
-  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('qnav-pedidos')?.classList.add('active');
 }
 
 function selCatLlamada(catId,el){
@@ -4209,8 +4203,7 @@ async function guardarLlamada(){
       cantidad:i.qty, subtotal:i.subtotal
     })));
     toast(`✅ Pedido #${ped.numero_pedido||''} registrado por llamada`,'ok');
-    cerrarLlamada();
-    irA('pedidos');
+    cerrar('ov-llamada');
     await loadPeds();
   }catch(err){
     toast('❌ Error: '+err.message,'err');
