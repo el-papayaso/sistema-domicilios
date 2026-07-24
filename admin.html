@@ -19,18 +19,22 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 /* ── TOP NAV ── */
 .topnav{
-  position:sticky;top:0;z-index:60;
+  position:fixed;top:0;left:0;right:0;z-index:60;
   background:var(--sur);border-bottom:1px solid var(--bdr);
   display:flex;align-items:center;padding:0 16px;height:52px;
   box-shadow:0 1px 3px rgba(0,0,0,.06);gap:12px;
 }
-/* Barra de navegación rápida — sticky debajo del topnav */
 .quick-nav{
-  position:sticky;top:52px;z-index:59;
+  position:fixed;top:52px;left:0;right:0;z-index:58;
   display:flex;border-bottom:1.5px solid var(--bdr);
   background:var(--sur);
   box-shadow:0 2px 6px rgba(0,0,0,.06);
 }
+/* Compensar topnav(52px) + quick-nav(~40px) */
+body>*:not(.topnav):not(.quick-nav):not(.sidebar):not(.sidebar-ov):not(#ov-llamada):not(#enc-ov):not(#enc-panel):not(#ll-cart-fab){
+  margin-top:0;
+}
+.page{padding-top:106px}
 .quick-nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
   padding:8px 6px;border:none;border-right:1px solid var(--bdr);
@@ -1736,7 +1740,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
 
 <!-- ── MODAL PEDIDO POR LLAMADA ── -->
 <!-- ── PEDIDO POR LLAMADA — PANTALLA COMPLETA ── -->
-<div id="ov-llamada" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);flex-direction:column">
+<div id="ov-llamada" style="display:none;position:fixed;top:92px;left:0;right:0;bottom:0;z-index:50;background:var(--bg);flex-direction:column">
 
   <!-- Header -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0">
@@ -2094,9 +2098,9 @@ async function renderPeds(){
       ?'<span class="canal-badge canal-pos">🖥️ POS</span>'
       :'<span class="canal-badge canal-wa">📱 WA</span>';
     const entregaBadge=p.tipo_entrega==='local'
-      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Mesa</span>'
+      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Comer aquí</span>'
       :p.tipo_entrega==='llevar'
-      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar/Recoger</span>'
+      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar</span>'
       :'<span style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🛵 Domicilio</span>';
     const mp=p.medio_pago||'efectivo';
     const mpLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'}[mp]||mp;
@@ -4069,6 +4073,9 @@ function abrirLlamada(){
   document.getElementById('ll-notas').value='';
   const ov=document.getElementById('ov-llamada');
   ov.style.display='flex';
+  // Marcar llamada activa en quick-nav
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('qnav-llamada')?.classList.add('active');
   const catsCol=document.getElementById('ll-cats-col');
   catsCol.innerHTML=`<div class="ll-cat-item active" data-cat="all" onclick="selCatLlamada('all',this)">🍽️ Todo</div>`+
     cats.map(c=>`<div class="ll-cat-item" data-cat="${c.id}" onclick="selCatLlamada('${c.id}',this)">${c.emoji} ${c.nombre}</div>`).join('');
@@ -4086,6 +4093,9 @@ function cerrarLlamada(){
   document.getElementById('ov-llamada').style.display='none';
   document.getElementById('ll-form-col').classList.remove('open');
   llamadaOrden=[];
+  // Restaurar pedidos como activo en quick-nav
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('qnav-pedidos')?.classList.add('active');
 }
 
 function selCatLlamada(catId,el){
@@ -4203,7 +4213,8 @@ async function guardarLlamada(){
       cantidad:i.qty, subtotal:i.subtotal
     })));
     toast(`✅ Pedido #${ped.numero_pedido||''} registrado por llamada`,'ok');
-    cerrar('ov-llamada');
+    cerrarLlamada();
+    irA('pedidos');
     await loadPeds();
   }catch(err){
     toast('❌ Error: '+err.message,'err');
