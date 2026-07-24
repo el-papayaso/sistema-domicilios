@@ -2094,9 +2094,9 @@ async function renderPeds(){
       ?'<span class="canal-badge canal-pos">🖥️ POS</span>'
       :'<span class="canal-badge canal-wa">📱 WA</span>';
     const entregaBadge=p.tipo_entrega==='local'
-      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Comer aquí</span>'
+      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Mesa</span>'
       :p.tipo_entrega==='llevar'
-      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar</span>'
+      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar/Recoger</span>'
       :'<span style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🛵 Domicilio</span>';
     const mp=p.medio_pago||'efectivo';
     const mpLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'}[mp]||mp;
