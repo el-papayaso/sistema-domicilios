@@ -19,18 +19,18 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 
 /* ── TOP NAV ── */
 .topnav{
-  position:sticky;top:0;z-index:60;
+  position:fixed;top:0;left:0;right:0;z-index:60;
   background:var(--sur);border-bottom:1px solid var(--bdr);
   display:flex;align-items:center;padding:0 16px;height:52px;
   box-shadow:0 1px 3px rgba(0,0,0,.06);gap:12px;
 }
-/* Barra de navegación rápida — sticky debajo del topnav */
 .quick-nav{
-  position:sticky;top:52px;z-index:59;
+  position:fixed;top:52px;left:0;right:0;z-index:58;
   display:flex;border-bottom:1.5px solid var(--bdr);
   background:var(--sur);
   box-shadow:0 2px 6px rgba(0,0,0,.06);
 }
+/* Compensar topnav(52px) + quick-nav(~40px) */
 .quick-nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
   padding:8px 6px;border:none;border-right:1px solid var(--bdr);
@@ -91,8 +91,9 @@ body{background:var(--bg);color:var(--txt);font-family:var(--fb);min-height:100v
 .sidebar-foot{padding:12px 16px;border-top:1px solid var(--bdr);font-size:11px;color:var(--mutl)}
 
 /* ── PAGES ── */
-.page{display:none;padding:20px 20px;max-width:1100px;margin:0 auto}
+.page{display:none;padding:20px 20px;max-width:1100px;margin:0 auto;margin-top:96px}
 .page.active{display:block}
+#ov-llamada.active{display:flex!important}
 
 /* ── STATS ── */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
@@ -794,7 +795,7 @@ table.vtbl tr:hover td{background:var(--sur2)}
 </div>
 
 <!-- ── POS ── -->
-<div class="page" id="pg-pos" style="padding:0;max-width:100%">
+<div class="page" id="pg-pos" style="padding:0;max-width:100%;margin-top:96px">
   <div class="pos-wrap">
     <!-- Menú izquierda -->
     <div class="pos-menu">
@@ -1734,18 +1735,8 @@ table.vtbl tr:hover td{background:var(--sur2)}
   </div>
 </div>
 
-<!-- ── MODAL PEDIDO POR LLAMADA ── -->
-<!-- ── PEDIDO POR LLAMADA — PANTALLA COMPLETA ── -->
-<div id="ov-llamada" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);flex-direction:column">
-
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--sur);border-bottom:1px solid var(--bdr);flex-shrink:0">
-    <div style="display:flex;align-items:center;gap:12px">
-      <button onclick="cerrarLlamada()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fb);color:var(--txt)">← Volver</button>
-      <div style="font-size:16px;font-weight:800;color:var(--txt)">📞 Pedido por llamada</div>
-    </div>
-    <button class="bpri" style="background:var(--blu);padding:9px 22px;font-size:13px" onclick="guardarLlamada()">✓ Registrar pedido</button>
-  </div>
+<!-- ── PEDIDO POR LLAMADA — PÁGINA NORMAL ── -->
+<div id="ov-llamada" class="page" style="padding:0;max-width:100%;flex-direction:column;height:calc(100vh - 96px);margin-top:96px">
 
   <!-- Body: 3 columnas -->
   <div style="display:flex;flex:1;overflow:hidden">
@@ -1805,12 +1796,13 @@ table.vtbl tr:hover td{background:var(--sur2)}
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:4px">
           <span>Subtotal</span><span id="ll-subtotal">$0</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:10px">
           <span>Domicilio</span><span id="ll-dom-display">$0</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:var(--txt)">
+        <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:800;color:var(--txt);margin-bottom:12px">
           <span>Total</span><span id="ll-total" style="color:var(--acc2)">$0</span>
         </div>
+        <button class="bpri" style="width:100%;background:var(--blu);padding:12px;font-size:14px;border-radius:10px" onclick="guardarLlamada()">✓ Registrar pedido</button>
       </div>
 
     </div>
@@ -1968,13 +1960,19 @@ const PGNAMES={pedidos:'Pedidos',pos:'POS',productos:'Productos',
 
 function ir(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ov-llamada').classList.remove('active');
+  llamadaOrden=[];
   document.querySelectorAll('.sb-item').forEach(t=>t.classList.remove('active'));
-  document.getElementById('pg-'+pg).classList.add('active');
+  document.getElementById('pg-'+pg)?.classList.add('active');
   const item=document.querySelector(`.sb-item[data-pg="${pg}"]`);
   if(item) item.classList.add('active');
   const lbl=document.getElementById('page-lbl');
   if(lbl) lbl.textContent=PGNAMES[pg]||pg;
   closeSidebar();
+  // Sync quick-nav
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  if(pg==='pedidos') document.getElementById('qnav-pedidos')?.classList.add('active');
+  if(pg==='pos')     document.getElementById('qnav-pos')?.classList.add('active');
   if(pg==='categorias')    renderCats();
   if(pg==='productos')     renderProds();
   if(pg==='config')        renderConfig();
@@ -2094,9 +2092,9 @@ async function renderPeds(){
       ?'<span class="canal-badge canal-pos">🖥️ POS</span>'
       :'<span class="canal-badge canal-wa">📱 WA</span>';
     const entregaBadge=p.tipo_entrega==='local'
-      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Mesa</span>'
+      ?'<span style="background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🍽️ Comer aquí</span>'
       :p.tipo_entrega==='llevar'
-      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar/Recoger</span>'
+      ?'<span style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🏃 Llevar</span>'
       :'<span style="background:#faf5ff;color:#7c3aed;border:1px solid #ddd6fe;border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">🛵 Domicilio</span>';
     const mp=p.medio_pago||'efectivo';
     const mpLabel={efectivo:'Efectivo',tarjeta:'Tarjeta',nequi:'Nequi',daviplata:'Daviplata'}[mp]||mp;
@@ -4043,32 +4041,41 @@ function irA(destino){
     abrirLlamada();
     return;
   }
-  const pgMap={pedidos:'pg-pedidos',pos:'pg-pos',caja:'pg-caja'};
-  const pgId=pgMap[destino];
-  if(!pgId) return;
+  // Ocultar todas las páginas incluyendo llamada
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ov-llamada').classList.remove('active');
+  llamadaOrden=[];
+
+  const pgId='pg-'+destino;
   document.getElementById(pgId)?.classList.add('active');
-  // Inicializar POS si es la primera vez
+
+  // Inicializar POS si es necesario
   if(destino==='pos') initPOS();
+
   // Actualizar label topnav
   const labels={pedidos:'Pedidos',pos:'Mostrador',caja:'Caja'};
   const lbl=document.getElementById('page-lbl');
   if(lbl) lbl.textContent=labels[destino]||'';
+
   // Actualizar quick-nav activo
   document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
-  const activeBtn=document.getElementById('qnav-'+destino);
-  if(activeBtn) activeBtn.classList.add('active');
+  document.getElementById('qnav-'+destino)?.classList.add('active');
 }
 
 function abrirLlamada(){
   llamadaOrden=[];
+  document.getElementById('ll-nombre').value='';
   document.getElementById('ll-tel').value='';
   document.getElementById('ll-dir').value='';
   document.getElementById('ll-mp').value='efectivo';
   document.getElementById('ll-domicilio').value='0';
   document.getElementById('ll-notas').value='';
-  const ov=document.getElementById('ov-llamada');
-  ov.style.display='flex';
+  // Ocultar todas las páginas y mostrar llamada
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ov-llamada').classList.add('active');
+  // Marcar llamada activa en quick-nav
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('qnav-llamada')?.classList.add('active');
   const catsCol=document.getElementById('ll-cats-col');
   catsCol.innerHTML=`<div class="ll-cat-item active" data-cat="all" onclick="selCatLlamada('all',this)">🍽️ Todo</div>`+
     cats.map(c=>`<div class="ll-cat-item" data-cat="${c.id}" onclick="selCatLlamada('${c.id}',this)">${c.emoji} ${c.nombre}</div>`).join('');
@@ -4083,9 +4090,13 @@ function toggleLlamadaForm(){
 }
 
 function cerrarLlamada(){
-  document.getElementById('ov-llamada').style.display='none';
+  document.getElementById('ov-llamada').classList.remove('active');
   document.getElementById('ll-form-col').classList.remove('open');
   llamadaOrden=[];
+  // Restaurar pedidos como activo
+  document.querySelectorAll('.quick-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('qnav-pedidos')?.classList.add('active');
+  document.getElementById('pg-pedidos').classList.add('active');
 }
 
 function selCatLlamada(catId,el){
@@ -4203,7 +4214,8 @@ async function guardarLlamada(){
       cantidad:i.qty, subtotal:i.subtotal
     })));
     toast(`✅ Pedido #${ped.numero_pedido||''} registrado por llamada`,'ok');
-    cerrar('ov-llamada');
+    cerrarLlamada();
+    irA('pedidos');
     await loadPeds();
   }catch(err){
     toast('❌ Error: '+err.message,'err');
